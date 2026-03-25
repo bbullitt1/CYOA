@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Story Quest ✨</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Georgia, 'Times New Roman', serif;
+      background: linear-gradient(160deg, #0d1b4b 0%, #1a2a6c 40%, #23395d 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #fff;
+    }
+
+    /* Starfield background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 25% 60%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 50% 20%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 70% 75%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 85% 35%, rgba(255,255,255,0.8) 0%, transparent 100%),
+        radial-gradient(1px 1px at 40% 85%, rgba(255,255,255,0.5) 0%, transparent 100%),
+        radial-gradient(1px 1px at 90% 10%, rgba(255,255,255,0.9) 0%, transparent 100%),
+        radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,0.6) 0%, transparent 100%),
+        radial-gradient(1px 1px at 60% 45%, rgba(255,255,255,0.7) 0%, transparent 100%),
+        radial-gradient(1px 1px at 33% 33%, rgba(255,255,255,0.8) 0%, transparent 100%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #app {
+      position: relative;
+      z-index: 1;
+      max-width: 580px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .app-title {
+      font-size: 2.8rem;
+      color: #ffd700;
+      text-shadow: 0 0 30px rgba(255, 215, 0, 0.6), 0 2px 4px rgba(0,0,0,0.5);
+      margin-bottom: 6px;
+      letter-spacing: 0.02em;
+    }
+
+    .app-subtitle {
+      font-size: 1.05rem;
+      color: #b8d4f0;
+      margin-bottom: 30px;
+      font-style: italic;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      padding: 30px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ── Buttons ── */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 20px 24px;
+      border: none;
+      border-radius: 18px;
+      font-family: inherit;
+      font-size: 1.25rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s;
+      margin-bottom: 14px;
+      line-height: 1.35;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+
+    .btn:last-child { margin-bottom: 0; }
+
+    .btn:active:not(:disabled) { transform: scale(0.95); }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #ffd700 0%, #ff9500 100%);
+      color: #1a1a2e;
+      box-shadow: 0 6px 24px rgba(255, 180, 0, 0.45);
+      font-size: 1.4rem;
+      padding: 24px;
+    }
+
+    .btn-start:active:not(:disabled) {
+      box-shadow: 0 2px 10px rgba(255, 180, 0, 0.3);
+    }
+
+    .btn-choice {
+      background: rgba(255, 255, 255, 0.10);
+      color: #fff;
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      text-align: left;
+      font-size: 1.15rem;
+      padding: 20px 22px;
+    }
+
+    .btn-choice:active:not(:disabled) {
+      background: rgba(255, 215, 0, 0.2);
+      border-color: #ffd700;
+    }
+
+    .btn-replay {
+      background: linear-gradient(135deg, #7b2ff7 0%, #3b82f6 100%);
+      color: #fff;
+      box-shadow: 0 6px 20px rgba(123, 47, 247, 0.4);
+      font-size: 1.3rem;
+      padding: 22px;
+    }
+
+    /* ── Setup Screen ── */
+    #setup-screen { display: block; }
+
+    .setup-icon {
+      font-size: 4rem;
+      display: block;
+      margin-bottom: 16px;
+      animation: float 3s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .setup-label {
+      font-size: 1rem;
+      color: #b8d4f0;
+      margin-bottom: 18px;
+      line-height: 1.5;
+    }
+
+    .setup-label strong { color: #ffd700; }
+
+    #api-key-input {
+      width: 100%;
+      padding: 16px 18px;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 215, 0, 0.3);
+      background: rgba(0, 0, 20, 0.4);
+      color: #fff;
+      font-size: 1rem;
+      font-family: monospace;
+      margin-bottom: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    #api-key-input:focus { border-color: #ffd700; }
+
+    #api-key-input::placeholder { color: rgba(255, 255, 255, 0.35); }
+
+    .key-hint {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: -8px;
+      margin-bottom: 16px;
+    }
+
+    /* ── Error ── */
+    .error-box {
+      display: none;
+      background: rgba(255, 70, 70, 0.18);
+      border: 1px solid rgba(255, 100, 100, 0.4);
+      border-radius: 12px;
+      padding: 14px 16px;
+      color: #ffb3b3;
+      font-size: 0.95rem;
+      margin-bottom: 14px;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    /* ── Story Screen ── */
+    #story-screen { display: none; }
+
+    /* Progress */
+    #progress {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .prog-star {
+      font-size: 1.5rem;
+      transition: all 0.4s ease;
+      filter: grayscale(1) brightness(0.4);
+    }
+
+    .prog-star.lit {
+      filter: none;
+      animation: starPop 0.4s ease;
+    }
+
+    @keyframes starPop {
+      0% { transform: scale(0.5); }
+      70% { transform: scale(1.3); }
+      100% { transform: scale(1); }
+    }
+
+    /* Narration */
+    #narration-text {
+      font-size: 1.15rem;
+      line-height: 1.75;
+      color: #e8f4f8;
+      min-height: 90px;
+      transition: opacity 0.3s;
+    }
+
+    /* Speaking indicator */
+    .speaking-bar {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .speaking-bar.active { display: flex; }
+
+    .speaking-bar span {
+      font-size: 0.8rem;
+      color: rgba(255,215,0,0.7);
+      margin-right: 4px;
+      letter-spacing: 0.05em;
+    }
+
+    .bar {
+      width: 4px;
+      border-radius: 4px;
+      background: #ffd700;
+      animation: bars 1s ease-in-out infinite;
+    }
+
+    .bar:nth-child(2) { height: 10px; animation-delay: 0s; }
+    .bar:nth-child(3) { height: 18px; animation-delay: 0.1s; }
+    .bar:nth-child(4) { height: 24px; animation-delay: 0.2s; }
+    .bar:nth-child(5) { height: 18px; animation-delay: 0.3s; }
+    .bar:nth-child(6) { height: 10px; animation-delay: 0.4s; }
+
+    @keyframes bars {
+      0%, 100% { transform: scaleY(0.4); opacity: 0.6; }
+      50% { transform: scaleY(1); opacity: 1; }
+    }
+
+    /* Loading */
+    #loading {
+      display: none;
+      padding: 18px;
+      color: #b8d4f0;
+      font-size: 1rem;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255, 215, 0, 0.2);
+      border-top-color: #ffd700;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 10px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Choices */
+    #choices-area { display: none; }
+
+    .choices-label {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.45);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 14px;
+    }
+
+    /* ── Ending Screen ── */
+    #ending-screen { display: none; }
+
+    .trophy-wrap {
+      font-size: 5rem;
+      margin-bottom: 16px;
+      animation: trophyPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      display: block;
+    }
+
+    @keyframes trophyPop {
+      0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    .ending-title {
+      font-size: 2.2rem;
+      color: #ffd700;
+      text-shadow: 0 0 20px rgba(255,215,0,0.5);
+      margin-bottom: 10px;
+    }
+
+    .ending-subtitle {
+      color: #b8d4f0;
+      font-size: 1.05rem;
+      font-style: italic;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="app-title">✨ Story Quest ✨</div>
+  <div class="app-subtitle">A magical audio adventure</div>
+
+  <!-- ── Setup Screen ── -->
+  <div id="setup-screen">
+    <div class="card">
+      <span class="setup-icon">🧙‍♂️</span>
+      <p class="setup-label">
+        <strong>Grown-ups:</strong> Enter your Anthropic API key below to unlock
+        the stories. Your key is saved on this device.
+      </p>
+      <input
+        type="password"
+        id="api-key-input"
+        placeholder="sk-ant-..."
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+      />
+      <p class="key-hint">Your key stays on this device and is never shared.</p>
+      <div class="error-box" id="error-msg"></div>
+      <button class="btn btn-start" onclick="startAdventure()">
+        🚀 Start Adventure!
+      </button>
+    </div>
+  </div>
+
+  <!-- ── Story Screen ── -->
+  <div id="story-screen">
+    <div id="progress"></div>
+
+    <div class="card">
+      <div id="narration-text"></div>
+      <div class="speaking-bar" id="speaking-bar">
+        <span>🔊</span>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+        <div class="bar"></div>
+      </div>
+    </div>
+
+    <div id="loading">
+      <div class="spinner"></div>
+      <div>Crafting your story…</div>
+    </div>
+
+    <div id="choices-area">
+      <div class="choices-label">What do you do?</div>
+      <button class="btn btn-choice" id="choice-0" onclick="makeChoice(0)"></button>
+      <button class="btn btn-choice" id="choice-1" onclick="makeChoice(1)"></button>
+    </div>
+  </div>
+
+  <!-- ── Ending Screen ── -->
+  <div id="ending-screen">
+    <div class="card">
+      <span class="trophy-wrap">🏆</span>
+      <div class="ending-title">The End!</div>
+      <div class="ending-subtitle" id="ending-text">
+        What an amazing adventure!<br>You were so brave!
+      </div>
+      <button class="btn btn-replay" onclick="replayAdventure()">
+        🌟 New Adventure!
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════════════
+const MAX_NODES = 6;
+
+let apiKey       = localStorage.getItem('sq_apikey') || '';
+let storyHistory = [];   // [{role, content}]
+let nodeCount    = 0;
+let currentChoices = [];
+let voicesReady  = false;
+let pendingSpeak = null;
+
+// ═══════════════════════════════════════════════════════════════════
+// VOICE / TTS
+// ═══════════════════════════════════════════════════════════════════
+function initVoices() {
+  if (speechSynthesis.getVoices().length > 0) voicesReady = true;
+}
+
+speechSynthesis.onvoiceschanged = () => {
+  voicesReady = true;
+  if (pendingSpeak) {
+    const fn = pendingSpeak;
+    pendingSpeak = null;
+    fn();
+  }
+};
+
+initVoices();
+
+function pickVoice() {
+  const voices = speechSynthesis.getVoices();
+  const preferred = [
+    'Samantha', 'Karen', 'Moira', 'Tessa',
+    'Google US English', 'Google UK English Female', 'Alex'
+  ];
+  for (const name of preferred) {
+    const v = voices.find(v => v.name.includes(name));
+    if (v) return v;
+  }
+  return voices.find(v => v.lang.startsWith('en')) || voices[0] || null;
+}
+
+/**
+ * Split text into chunks that iOS Safari can handle.
+ * iOS silently truncates utterances > ~200 chars.
+ * We split on sentence boundaries, keeping each chunk short.
+ */
+function chunkText(text) {
+  // Match sentence-ending punctuation
+  const sentences = text.match(/[^.!?…]+[.!?…]+\s*/g) || [text];
+  const chunks = [];
+  let current = '';
+  for (const s of sentences) {
+    if (current.length + s.length > 190 && current.length > 0) {
+      chunks.push(current.trim());
+      current = s;
+    } else {
+      current += s;
+    }
+  }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.length ? chunks : [text];
+}
+
+function speakText(text, onDone) {
+  speechSynthesis.cancel();
+
+  if (!voicesReady) {
+    pendingSpeak = () => speakText(text, onDone);
+    return;
+  }
+
+  const chunks = chunkText(text);
+  let i = 0;
+  setSpeakingUI(true);
+
+  function next() {
+    if (i >= chunks.length) {
+      setSpeakingUI(false);
+      if (onDone) onDone();
+      return;
+    }
+    const utt = new SpeechSynthesisUtterance(chunks[i]);
+    utt.voice  = pickVoice();
+    utt.rate   = 0.88;
+    utt.pitch  = 1.08;
+    utt.volume = 1;
+    utt.onend  = () => { i++; next(); };
+    utt.onerror = (e) => {
+      console.warn('TTS error on chunk', i, e.error);
+      i++; next();
+    };
+    speechSynthesis.speak(utt);
+  }
+
+  next();
+}
+
+function setSpeakingUI(active) {
+  document.getElementById('speaking-bar').classList.toggle('active', active);
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════════════
+function showScreen(name) {
+  document.getElementById('setup-screen').style.display = name === 'setup' ? 'block' : 'none';
+  document.getElementById('story-screen').style.display = name === 'story' ? 'block' : 'none';
+  document.getElementById('ending-screen').style.display = name === 'ending' ? 'block' : 'none';
+}
+
+function setNarration(text) {
+  document.getElementById('narration-text').textContent = text;
+}
+
+function showLoading(on) {
+  document.getElementById('loading').style.display = on ? 'block' : 'none';
+}
+
+function showChoices(choices) {
+  document.getElementById('choice-0').textContent = '🌟 ' + choices[0];
+  document.getElementById('choice-1').textContent = '⚡ ' + choices[1];
+  document.getElementById('choices-area').style.display = 'block';
+  setChoicesDisabled(false);
+}
+
+function hideChoices() {
+  document.getElementById('choices-area').style.display = 'none';
+}
+
+function setChoicesDisabled(disabled) {
+  document.getElementById('choice-0').disabled = disabled;
+  document.getElementById('choice-1').disabled = disabled;
+}
+
+function updateProgress() {
+  const el = document.getElementById('progress');
+  el.innerHTML = '';
+  for (let i = 0; i < MAX_NODES; i++) {
+    const s = document.createElement('span');
+    s.className = 'prog-star' + (i < nodeCount ? ' lit' : '');
+    s.textContent = '⭐';
+    el.appendChild(s);
+  }
+}
+
+function showError(msg) {
+  const el = document.getElementById('error-msg');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function hideError() {
+  document.getElementById('error-msg').style.display = 'none';
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// ANTHROPIC API
+// ═══════════════════════════════════════════════════════════════════
+const SYSTEM_PROMPT = `You are a warm, imaginative children's storyteller for kids ages 5–8.
+You create short, exciting fantasy adventure stories using simple words a 6-year-old can easily understand.
+
+Each response MUST be a single valid JSON object — no markdown, no extra text, nothing else:
+{"narration":"...","choices":["...","..."],"isEnding":false}
+
+Rules:
+- narration: 3–5 short, vivid sentences. End on a moment of suspense or wonder before the choice.
+- choices: exactly 2 short action phrases, 6 words or fewer each. Active verbs. Fun and clear.
+- isEnding: set to true when nodeCount >= 5. When ending, write a happy, satisfying conclusion (3–4 sentences). No choices are needed when isEnding is true.
+- Vocabulary: simple. No scary content. Always warm, encouraging, magical.
+- ONLY return the JSON. Nothing else.`;
+
+async function callClaude(messages) {
+  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-calls': 'true',
+      'content-type': 'application/json'
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      system: SYSTEM_PROMPT,
+      messages
+    })
+  });
+
+  if (!resp.ok) {
+    const err = await resp.json().catch(() => ({}));
+    const msg = err?.error?.message || `HTTP ${resp.status}`;
+    throw new Error(msg);
+  }
+
+  const data = await resp.json();
+  const raw  = data?.content?.[0]?.text || '';
+
+  // Strip any markdown fences Claude might add despite instructions
+  const cleaned = raw
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/\s*```\s*$/i, '')
+    .trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(cleaned);
+  } catch (e) {
+    console.error('JSON parse failed. Raw:', raw);
+    throw new Error('The story got scrambled. Please try again!');
+  }
+
+  return { raw: cleaned, parsed };
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// STORY FLOW
+// ═══════════════════════════════════════════════════════════════════
+async function fetchAndNarrateNode() {
+  showLoading(true);
+  setNarration('');
+  hideChoices();
+
+  let result, rawText;
+  try {
+    const resp = await callClaude(storyHistory);
+    result  = resp.parsed;
+    rawText = resp.raw;
+  } catch (err) {
+    showLoading(false);
+    showScreen('setup');
+    showError('Oops! ' + err.message);
+    return;
+  }
+
+  // Add assistant turn to history
+  storyHistory.push({ role: 'assistant', content: rawText });
+
+  showLoading(false);
+  nodeCount++;
+  updateProgress();
+
+  const narration = result.narration || 'Something magical happens…';
+  setNarration(narration);
+
+  if (result.isEnding) {
+    speakText(narration, () => {
+      setTimeout(() => {
+        speechSynthesis.cancel();
+        showScreen('ending');
+        document.getElementById('ending-text').textContent =
+          'What an amazing adventure!\nYou were so brave and clever!';
+        speakText('The End! What a wonderful adventure! You were so brave and clever! Tap New Adventure to go on another quest!');
+      }, 600);
+    });
+  } else {
+    currentChoices = result.choices || ['Keep going', 'Try something else'];
+    speakText(narration, () => {
+      const choiceText = `What do you do? You could: ${currentChoices[0]}. Or: ${currentChoices[1]}.`;
+      speakText(choiceText, () => {
+        showChoices(currentChoices);
+      });
+    });
+  }
+}
+
+function startAdventure() {
+  const keyInput = document.getElementById('api-key-input');
+  const key = keyInput.value.trim() || apiKey;
+
+  if (!key) {
+    showError('Please enter your Anthropic API key to begin!');
+    return;
+  }
+
+  apiKey = key;
+  localStorage.setItem('sq_apikey', key);
+  hideError();
+
+  // Reset state
+  storyHistory  = [];
+  nodeCount     = 0;
+  currentChoices = [];
+
+  showScreen('story');
+  updateProgress();
+
+  // Seed first user message — must happen inside the tap handler for iOS TTS
+  storyHistory.push({
+    role: 'user',
+    content: 'Start a new fantasy adventure story! nodeCount=0. Make it exciting and fun for a young child.'
+  });
+
+  fetchAndNarrateNode();
+}
+
+function makeChoice(index) {
+  if (document.getElementById('choice-' + index).disabled) return;
+
+  setChoicesDisabled(true);
+  speechSynthesis.cancel();
+
+  const choice = currentChoices[index];
+
+  storyHistory.push({
+    role: 'user',
+    content: `The child chose: "${choice}". Continue the story. nodeCount=${nodeCount}.`
+  });
+
+  fetchAndNarrateNode();
+}
+
+function replayAdventure() {
+  speechSynthesis.cancel();
+  storyHistory   = [];
+  nodeCount      = 0;
+  currentChoices = [];
+
+  showScreen('story');
+  updateProgress();
+  hideChoices();
+
+  storyHistory.push({
+    role: 'user',
+    content: 'Start a completely new and different fantasy adventure story! nodeCount=0. Surprise me with a fresh setting and hero!'
+  });
+
+  fetchAndNarrateNode();
+}
+
+// ── Pre-fill saved key ──
+(function () {
+  if (apiKey) {
+    document.getElementById('api-key-input').value = apiKey;
+  }
+})();
+
+// ── Enter key on desktop ──
+document.getElementById('api-key-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') startAdventure();
+});
+</script>
+</body>
+</html>
