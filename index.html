@@ -360,7 +360,7 @@
       />
       <p class="key-hint">Your key stays on this device and is never shared.</p>
       <div class="error-box" id="error-msg"></div>
-      <button class="btn btn-start" onclick="startAdventure()">
+      <button class="btn btn-start" id="start-btn" onclick="startAdventure()">
         🚀 Start Adventure!
       </button>
     </div>
@@ -561,6 +561,10 @@ function showError(msg) {
   const el = document.getElementById('error-msg');
   el.textContent = msg;
   el.style.display = 'block';
+  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Also re-enable the start button
+  const btn = document.getElementById('start-btn');
+  if (btn) { btn.disabled = false; btn.textContent = '🚀 Start Adventure!'; }
 }
 
 function hideError() {
@@ -685,6 +689,11 @@ function startAdventure() {
     showError('Please enter your Anthropic API key to begin!');
     return;
   }
+
+  // Give immediate visual feedback
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Loading…';
 
   apiKey = key;
   localStorage.setItem('sq_apikey', key);
