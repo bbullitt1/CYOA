@@ -346,8 +346,9 @@
     <div class="card">
       <span class="setup-icon">🧙‍♂️</span>
       <p class="setup-label">
-        <strong>Grown-ups:</strong> Enter your Anthropic API key below to unlock
-        the stories. Your key is saved on this device.
+        <strong>Grown-ups:</strong> Enter your Anthropic API key below, or leave
+        it blank if you've set <strong>ANTHROPIC_API_KEY</strong> in your
+        Netlify environment variables.
       </p>
       <input
         type="password"
@@ -588,19 +589,20 @@ Rules:
 - ONLY return the JSON. Nothing else.`;
 
 async function callClaude(messages) {
-  const resp = await fetch('https://api.anthropic.com/v1/messages', {
+  // Always route through the Netlify function proxy to avoid CORS issues.
+  // The function forwards to Anthropic server-side using ANTHROPIC_API_KEY,
+  // or falls back to the apiKey entered in the UI if the env var isn't set.
+  const resp = await fetch('/.netlify/functions/narrate', {
     method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-      'anthropic-dangerous-direct-browser-calls': 'true',
-      'content-type': 'application/json'
-    },
+    headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 600,
-      system: SYSTEM_PROMPT,
-      messages
+      apiKey,
+      payload: {
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 600,
+        system: SYSTEM_PROMPT,
+        messages
+      }
     })
   });
 
