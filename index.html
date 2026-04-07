@@ -737,10 +737,18 @@
 <!-- Settings -->
 <button id="gear-btn" onclick="toggleGear()">⚙️</button>
 <div id="gear-modal">
-  <h4>API Key (optional)</h4>
+  <h4>Anthropic API Key</h4>
   <input class="gear-input" id="key-inp" type="password"
     placeholder="sk-ant-…" autocomplete="off" autocorrect="off"
     autocapitalize="off" spellcheck="false" />
+  <h4 style="margin-top:12px">ElevenLabs API Key</h4>
+  <input class="gear-input" id="el-key-inp" type="password"
+    placeholder="ElevenLabs key for human voice…" autocomplete="off"
+    autocorrect="off" autocapitalize="off" spellcheck="false" />
+  <h4 style="margin-top:12px">Voice ID <span style="font-weight:400;text-transform:none;letter-spacing:0">(Charlotte = default)</span></h4>
+  <input class="gear-input" id="el-voice-inp" type="text"
+    placeholder="XB0fDUnXU5powFXDhCwa" autocomplete="off"
+    autocorrect="off" autocapitalize="off" spellcheck="false" />
   <button class="gear-save" onclick="saveKey()">Save</button>
 </div>
 
@@ -774,19 +782,23 @@ const MORE_TYPES = [
 // ═══════════════════════════════════════════════════
 const MAX_NODES = 6;
 
-let apiKey       = localStorage.getItem('sq_key') || '';
-let storyTheme   = '';
-let storyHistory = [];
-let nodeCount    = 0;
-let choices      = [];
-let activeRec    = null;
+let apiKey         = localStorage.getItem('sq_key')    || '';
+let elevenLabsKey  = localStorage.getItem('sq_elkey')  || '';
+let elevenVoiceId  = localStorage.getItem('sq_voice')  || 'XB0fDUnXU5powFXDhCwa'; // Charlotte (British female)
+let storyTheme     = '';
+let storyHistory   = [];
+let nodeCount      = 0;
+let choices        = [];
+let activeRec      = null;
 
 // ═══════════════════════════════════════════════════
 // BOOT
 // ═══════════════════════════════════════════════════
 (function boot() {
   buildGrids();
-  if (apiKey) document.getElementById('key-inp').value = apiKey;
+  if (apiKey)        document.getElementById('key-inp').value    = apiKey;
+  if (elevenLabsKey) document.getElementById('el-key-inp').value = elevenLabsKey;
+  document.getElementById('el-voice-inp').value = elevenVoiceId;
   initVoices();
   document.getElementById('custom-inp').addEventListener('keydown', e => {
     if (e.key === 'Enter') startCustom();
@@ -810,10 +822,23 @@ function mkCard(type) {
 }
 
 // ═══════════════════════════════════════════════════
-// TTS
+// AUDIO — ElevenLabs primary, Web Speech fallback
 // ═══════════════════════════════════════════════════
-let voicesReady = false;
+
+// AudioContext — created on first user gesture so iOS allows playback
+let audioCtx    = null;
+let activeSrc   = null;   // currently playing BufferSourceNode
+
+// Web Speech fallback helpers
+let voicesReady  = false;
 let pendingSpeak = null;
+
+function unlockAudio() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
 
 function initVoices() {
   if (speechSynthesis.getVoices().length) voicesReady = true;
@@ -824,57 +849,100 @@ speechSynthesis.onvoiceschanged = () => {
   if (pendingSpeak) { const f = pendingSpeak; pendingSpeak = null; f(); }
 };
 
-function bestVoice() {
-  const vv = speechSynthesis.getVoices();
-  // Ranked preference list — first match wins
-  const want = [
-    'Samantha (Enhanced)', 'Samantha',
-    'Karen (Enhanced)',    'Karen',
-    'Moira',               'Tessa',
-    'Google US English',   'Google UK English Female',
-    'Alex',
-  ];
-  for (const name of want) {
-    const v = vv.find(v => v.name === name);
-    if (v) return v;
-  }
-  // Prefer any "Enhanced" / "Premium" English voice
-  const hi = vv.find(v => v.lang.startsWith('en') &&
-    (v.name.includes('Enhanced') || v.name.includes('Premium')));
-  if (hi) return hi;
-  return vv.find(v => v.lang.startsWith('en')) || vv[0] || null;
+// Stop whatever is currently playing
+function cancelAudio() {
+  if (activeSrc) { try { activeSrc.stop(); } catch(e){} activeSrc = null; }
+  speechSynthesis.cancel();
+  setAudioBars(false);
 }
 
-function chunk(text) {
-  // iOS Safari silently cuts off TTS > ~200 chars; split at sentence boundaries
+// Primary: ElevenLabs via Netlify function → AudioContext playback
+async function speakText(text, onDone) {
+  cancelAudio();
+  if (!text || !text.trim()) { onDone && onDone(); return; }
+
+  setAudioBars(true);
+
+  try {
+    const resp = await fetch('/.netlify/functions/speak', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text, voiceId: elevenVoiceId, elevenLabsKey }),
+    });
+
+    const data = await resp.json();
+
+    if (data.fallback || !data.audio) {
+      // No ElevenLabs key configured — use Web Speech silently
+      setAudioBars(false);
+      speakFallback(text, onDone);
+      return;
+    }
+
+    // Decode base64 MP3 → AudioContext buffer → play
+    const binary  = atob(data.audio);
+    const bytes   = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+
+    const audioBuf = await audioCtx.decodeAudioData(bytes.buffer);
+    const src      = audioCtx.createBufferSource();
+    activeSrc      = src;
+    src.buffer     = audioBuf;
+    src.connect(audioCtx.destination);
+    src.onended = () => {
+      activeSrc = null;
+      setAudioBars(false);
+      onDone && onDone();
+    };
+    src.start(0);
+
+  } catch (err) {
+    console.warn('ElevenLabs TTS failed, falling back to Web Speech:', err);
+    setAudioBars(false);
+    speakFallback(text, onDone);
+  }
+}
+
+// Fallback: Web Speech API (browser built-in)
+function speakFallback(text, onDone) {
+  if (!voicesReady) { pendingSpeak = () => speakFallback(text, onDone); return; }
+
+  // iOS cuts off utterances > ~200 chars; split at sentence boundaries
   const sentences = text.match(/[^.!?…]+[.!?…]+\s*/g) || [text];
-  const out = [];
+  const chunks = [];
   let cur = '';
   for (const s of sentences) {
-    if (cur.length + s.length > 185 && cur.length) { out.push(cur.trim()); cur = s; }
+    if (cur.length + s.length > 185 && cur.length) { chunks.push(cur.trim()); cur = s; }
     else cur += s;
   }
-  if (cur.trim()) out.push(cur.trim());
-  return out.length ? out : [text];
-}
+  if (cur.trim()) chunks.push(cur.trim());
+  const all = chunks.length ? chunks : [text];
 
-function speakText(text, onDone) {
-  speechSynthesis.cancel();
-  if (!voicesReady) { pendingSpeak = () => speakText(text, onDone); return; }
+  // Prefer a British female voice for consistency with ElevenLabs default
+  const vv = speechSynthesis.getVoices();
+  const britishFemale = [
+    'Google UK English Female', 'Martha', 'Moira', 'Tessa',
+    'Samantha (Enhanced)', 'Samantha', 'Karen',
+  ];
+  let voice = null;
+  for (const name of britishFemale) {
+    voice = vv.find(v => v.name === name);
+    if (voice) break;
+  }
+  if (!voice) voice = vv.find(v => v.lang.startsWith('en')) || vv[0] || null;
 
-  const chunks = chunk(text);
   let i = 0;
   setAudioBars(true);
 
   function next() {
-    if (i >= chunks.length) { setAudioBars(false); onDone && onDone(); return; }
-    const u = new SpeechSynthesisUtterance(chunks[i]);
-    u.voice  = bestVoice();
-    u.rate   = 0.87;
-    u.pitch  = 1.06;
-    u.volume = 1;
-    u.onend  = () => { i++; next(); };
-    u.onerror = e => { console.warn('TTS', e.error); i++; next(); };
+    if (i >= all.length) { setAudioBars(false); onDone && onDone(); return; }
+    const u    = new SpeechSynthesisUtterance(all[i]);
+    u.voice    = voice;
+    u.rate     = 0.86;
+    u.pitch    = 1.05;
+    u.volume   = 1;
+    u.onend    = () => { i++; next(); };
+    u.onerror  = e => { console.warn('TTS fallback', e.error); i++; next(); };
     speechSynthesis.speak(u);
   }
   next();
@@ -985,31 +1053,33 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
 }
 
-// Welcome CTA — narrate intro while showing the type-select screen
+// Welcome CTA — unlock audio (iOS requires gesture), narrate intro, show type screen
 function onWelcomeCta() {
+  unlockAudio();
   showScreen('screen-type');
   speakText(
     "Welcome to Story Quest! Pick a world to begin your adventure. " +
     "When the story pauses, tap the microphone and say 'one' or 'two' to choose what happens next. " +
-    "Or tap 'Can't talk right now' to see the choices on screen instead. Let's find your world!"
+    "Or tap Can't talk right now to see the choices on screen instead. Let's find your world!"
   );
 }
 
 // Returning from ending screen — silent, no re-narration
 function goPickWorld() {
-  speechSynthesis.cancel();
+  cancelAudio();
   showScreen('screen-type');
 }
 
 function toggleMore() {
-  const sec   = document.getElementById('more-section');
-  const open  = sec.style.display !== 'none';
+  const sec  = document.getElementById('more-section');
+  const open = sec.style.display !== 'none';
   sec.style.display = open ? 'none' : 'block';
   document.getElementById('more-label').textContent = open ? '＋ More adventures' : '— Less';
 }
 
 function pickType(type) {
-  speechSynthesis.cancel();
+  unlockAudio();
+  cancelAudio();
   storyTheme = type.t;
   startStory();
 }
@@ -1017,7 +1087,8 @@ function pickType(type) {
 function startCustom() {
   const val = document.getElementById('custom-inp').value.trim();
   if (!val) return;
-  speechSynthesis.cancel();
+  unlockAudio();
+  cancelAudio();
   storyTheme = val;
   startStory();
 }
@@ -1068,7 +1139,7 @@ async function fetchNode() {
   if (result.isEnding) {
     speakText(narration, () => {
       setTimeout(() => {
-        speechSynthesis.cancel();
+        cancelAudio();
         showScreen('screen-ending');
         speakText('The End! You were so brave and clever! Tap New Adventure to go on another quest!');
       }, 500);
@@ -1085,7 +1156,7 @@ async function fetchNode() {
 
 function makeChoice(idx) {
   if (activeRec) { try { activeRec.abort(); } catch(e){} activeRec = null; }
-  speechSynthesis.cancel();
+  cancelAudio();
   setMicState('idle');
   hideInteraction();
 
@@ -1157,25 +1228,35 @@ function toggleGear() {
 }
 
 function saveKey() {
-  const k = document.getElementById('key-inp').value.trim();
-  if (k) { apiKey = k; localStorage.setItem('sq_key', k); }
+  const k  = document.getElementById('key-inp').value.trim();
+  const ek = document.getElementById('el-key-inp').value.trim();
+  const ev = document.getElementById('el-voice-inp').value.trim();
+  if (k)  { apiKey        = k;  localStorage.setItem('sq_key',   k); }
+  if (ek) { elevenLabsKey = ek; localStorage.setItem('sq_elkey', ek); }
+  if (ev) { elevenVoiceId = ev; localStorage.setItem('sq_voice', ev); }
   document.getElementById('gear-modal').style.display = 'none';
 }
 
 // ═══════════════════════════════════════════════════
 // API
 // ═══════════════════════════════════════════════════
-const SYSTEM_PROMPT = `You are a warm, imaginative children's storyteller for kids ages 5-8.
-Create short, exciting adventures using only simple words a 6-year-old can understand.
+const SYSTEM_PROMPT = `You are a master children's storyteller — the kind who makes children close their eyes and feel utterly transported into another world.
+
+Your narration is cinematic and immersive. Paint the world with sensory detail: colours, sounds, smells, textures, temperature. Make the child feel the warm sun on their face, hear the crunch of leaves underfoot, smell the salt of the sea. Build atmosphere slowly and beautifully. Every story beat should feel like a chapter worth reading aloud.
 
 Respond ONLY with a single valid JSON object — no markdown, no explanation, nothing else:
 {"narration":"...","choices":["...","..."],"isEnding":false}
 
+Narration length and style:
+- Opening node (nodeCount=0): 10-14 sentences. Begin with a stunning, unhurried description of the world the child has stepped into. Introduce the young hero with warmth. Describe the call to adventure with rising excitement. End at a dramatic moment of decision.
+- Middle nodes (nodeCount 1-4): 6-10 sentences. Honour the choice that was made — describe how the world changes because of it. Deepen the atmosphere. Raise the stakes. Build toward a climax. Each branch should feel genuinely different, not interchangeable.
+- Final node (nodeCount >= 5, isEnding true): 6-8 sentences. A triumphant, emotionally satisfying conclusion. The hero succeeds. The world feels whole and bright. Leave the child feeling proud, joyful, and full of wonder.
+
 Rules:
-- narration: 3-5 short vivid sentences, ending on suspense or wonder.
-- choices: exactly 2 action phrases, 6 words or fewer each.
-- isEnding: true only when nodeCount >= 5; write a happy satisfying ending (choices not needed).
-- No scary content. Always warm, encouraging, magical.`;
+- choices: exactly 2 options, each 8 words or fewer. Make them feel meaningfully different.
+- Language: vivid and poetic, yet every word must be understood by a 6-year-old. Never babyish, never scary.
+- No dark, violent, or frightening content. Always warm, encouraging, and magical.
+- ONLY return the JSON. Nothing else. Ever.`;
 
 async function callClaude(messages) {
   const resp = await fetch('/.netlify/functions/narrate', {
@@ -1185,7 +1266,7 @@ async function callClaude(messages) {
       apiKey,
       payload: {
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 600,
+        max_tokens: 1800,
         system: SYSTEM_PROMPT,
         messages
       }
