@@ -4,43 +4,45 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Story Quest</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:       #09090f;
-      --card:     rgba(255,255,255,0.055);
-      --border:   rgba(255,255,255,0.10);
-      --accent:   #f59e0b;
-      --purple:   #8b5cf6;
-      --red:      #ef4444;
-      --text:     #f1f5f9;
-      --muted:    #64748b;
-      --r:        18px;
+      --bg:      #0d0d1a;
+      --card:    rgba(255,255,255,0.06);
+      --border:  rgba(255,255,255,0.10);
+      --accent:  #f5c842;
+      --purple:  #7c3aed;
+      --red:     #ef4444;
+      --text:    #f1f5f9;
+      --muted:   #64748b;
+      --r:       18px;
+      --fhead:   'Fredoka One', cursive;
+      --fbody:   'Nunito', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display',
-                   'Segoe UI', system-ui, sans-serif;
+      font-family: var(--fbody);
       background: var(--bg);
       min-height: 100vh;
       color: var(--text);
       overflow-x: hidden;
     }
 
-    /* Ambient glow */
     body::after {
       content: '';
       position: fixed;
       inset: 0;
       background:
-        radial-gradient(ellipse 60% 40% at 15% 10%,  rgba(139,92,246,.12) 0%, transparent 60%),
-        radial-gradient(ellipse 50% 35% at 85% 85%,  rgba(245,158,11,.08) 0%, transparent 60%);
+        radial-gradient(ellipse 60% 40% at 15% 10%, rgba(124,58,237,.12) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 35% at 85% 85%, rgba(245,200,66,.08) 0%, transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
 
-    /* ── Layout ── */
     #app {
       position: relative;
       z-index: 1;
@@ -54,7 +56,6 @@
       width: 100%;
     }
 
-    /* ── Screens ── */
     .screen { display: none; width: 100%; }
     .screen.active {
       display: flex;
@@ -68,7 +69,6 @@
       to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Card ── */
     .card {
       width: 100%;
       background: var(--card);
@@ -86,9 +86,9 @@
       padding: 18px 22px;
       border: none;
       border-radius: 14px;
-      font-family: inherit;
+      font-family: var(--fbody);
       font-size: 1.05rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
       transition: transform .12s, opacity .12s, box-shadow .12s;
       -webkit-tap-highlight-color: transparent;
@@ -101,11 +101,14 @@
     .btn:disabled    { opacity: .38; pointer-events: none; }
 
     .btn-cta {
-      background: linear-gradient(135deg, var(--accent), #ea580c);
-      color: #0a0a0a;
-      font-size: 1.2rem;
+      background: linear-gradient(135deg, var(--accent), #d4a017);
+      color: #1a1035;
+      font-family: var(--fhead);
+      font-size: 1.3rem;
+      font-weight: 400;
       padding: 22px;
-      box-shadow: 0 6px 28px rgba(245,158,11,.3);
+      box-shadow: 0 6px 28px rgba(245,200,66,.35);
+      letter-spacing: .02em;
     }
 
     .btn-choice {
@@ -113,21 +116,25 @@
       border: 1px solid var(--border);
       color: var(--text);
       text-align: left;
-      padding: 20px 20px;
+      padding: 20px;
       font-size: 1.05rem;
       line-height: 1.4;
+      font-weight: 600;
     }
     .btn-choice:active:not(:disabled) {
-      background: rgba(139,92,246,.18);
+      background: rgba(124,58,237,.18);
       border-color: var(--purple);
     }
 
     .btn-replay {
-      background: linear-gradient(135deg, var(--purple), #6d28d9);
+      background: linear-gradient(135deg, var(--purple), #5b21b6);
       color: #fff;
-      font-size: 1.15rem;
+      font-family: var(--fhead);
+      font-size: 1.2rem;
+      font-weight: 400;
       padding: 22px;
-      box-shadow: 0 6px 28px rgba(139,92,246,.3);
+      box-shadow: 0 6px 28px rgba(124,58,237,.3);
+      letter-spacing: .02em;
     }
 
     .btn-ghost {
@@ -142,9 +149,9 @@
       margin-bottom: 0;
     }
 
-    /* ════════════════════════════════
+    /* ════════════════════════
        WELCOME SCREEN
-    ════════════════════════════════ */
+    ════════════════════════ */
     #screen-welcome {
       justify-content: center;
       min-height: 88vh;
@@ -158,19 +165,18 @@
       margin-bottom: 22px;
       animation: glyph 5s ease-in-out infinite;
     }
-
     @keyframes glyph {
       0%,100% { transform: translateY(0) rotate(-4deg) scale(1); }
       50%      { transform: translateY(-12px) rotate(4deg) scale(1.05); }
     }
 
     .welcome-title {
-      font-size: clamp(2rem, 9vw, 3rem);
-      font-weight: 800;
-      letter-spacing: -.03em;
+      font-family: var(--fhead);
+      font-size: clamp(2.6rem, 10vw, 3.6rem);
+      font-weight: 400;
       line-height: 1;
       margin-bottom: 12px;
-      background: linear-gradient(135deg, #fde68a, var(--accent), var(--purple));
+      background: linear-gradient(135deg, #fde68a, var(--accent), #c084fc);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -178,15 +184,14 @@
 
     .welcome-sub {
       font-size: 1.05rem;
+      font-weight: 600;
       color: #94a3b8;
       line-height: 1.65;
       max-width: 340px;
       margin: 0 auto 32px;
     }
+    .welcome-sub strong { color: var(--accent); }
 
-    .welcome-sub strong { color: var(--accent); font-weight: 600; }
-
-    /* How-it-works row */
     .how-row {
       display: flex;
       gap: 10px;
@@ -194,7 +199,6 @@
       max-width: 420px;
       margin-bottom: 36px;
     }
-
     .how-card {
       flex: 1;
       background: var(--card);
@@ -203,107 +207,135 @@
       padding: 14px 10px;
       text-align: center;
     }
-
     .how-card .icon { font-size: 1.7rem; display: block; margin-bottom: 7px; }
+    .how-card p { font-size: .74rem; color: var(--muted); line-height: 1.5; font-weight: 600; }
+    .how-card p strong { color: var(--text); }
 
-    .how-card p {
-      font-size: .74rem;
-      color: var(--muted);
-      line-height: 1.5;
-    }
-
-    .how-card p strong { color: var(--text); font-weight: 600; }
-
-    /* ════════════════════════════════
-       TYPE SELECT SCREEN
-    ════════════════════════════════ */
-    #screen-type {
+    /* ════════════════════════
+       AGE SELECT SCREEN
+    ════════════════════════ */
+    #screen-age {
+      justify-content: center;
+      min-height: 80vh;
+      text-align: center;
       gap: 0;
-      padding-top: 6px;
     }
+
+    .age-header {
+      margin-bottom: 32px;
+    }
+    .age-header h2 {
+      font-family: var(--fhead);
+      font-size: 2rem;
+      font-weight: 400;
+      margin-bottom: 8px;
+    }
+    .age-header p {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .age-cards {
+      display: flex;
+      gap: 16px;
+      width: 100%;
+      max-width: 400px;
+      margin-bottom: 20px;
+    }
+
+    .age-card {
+      flex: 1;
+      border: none;
+      border-radius: 22px;
+      padding: 30px 16px 24px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--fbody);
+      transition: transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+    }
+    .age-card:active { transform: scale(.95); }
+
+    .age-card-young {
+      background: linear-gradient(145deg, #3b82f6, #1d4ed8);
+      box-shadow: 0 8px 32px rgba(59,130,246,.35);
+    }
+    .age-card-older {
+      background: linear-gradient(145deg, #ef4444, #b91c1c);
+      box-shadow: 0 8px 32px rgba(239,68,68,.35);
+    }
+
+    .age-emoji   { font-size: 3.2rem; display: block; }
+    .age-range   { font-family: var(--fhead); font-size: 1.4rem; font-weight: 400; color: #fff; }
+    .age-label   { font-size: .82rem; font-weight: 700; color: rgba(255,255,255,.8); }
+
+    /* ════════════════════════
+       TYPE SELECT SCREEN
+    ════════════════════════ */
+    #screen-type { gap: 0; padding-top: 6px; }
 
     .screen-header {
       text-align: center;
       margin-bottom: 24px;
       width: 100%;
     }
-
     .screen-header h2 {
-      font-size: 1.55rem;
-      font-weight: 700;
-      letter-spacing: -.02em;
+      font-family: var(--fhead);
+      font-size: 1.9rem;
+      font-weight: 400;
       margin-bottom: 5px;
     }
+    .screen-header p { color: var(--muted); font-size: .92rem; font-weight: 600; }
 
-    .screen-header p { color: var(--muted); font-size: .92rem; }
-
-    /* Genre grid */
+    /* 2-column dark genre grid */
     .type-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: 1fr 1fr;
       gap: 10px;
       width: 100%;
       margin-bottom: 10px;
     }
 
     .type-card {
-      /* 3D bubble — each card sets --c1 (light) and --c2 (dark) via JS */
-      background: radial-gradient(circle at 38% 28%, color-mix(in srgb, var(--c1) 85%, white 15%) 0%, var(--c1) 35%, var(--c2) 100%);
-      border: none;
-      border-radius: 22px;
-      padding: 18px 8px 14px;
-      text-align: center;
-      cursor: pointer;
-      position: relative;
+      background: #171728;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
       overflow: hidden;
-      /* Multi-layer shadow for the 3D raised effect */
-      box-shadow:
-        0 7px 0 color-mix(in srgb, var(--c2) 80%, black 20%),
-        0 10px 20px rgba(0,0,0,.40),
-        inset 0 1px 0 rgba(255,255,255,.35);
-      transition: transform .12s ease, box-shadow .12s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      transition: transform .12s, box-shadow .12s;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       user-select: none;
     }
-
-    /* Glossy highlight sweep across the top */
-    .type-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 48%;
-      background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, transparent 100%);
-      border-radius: 22px 22px 60% 60% / 22px 22px 40% 40%;
-      pointer-events: none;
-    }
-
-    /* Press down — squish into the surface */
     .type-card:active {
-      transform: translateY(5px) scale(.97);
-      box-shadow:
-        0 2px 0 color-mix(in srgb, var(--c2) 80%, black 20%),
-        0 4px 10px rgba(0,0,0,.35),
-        inset 0 1px 0 rgba(255,255,255,.25);
+      transform: scale(.96);
+      box-shadow: 0 2px 12px rgba(0,0,0,.5);
     }
 
-    .type-card .te {
-      font-size: 2.3rem;
-      display: block;
-      margin-bottom: 7px;
-      position: relative; /* above ::before */
-      filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
-    }
-    .type-card .tn {
-      font-size: .75rem;
-      font-weight: 700;
-      color: rgba(255,255,255,.95);
-      line-height: 1.3;
-      position: relative;
-      text-shadow: 0 1px 3px rgba(0,0,0,.4);
+    .card-accent-bar {
+      height: 4px;
+      flex-shrink: 0;
     }
 
-    /* More button */
+    .card-inner {
+      padding: 14px 14px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .te   { font-size: 1.9rem; display: block; line-height: 1; }
+    .tn   { font-family: var(--fhead); font-size: 1rem; font-weight: 400; color: #fff; line-height: 1.2; }
+    .tsub { font-size: .72rem; color: var(--muted); font-weight: 600; }
+
     .more-toggle {
       width: 100%;
       background: var(--card);
@@ -311,8 +343,9 @@
       border-radius: 13px;
       padding: 14px;
       color: var(--muted);
-      font-family: inherit;
+      font-family: var(--fbody);
       font-size: .88rem;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
@@ -333,7 +366,6 @@
       margin-top: 4px;
       margin-bottom: 8px;
     }
-
     .custom-inp {
       flex: 1;
       background: var(--card);
@@ -342,11 +374,12 @@
       padding: 13px 14px;
       color: var(--text);
       font-size: .93rem;
-      font-family: inherit;
+      font-family: var(--fbody);
+      font-weight: 600;
       outline: none;
       transition: border-color .2s;
     }
-    .custom-inp:focus   { border-color: var(--purple); }
+    .custom-inp:focus { border-color: var(--purple); }
     .custom-inp::placeholder { color: var(--muted); }
 
     .custom-go {
@@ -361,23 +394,61 @@
       flex-shrink: 0;
     }
 
-    /* ════════════════════════════════
+    /* ════════════════════════
        STORY SCREEN
-    ════════════════════════════════ */
+    ════════════════════════ */
     #screen-story { gap: 0; }
+
+    /* Top bar */
+    .story-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      width: 100%;
+      padding: 0 0 18px;
+      gap: 10px;
+    }
+
+    .topbar-back {
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 7px 12px;
+      color: var(--muted);
+      font-family: var(--fbody);
+      font-size: .88rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .topbar-back:active { background: rgba(255,255,255,.06); }
+
+    .genre-badge {
+      flex: 1;
+      text-align: center;
+      font-size: .78rem;
+      font-weight: 700;
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 12px;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* Progress dots */
     #progress {
       display: flex;
-      justify-content: center;
-      gap: 7px;
-      margin-bottom: 18px;
-      width: 100%;
+      justify-content: flex-end;
+      gap: 5px;
+      flex-shrink: 0;
     }
-
     .pd {
-      width: 7px;
-      height: 7px;
+      width: 7px; height: 7px;
       border-radius: 50%;
       background: var(--border);
       transition: all .4s;
@@ -393,16 +464,27 @@
       100%{ transform: scale(1); }
     }
 
-    /* Narration card */
-    #narration-card {
-      margin-bottom: 18px;
+    /* Chapter title */
+    #chapter-title {
+      font-family: var(--fhead);
+      font-size: 1.1rem;
+      font-weight: 400;
+      color: var(--accent);
+      text-align: center;
+      width: 100%;
+      min-height: 26px;
+      margin-bottom: 10px;
+      letter-spacing: .02em;
     }
 
+    /* Narration card */
+    #narration-card { margin-bottom: 18px; }
     #narration-text {
-      font-size: 1.1rem;
-      line-height: 1.8;
+      font-size: 1.05rem;
+      line-height: 1.85;
       color: #cbd5e1;
       min-height: 80px;
+      font-weight: 600;
     }
 
     /* Audio bars */
@@ -416,21 +498,19 @@
       border-top: 1px solid var(--border);
     }
     .abars.on { display: flex; }
-
     .abar {
       width: 4px;
       border-radius: 3px;
       background: var(--accent);
       animation: abar .9s ease-in-out infinite;
     }
-    .abar:nth-child(1){height:7px; animation-delay:0s}
-    .abar:nth-child(2){height:14px;animation-delay:.1s}
-    .abar:nth-child(3){height:20px;animation-delay:.2s}
-    .abar:nth-child(4){height:16px;animation-delay:.15s}
-    .abar:nth-child(5){height:10px;animation-delay:.05s}
-    .abar:nth-child(6){height:18px;animation-delay:.25s}
-    .abar:nth-child(7){height:12px;animation-delay:.12s}
-
+    .abar:nth-child(1){height:7px;  animation-delay:0s}
+    .abar:nth-child(2){height:14px; animation-delay:.1s}
+    .abar:nth-child(3){height:20px; animation-delay:.2s}
+    .abar:nth-child(4){height:16px; animation-delay:.15s}
+    .abar:nth-child(5){height:10px; animation-delay:.05s}
+    .abar:nth-child(6){height:18px; animation-delay:.25s}
+    .abar:nth-child(7){height:12px; animation-delay:.12s}
     @keyframes abar {
       0%,100%{ transform: scaleY(.35); opacity:.45; }
       50%    { transform: scaleY(1);   opacity:1; }
@@ -443,6 +523,7 @@
       padding: 18px 0;
       color: var(--muted);
       font-size: .9rem;
+      font-weight: 600;
       width: 100%;
     }
     .spinner {
@@ -456,10 +537,7 @@
     @keyframes spin { to { transform: rotate(360deg); } }
 
     /* Error */
-    #error-area {
-      width: 100%;
-      margin-bottom: 14px;
-    }
+    #error-area { width: 100%; margin-bottom: 14px; }
     .err-box {
       background: rgba(239,68,68,.13);
       border: 1px solid rgba(239,68,68,.28);
@@ -468,9 +546,10 @@
       color: #fca5a5;
       font-size: .88rem;
       line-height: 1.5;
+      font-weight: 600;
     }
 
-    /* ── Voice zone ── */
+    /* Voice zone */
     #voice-zone {
       display: none;
       flex-direction: column;
@@ -481,22 +560,17 @@
     }
     #voice-zone.on { display: flex; }
 
-    .voice-label {
-      font-size: .9rem;
-      color: var(--muted);
-    }
+    .voice-label { font-size: .9rem; color: var(--muted); font-weight: 600; }
 
-    /* Mic button */
     .mic-btn {
-      width: 90px;
-      height: 90px;
+      width: 90px; height: 90px;
       border-radius: 50%;
       border: none;
       background: linear-gradient(135deg, var(--accent), var(--purple));
       font-size: 2.3rem;
       cursor: pointer;
       position: relative;
-      box-shadow: 0 0 28px rgba(245,158,11,.35);
+      box-shadow: 0 0 28px rgba(245,200,66,.35);
       transition: transform .13s, box-shadow .13s;
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
@@ -505,7 +579,6 @@
       justify-content: center;
     }
     .mic-btn:active { transform: scale(.92); }
-
     .mic-btn.listening {
       background: linear-gradient(135deg, var(--red), #b91c1c);
       box-shadow: 0 0 36px rgba(239,68,68,.5);
@@ -521,14 +594,13 @@
       animation: rippleOut 1.7s ease-out infinite;
     }
     .mic-btn.listening::after { animation-delay: .85s; }
-
     @keyframes micGlow {
       0%,100%{ box-shadow: 0 0 28px rgba(239,68,68,.4); }
       50%    { box-shadow: 0 0 56px rgba(239,68,68,.7); }
     }
     @keyframes rippleOut {
-      0%  { transform: scale(.9); opacity: .7; }
-      100%{ transform: scale(1.65); opacity: 0; }
+      0%  { transform: scale(.9); opacity:.7; }
+      100%{ transform: scale(1.65); opacity:0; }
     }
 
     .mic-status {
@@ -537,23 +609,23 @@
       min-height: 18px;
       text-align: center;
       transition: color .2s;
+      font-weight: 600;
     }
     .mic-status.listening { color: var(--red); }
     .mic-status.error     { color: #f87171; }
 
-    /* ── Button fallback zone ── */
+    /* Button fallback zone */
     #btn-zone {
       display: none;
       flex-direction: column;
       align-items: center;
       width: 100%;
-      gap: 0;
     }
     #btn-zone.on { display: flex; }
 
-    /* ════════════════════════════════
+    /* ════════════════════════
        ENDING SCREEN
-    ════════════════════════════════ */
+    ════════════════════════ */
     #screen-ending {
       justify-content: center;
       text-align: center;
@@ -568,16 +640,16 @@
       animation: trophyIn .6s cubic-bezier(.34,1.56,.64,1) forwards;
     }
     @keyframes trophyIn {
-      0%  { transform: scale(0) rotate(-15deg); opacity: 0; }
-      100%{ transform: scale(1) rotate(0);      opacity: 1; }
+      0%  { transform: scale(0) rotate(-15deg); opacity:0; }
+      100%{ transform: scale(1) rotate(0);      opacity:1; }
     }
 
-    .ending-card { text-align: center; }
+    .ending-card { text-align: center; margin-bottom: 16px; }
 
     .ending-title {
-      font-size: 2rem;
-      font-weight: 800;
-      letter-spacing: -.02em;
+      font-family: var(--fhead);
+      font-size: 2.2rem;
+      font-weight: 400;
       background: linear-gradient(135deg, #fde68a, var(--accent));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -589,19 +661,94 @@
       color: var(--muted);
       font-size: .98rem;
       line-height: 1.6;
-      margin-bottom: 26px;
+      margin-bottom: 22px;
+      font-weight: 600;
     }
 
-    /* ════════════════════════════════
+    /* Achievement badges */
+    #badge-zone { display: none; width: 100%; margin-bottom: 20px; }
+    #badge-zone.on { display: block; }
+
+    .badge-label {
+      font-family: var(--fhead);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--accent);
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: .02em;
+    }
+
+    .badge-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .badge-item {
+      background: rgba(245,200,66,.12);
+      border: 1px solid rgba(245,200,66,.3);
+      border-radius: 30px;
+      padding: 7px 14px;
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    /* Rewind zone */
+    #rewind-zone { display: none; width: 100%; margin-bottom: 16px; }
+    #rewind-zone.on { display: block; }
+
+    .rewind-label {
+      font-family: var(--fhead);
+      font-size: 1rem;
+      font-weight: 400;
+      color: #94a3b8;
+      text-align: center;
+      margin-bottom: 12px;
+      letter-spacing: .02em;
+    }
+
+    .rewind-btn {
+      width: 100%;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 12px;
+      padding: 13px 16px;
+      color: var(--text);
+      font-family: var(--fbody);
+      font-size: .88rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: left;
+      margin-bottom: 8px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .15s, border-color .15s;
+      line-height: 1.45;
+    }
+    .rewind-btn:last-child { margin-bottom: 0; }
+    .rewind-btn:active {
+      background: rgba(124,58,237,.15);
+      border-color: var(--purple);
+    }
+    .rewind-step {
+      font-size: .72rem;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* ════════════════════════
        SETTINGS GEAR
-    ════════════════════════════════ */
+    ════════════════════════ */
     #gear-btn {
       position: fixed;
-      bottom: 18px;
-      right: 18px;
+      bottom: 18px; right: 18px;
       z-index: 200;
-      width: 38px;
-      height: 38px;
+      width: 38px; height: 38px;
       border-radius: 50%;
       background: var(--card);
       border: 1px solid var(--border);
@@ -619,8 +766,7 @@
     #gear-modal {
       display: none;
       position: fixed;
-      bottom: 66px;
-      right: 18px;
+      bottom: 66px; right: 18px;
       z-index: 201;
       background: #141420;
       border: 1px solid var(--border);
@@ -629,15 +775,14 @@
       width: 270px;
       box-shadow: 0 20px 60px rgba(0,0,0,.55);
     }
-
     #gear-modal h4 {
       font-size: .78rem;
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: .06em;
       margin-bottom: 9px;
+      font-weight: 700;
     }
-
     .gear-input {
       width: 100%;
       background: var(--card);
@@ -651,7 +796,6 @@
       outline: none;
     }
     .gear-input:focus { border-color: var(--purple); }
-
     .gear-save {
       width: 100%;
       background: var(--purple);
@@ -659,9 +803,9 @@
       border-radius: 10px;
       padding: 11px;
       color: #fff;
-      font-family: inherit;
+      font-family: var(--fbody);
       font-size: .9rem;
-      font-weight: 600;
+      font-weight: 700;
       cursor: pointer;
     }
   </style>
@@ -684,16 +828,36 @@
       </div>
       <div class="how-card">
         <span class="icon">🎤</span>
-        <p>Say <strong>"one"</strong> or <strong>"two"</strong> to choose your path</p>
+        <p>Say <strong>"one"</strong> or <strong>"two"</strong> to choose</p>
       </div>
       <div class="how-card">
         <span class="icon">✨</span>
-        <p>Your choice shapes the whole adventure</p>
+        <p>Your choice shapes the adventure</p>
       </div>
     </div>
     <button class="btn btn-cta" style="max-width:340px" onclick="onWelcomeCta()">
       Let's Go! 🚀
     </button>
+  </div>
+
+  <!-- ══════════ AGE SELECT ══════════ -->
+  <div id="screen-age" class="screen">
+    <div class="age-header">
+      <h2>Who's adventuring? 🌟</h2>
+      <p>Pick the right level for you</p>
+    </div>
+    <div class="age-cards">
+      <button class="age-card age-card-young" onclick="pickAge('young')">
+        <span class="age-emoji">🐣</span>
+        <span class="age-range">Ages 5–7</span>
+        <span class="age-label">Little Adventurer</span>
+      </button>
+      <button class="age-card age-card-older" onclick="pickAge('older')">
+        <span class="age-emoji">🦁</span>
+        <span class="age-range">Ages 8–12</span>
+        <span class="age-label">Story Hero</span>
+      </button>
+    </div>
   </div>
 
   <!-- ══════════ TYPE SELECT ══════════ -->
@@ -702,13 +866,10 @@
       <h2>Pick your world 🌍</h2>
       <p>What kind of adventure do you want?</p>
     </div>
-
     <div class="type-grid" id="main-grid"></div>
-
     <button class="more-toggle" id="more-btn" onclick="toggleMore()">
       <span id="more-label">＋ More adventures</span>
     </button>
-
     <div id="more-section">
       <div class="type-grid" id="more-grid" style="margin-bottom:10px"></div>
       <div class="custom-row">
@@ -722,7 +883,13 @@
 
   <!-- ══════════ STORY ══════════ -->
   <div id="screen-story" class="screen">
-    <div id="progress"></div>
+    <div class="story-topbar">
+      <button class="topbar-back" onclick="goPickWorld()">← Back</button>
+      <div class="genre-badge" id="genre-badge">Adventure</div>
+      <div id="progress"></div>
+    </div>
+
+    <div id="chapter-title"></div>
 
     <div class="card" id="narration-card">
       <div id="narration-text"></div>
@@ -762,8 +929,20 @@
     <span class="trophy" id="ending-glyph">🏆</span>
     <div class="card ending-card">
       <div class="ending-title" id="ending-title">You did it!</div>
-      <div class="ending-sub" id="ending-sub">What an incredible adventure! You were brave, clever, and brilliant.</div>
+      <div class="ending-sub" id="ending-sub">What an incredible adventure!</div>
       <button class="btn btn-replay" id="ending-btn" onclick="goPickWorld()">🌟 New Adventure!</button>
+    </div>
+
+    <!-- Badges shown on victory -->
+    <div id="badge-zone">
+      <p class="badge-label">🏅 Achievements Unlocked!</p>
+      <div class="badge-row" id="badge-row"></div>
+    </div>
+
+    <!-- Rewind shown on failure -->
+    <div id="rewind-zone">
+      <p class="rewind-label">⏪ Rewind Your Story</p>
+      <div id="rewind-list"></div>
     </div>
   </div>
 
@@ -771,7 +950,7 @@
 
 <!-- Settings -->
 <button id="gear-btn" onclick="toggleGear()">⚙️</button>
-<div id="gear-modal">
+<div id="gear-modal" style="display:none">
   <h4>Anthropic API Key</h4>
   <input class="gear-input" id="key-inp" type="password"
     placeholder="sk-ant-…" autocomplete="off" autocorrect="off"
@@ -788,47 +967,71 @@
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // STORY TYPES
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 const MAIN_TYPES = [
-  { e:'🐉', n:'Fantasy Quest',    c1:'#c084fc', c2:'#6d28d9', t:'dragons, enchanted castles, and brave heroes on a magical quest' },
-  { e:'🚀', n:'Space Adventure',  c1:'#60a5fa', c2:'#1d4ed8', t:'rockets, alien worlds, and daring missions on distant planets' },
-  { e:'🌊', n:'Under the Sea',    c1:'#22d3ee', c2:'#0e7490', t:'mermaids, sea monsters, glowing coral reefs, and sunken treasure' },
-  { e:'🦕', n:'Dino World',       c1:'#86efac', c2:'#15803d', t:'dinosaurs, ancient jungles, volcanoes, and prehistoric discoveries' },
-  { e:'🏴‍☠️', n:'Pirate Treasure', c1:'#fbbf24', c2:'#b45309', t:'pirates, mysterious treasure maps, and adventures on the high seas' },
-  { e:'🦸', n:'Superhero Day',    c1:'#f87171', c2:'#b91c1c', t:'superpowers, a city in danger, and a secret hero identity' },
+  { e:'🐉', n:'Fantasy Quest',    sub:'Dragons & Magic',       ac:'#c084fc', t:'dragons, enchanted castles, and brave heroes on a magical quest' },
+  { e:'🚀', n:'Space Adventure',  sub:'Rockets & Aliens',      ac:'#60a5fa', t:'rockets, alien worlds, and daring missions on distant planets' },
+  { e:'🌊', n:'Under the Sea',    sub:'Mermaids & Monsters',   ac:'#22d3ee', t:'mermaids, sea monsters, glowing coral reefs, and sunken treasure' },
+  { e:'🦕', n:'Dino World',       sub:'Prehistoric Adventure', ac:'#86efac', t:'dinosaurs, ancient jungles, volcanoes, and prehistoric discoveries' },
+  { e:'🏴‍☠️', n:'Pirate Treasure', sub:'Treasure & High Seas',  ac:'#fbbf24', t:'pirates, mysterious treasure maps, and adventures on the high seas' },
+  { e:'🦸', n:'Superhero Day',    sub:'Powers & Peril',        ac:'#f87171', t:'superpowers, a city in danger, and a secret hero identity' },
 ];
 
 const MORE_TYPES = [
-  { e:'🧙‍♀️', n:'Magic School',    c1:'#f472b6', c2:'#be185d', t:'young wizards, dangerous spells, and magical creatures at school' },
-  { e:'🦄', n:'Unicorn Kingdom', c1:'#e879f9', c2:'#a21caf', t:'unicorns, rainbow magic, and a kingdom under a dark spell' },
-  { e:'🤖', n:'Robot World',     c1:'#94a3b8', c2:'#334155', t:'friendly robots, malfunctioning machines, and a futuristic city in trouble' },
-  { e:'🌴', n:'Jungle Explorer', c1:'#a3e635', c2:'#4d7c0f', t:'jungle animals, hidden ancient temples, and wild exploration' },
-  { e:'⚔️', n:'Knights & Castles',c1:'#fb923c', c2:'#c2410c', t:'brave knights, castle dungeons, and a fire-breathing dragon to face' },
-  { e:'🍄', n:'Fairy Forest',    c1:'#a78bfa', c2:'#5b21b6', t:'tiny fairies, magical woodland creatures, and an enchanted forest in danger' },
-  { e:'🐾', n:'Animal Friends',  c1:'#fdba74', c2:'#ea580c', t:'talking animals, a missing friend, and a dangerous rescue mission' },
-  { e:'🎪', n:'Magic Circus',    c1:'#fb7185', c2:'#be123c', t:'acrobats, a runaway magic act, and circus mysteries to solve' },
-  { e:'👻', n:'Friendly Ghosts', c1:'#7dd3fc', c2:'#0369a1', t:'friendly ghosts, a haunted house full of puzzles, and new friendships' },
+  { e:'🧙‍♀️', n:'Magic School',    sub:'Spells & Secrets',      ac:'#f472b6', t:'young wizards, dangerous spells, and magical creatures at school' },
+  { e:'🦄', n:'Unicorn Kingdom',  sub:'Rainbow Magic',          ac:'#e879f9', t:'unicorns, rainbow magic, and a kingdom under a dark spell' },
+  { e:'🤖', n:'Robot World',      sub:'Bots & Circuits',        ac:'#94a3b8', t:'friendly robots, malfunctioning machines, and a futuristic city in trouble' },
+  { e:'🌴', n:'Jungle Explorer',  sub:'Wild & Hidden Temples',  ac:'#a3e635', t:'jungle animals, hidden ancient temples, and wild exploration' },
+  { e:'⚔️', n:'Knights & Castles',sub:'Swords & Dragons',      ac:'#fb923c', t:'brave knights, castle dungeons, and a fire-breathing dragon to face' },
+  { e:'🍄', n:'Fairy Forest',     sub:'Tiny & Enchanted',       ac:'#a78bfa', t:'tiny fairies, magical woodland creatures, and an enchanted forest in danger' },
+  { e:'🐾', n:'Animal Friends',   sub:'Rescue Mission',         ac:'#fdba74', t:'talking animals, a missing friend, and a dangerous rescue mission' },
+  { e:'🎪', n:'Magic Circus',     sub:'Tricks & Mysteries',     ac:'#fb7185', t:'acrobats, a runaway magic act, and circus mysteries to solve' },
+  { e:'👻', n:'Friendly Ghosts',  sub:'Haunted & Fun',          ac:'#7dd3fc', t:'friendly ghosts, a haunted house full of puzzles, and new friendships' },
 ];
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// ACHIEVEMENT BADGES PER GENRE
+// ═══════════════════════════════════════════════
+const GENRE_BADGES = {
+  'Fantasy Quest':     ['🐉 Dragon Friend',  '⚔️ Brave Knight',    '✨ Magic Master'],
+  'Space Adventure':   ['🚀 Space Ace',       '👾 Alien Ally',       '⭐ Star Explorer'],
+  'Under the Sea':     ['🐠 Sea Champion',    '🐙 Ocean Hero',       '🌊 Wave Rider'],
+  'Dino World':        ['🦕 Dino Tamer',      '🌋 Volcano Brave',    '🦴 Fossil Finder'],
+  'Pirate Treasure':   ['⚓ Sea Captain',     '🗺️ Map Master',       '💰 Treasure Hunter'],
+  'Superhero Day':     ['🦸 Super Hero',      '💥 City Saver',       '🏅 Champion'],
+  'Magic School':      ['🧙‍♀️ Spell Master',   '📚 Book Wizard',      '⚡ Magic Ace'],
+  'Unicorn Kingdom':   ['🦄 Unicorn Friend',  '🌈 Rainbow Keeper',   '✨ Enchanted'],
+  'Robot World':       ['🤖 Bot Builder',     '⚙️ Tech Genius',      '🔧 Circuit Hero'],
+  'Jungle Explorer':   ['🌴 Jungle Expert',   '🐆 Cat Whisperer',    '🗺️ Pathfinder'],
+  'Knights & Castles': ['⚔️ Knight Champ',    '🏰 Castle Hero',      '🛡️ Shield Bearer'],
+  'Fairy Forest':      ['🍄 Forest Friend',   '🧚 Fairy Ally',       '🌿 Nature Hero'],
+  'Animal Friends':    ['🐾 Animal Hero',     '❤️ Kind Heart',       '🌟 True Friend'],
+  'Magic Circus':      ['🎪 Show Stopper',    '🎭 Star Performer',   '🎩 Magic Hat'],
+  'Friendly Ghosts':   ['👻 Ghost Friend',    '🔦 Brave Explorer',   '🌟 Mystery Solver'],
+};
+
+// ═══════════════════════════════════════════════
 // STATE
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 const MAX_NODES = 6;
 
-let apiKey         = localStorage.getItem('sq_key')    || '';
-let elevenLabsKey  = localStorage.getItem('sq_elkey')  || '';
-let elevenVoiceId  = localStorage.getItem('sq_voice')  || 'XB0fDUnXU5powFXDhCwa'; // Charlotte (British female)
-let storyTheme     = '';
-let storyHistory   = [];
-let nodeCount      = 0;
-let choices        = [];
-let activeRec      = null;
+let apiKey        = localStorage.getItem('sq_key')   || '';
+let elevenLabsKey = localStorage.getItem('sq_elkey') || '';
+let elevenVoiceId = localStorage.getItem('sq_voice') || 'XB0fDUnXU5powFXDhCwa';
+let ageGroup      = 'older'; // 'young' (5-7) or 'older' (8-12)
+let storyTheme    = '';
+let storyGenre    = '';
+let storyHistory  = [];
+let nodeCount     = 0;
+let choices       = [];
+let choiceLog     = []; // rewind history
+let activeRec     = null;
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // BOOT
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 (function boot() {
   buildGrids();
   if (apiKey)        document.getElementById('key-inp').value    = apiKey;
@@ -851,29 +1054,27 @@ function buildGrids() {
 function mkCard(type) {
   const d = document.createElement('div');
   d.className = 'type-card';
-  d.style.setProperty('--c1', type.c1);
-  d.style.setProperty('--c2', type.c2);
-  d.innerHTML = `<span class="te">${type.e}</span><span class="tn">${type.n}</span>`;
+  d.innerHTML =
+    '<div class="card-accent-bar" style="background:' + type.ac + '"></div>' +
+    '<div class="card-inner">' +
+      '<span class="te">' + type.e + '</span>' +
+      '<span class="tn">' + type.n + '</span>' +
+      '<span class="tsub">' + type.sub + '</span>' +
+    '</div>';
   d.onclick = () => pickType(type);
   return d;
 }
 
-// ═══════════════════════════════════════════════════
-// AUDIO — ElevenLabs primary, Web Speech fallback
-// ═══════════════════════════════════════════════════
-
-// AudioContext — created on first user gesture so iOS allows playback
+// ═══════════════════════════════════════════════
+// AUDIO
+// ═══════════════════════════════════════════════
 let audioCtx    = null;
-let activeSrc   = null;   // currently playing BufferSourceNode
-
-// Web Speech fallback helpers
-let voicesReady  = false;
+let activeSrc   = null;
+let voicesReady = false;
 let pendingSpeak = null;
 
 function unlockAudio() {
-  if (!audioCtx) {
-    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-  }
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
@@ -886,18 +1087,15 @@ speechSynthesis.onvoiceschanged = () => {
   if (pendingSpeak) { const f = pendingSpeak; pendingSpeak = null; f(); }
 };
 
-// Stop whatever is currently playing
 function cancelAudio() {
   if (activeSrc) { try { activeSrc.stop(); } catch(e){} activeSrc = null; }
   speechSynthesis.cancel();
   setAudioBars(false);
 }
 
-// Primary: ElevenLabs via Netlify function → AudioContext playback
 async function speakText(text, onDone) {
   cancelAudio();
   if (!text || !text.trim()) { onDone && onDone(); return; }
-
   setAudioBars(true);
 
   try {
@@ -906,45 +1104,36 @@ async function speakText(text, onDone) {
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ text, voiceId: elevenVoiceId, elevenLabsKey }),
     });
-
     const data = await resp.json();
 
     if (data.fallback || !data.audio) {
-      // No ElevenLabs key configured — use Web Speech silently
       setAudioBars(false);
       speakFallback(text, onDone);
       return;
     }
 
-    // Decode base64 MP3 → AudioContext buffer → play
     const binary  = atob(data.audio);
     const bytes   = new Uint8Array(binary.length);
     for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
 
     const audioBuf = await audioCtx.decodeAudioData(bytes.buffer);
     const src      = audioCtx.createBufferSource();
-    activeSrc      = src;
-    src.buffer     = audioBuf;
+    activeSrc = src;
+    src.buffer = audioBuf;
     src.connect(audioCtx.destination);
-    src.onended = () => {
-      activeSrc = null;
-      setAudioBars(false);
-      onDone && onDone();
-    };
+    src.onended = () => { activeSrc = null; setAudioBars(false); onDone && onDone(); };
     src.start(0);
 
   } catch (err) {
-    console.warn('ElevenLabs TTS failed, falling back to Web Speech:', err);
+    console.warn('ElevenLabs failed, falling back:', err);
     setAudioBars(false);
     speakFallback(text, onDone);
   }
 }
 
-// Fallback: Web Speech API (browser built-in)
 function speakFallback(text, onDone) {
   if (!voicesReady) { pendingSpeak = () => speakFallback(text, onDone); return; }
 
-  // iOS cuts off utterances > ~200 chars; split at sentence boundaries
   const sentences = text.match(/[^.!?…]+[.!?…]+\s*/g) || [text];
   const chunks = [];
   let cur = '';
@@ -955,31 +1144,23 @@ function speakFallback(text, onDone) {
   if (cur.trim()) chunks.push(cur.trim());
   const all = chunks.length ? chunks : [text];
 
-  // Prefer a British female voice for consistency with ElevenLabs default
   const vv = speechSynthesis.getVoices();
-  const britishFemale = [
-    'Google UK English Female', 'Martha', 'Moira', 'Tessa',
-    'Samantha (Enhanced)', 'Samantha', 'Karen',
-  ];
+  const britishFemale = ['Google UK English Female','Martha','Moira','Tessa','Samantha (Enhanced)','Samantha','Karen'];
   let voice = null;
-  for (const name of britishFemale) {
-    voice = vv.find(v => v.name === name);
-    if (voice) break;
-  }
+  for (const name of britishFemale) { voice = vv.find(v => v.name === name); if (voice) break; }
   if (!voice) voice = vv.find(v => v.lang.startsWith('en')) || vv[0] || null;
 
   let i = 0;
   setAudioBars(true);
-
   function next() {
     if (i >= all.length) { setAudioBars(false); onDone && onDone(); return; }
-    const u    = new SpeechSynthesisUtterance(all[i]);
-    u.voice    = voice;
-    u.rate     = 0.86;
-    u.pitch    = 1.05;
-    u.volume   = 1;
-    u.onend    = () => { i++; next(); };
-    u.onerror  = e => { console.warn('TTS fallback', e.error); i++; next(); };
+    const u = new SpeechSynthesisUtterance(all[i]);
+    u.voice  = voice;
+    u.rate   = 0.86;
+    u.pitch  = 1.05;
+    u.volume = 1;
+    u.onend  = () => { i++; next(); };
+    u.onerror = e => { console.warn('TTS:', e.error); i++; next(); };
     speechSynthesis.speak(u);
   }
   next();
@@ -989,10 +1170,10 @@ function setAudioBars(on) {
   document.getElementById('abars').classList.toggle('on', on);
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // SPEECH RECOGNITION
-// ═══════════════════════════════════════════════════
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+// ═══════════════════════════════════════════════
+const SR   = window.SpeechRecognition || window.webkitSpeechRecognition;
 const hasSR = !!SR;
 
 function onMicTap() {
@@ -1001,21 +1182,17 @@ function onMicTap() {
 
   const rec = new SR();
   activeRec = rec;
-  rec.continuous      = false;
-  rec.lang            = 'en-US';
-  rec.interimResults  = false;
+  rec.continuous     = false;
+  rec.lang           = 'en-US';
+  rec.interimResults = false;
   rec.maxAlternatives = 5;
 
   rec.onstart  = () => setMicState('listening');
-
-  rec.onend = () => {
+  rec.onend    = () => {
     activeRec = null;
-    if (document.getElementById('mic-btn').classList.contains('listening')) {
-      setMicState('idle');
-    }
+    if (document.getElementById('mic-btn').classList.contains('listening')) setMicState('idle');
   };
-
-  rec.onerror = e => {
+  rec.onerror  = e => {
     activeRec = null;
     setMicState('idle');
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
@@ -1025,7 +1202,6 @@ function onMicTap() {
       setTimeout(() => setMicStatus('', ''), 3000);
     }
   };
-
   rec.onresult = e => {
     activeRec = null;
     setMicState('idle');
@@ -1038,15 +1214,12 @@ function onMicTap() {
 
 function handleVoice(texts) {
   const all = texts.join(' ');
-
   if (/\b(one|first|1)\b/.test(all))  return makeChoice(0);
   if (/\b(two|second|2)\b/.test(all)) return makeChoice(1);
 
-  // Fuzzy match against choice text
   if (choices.length === 2) {
-    const score = (haystack, choice) =>
-      choice.toLowerCase().split(/\s+/)
-        .filter(w => w.length > 3 && haystack.includes(w)).length;
+    const score = (hay, ch) =>
+      ch.toLowerCase().split(/\s+/).filter(w => w.length > 3 && hay.includes(w)).length;
     const s0 = score(all, choices[0]);
     const s1 = score(all, choices[1]);
     if (s0 > s1 && s0 > 0) return makeChoice(0);
@@ -1059,9 +1232,7 @@ function handleVoice(texts) {
 
 function setMicState(state) {
   document.getElementById('mic-btn').classList.toggle('listening', state === 'listening');
-  const labels = { listening: 'Listening…', idle: '' };
-  const cls    = { listening: 'listening',  idle: '' };
-  setMicStatus(labels[state] ?? '', cls[state] ?? '');
+  setMicStatus(state === 'listening' ? 'Listening…' : '', state === 'listening' ? 'listening' : '');
 }
 
 function setMicStatus(text, cls) {
@@ -1082,26 +1253,30 @@ function switchToVoice() {
   document.getElementById('voice-zone').classList.add('on');
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // NAVIGATION
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
 }
 
-// Welcome CTA — unlock audio (iOS requires gesture), narrate intro, show type screen
 function onWelcomeCta() {
   unlockAudio();
+  showScreen('screen-age');
+}
+
+function pickAge(group) {
+  unlockAudio();
+  ageGroup = group;
   showScreen('screen-type');
   speakText(
-    "Welcome to Story Quest! Pick a world to begin your adventure. " +
+    "Great! Now pick a world to begin your adventure. " +
     "When the story pauses, tap the microphone and say 'one' or 'two' to choose what happens next. " +
     "Or tap Can't talk right now to see the choices on screen instead. Let's find your world!"
   );
 }
 
-// Returning from ending screen — silent, no re-narration
 function goPickWorld() {
   cancelAudio();
   showScreen('screen-type');
@@ -1118,6 +1293,7 @@ function pickType(type) {
   unlockAudio();
   cancelAudio();
   storyTheme = type.t;
+  storyGenre = type.n;
   startStory();
 }
 
@@ -1127,24 +1303,29 @@ function startCustom() {
   unlockAudio();
   cancelAudio();
   storyTheme = val;
+  storyGenre = val;
   startStory();
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // STORY FLOW
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function startStory() {
   storyHistory = [];
   nodeCount    = 0;
   choices      = [];
+  choiceLog    = [];
 
+  document.getElementById('genre-badge').textContent = storyGenre;
   showScreen('screen-story');
   updateProgress();
   hideInteraction();
+  setChapterTitle('');
+  setNarration('');
 
   storyHistory.push({
     role: 'user',
-    content: `Start a brand-new adventure set in a world of ${storyTheme}. nodeCount=0. Keep it exciting and age-appropriate for a child aged 5-8.`
+    content: 'Start a brand-new adventure set in a world of ' + storyTheme + '. nodeCount=0.'
   });
 
   fetchNode();
@@ -1153,6 +1334,7 @@ function startStory() {
 async function fetchNode() {
   setLoading(true);
   setNarration('');
+  setChapterTitle('');
   hideInteraction();
   clearError();
 
@@ -1170,25 +1352,30 @@ async function fetchNode() {
   nodeCount++;
   updateProgress();
 
-  const narration = result.narration || 'Something magical happens…';
+  const narration    = result.narration    || 'Something magical happens…';
+  const chapterTitle = result.chapterTitle || '';
+  const isFailure    = !!result.isFailure;
+
   setNarration(narration);
+  setChapterTitle(chapterTitle);
 
   if (result.isEnding) {
-    const isFailure = !!result.isFailure;
     speakText(narration, () => {
       setTimeout(() => {
         cancelAudio();
         showEnding(isFailure);
         const outroText = isFailure
-          ? 'Ha! Well... that was unexpected. Go on, tap Try Again — the adventure is waiting, and this time you know what NOT to do!'
-          : 'The End! You actually did it. You were brilliant. Tap New Adventure and see what other worlds are waiting for you!';
+          ? 'Ha! Well, that was unexpected. Tap Try Again — the adventure is waiting!'
+          : 'The End! You actually did it. You were brilliant. Tap New Adventure for another quest!';
         speakText(outroText);
       }, 500);
     });
   } else {
-    choices = result.choices?.length === 2 ? result.choices : ['Keep going', 'Try something else'];
+    choices = result.choices && result.choices.length === 2
+      ? result.choices
+      : ['Keep going', 'Try something else'];
     speakText(narration, () => {
-      speakText(`Here are your choices. One: ${choices[0]}. Two: ${choices[1]}.`, () => {
+      speakText('Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.', () => {
         showInteraction();
       });
     });
@@ -1201,24 +1388,46 @@ function makeChoice(idx) {
   setMicState('idle');
   hideInteraction();
 
+  // Save rewind snapshot BEFORE pushing this choice to history
+  choiceLog.push({
+    stepNum:         nodeCount,
+    choiceText:      choices[idx],
+    historySnapshot: storyHistory.slice(),
+    choices:         choices.slice(),
+    narration:       document.getElementById('narration-text').textContent,
+    chapterTitle:    document.getElementById('chapter-title').textContent,
+  });
+
   storyHistory.push({
     role: 'user',
-    content: `The child chose: "${choices[idx]}". Continue the story. nodeCount=${nodeCount}.`
+    content: 'The child chose: "' + choices[idx] + '". Continue the story. nodeCount=' + nodeCount + '.'
   });
 
   fetchNode();
 }
 
-// ═══════════════════════════════════════════════════
-// UI HELPERS
-// ═══════════════════════════════════════════════════
-function setNarration(text) {
-  document.getElementById('narration-text').textContent = text;
+function rewindTo(logIdx) {
+  const entry   = choiceLog[logIdx];
+  storyHistory  = entry.historySnapshot.slice();
+  nodeCount     = entry.stepNum;
+  choiceLog     = choiceLog.slice(0, logIdx);
+  choices       = entry.choices.slice();
+
+  showScreen('screen-story');
+  updateProgress();
+  setNarration(entry.narration);
+  setChapterTitle(entry.chapterTitle || '');
+  showInteraction();
+
+  speakText('Your choices again. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
 }
 
-function setLoading(on) {
-  document.getElementById('loading').style.display = on ? 'block' : 'none';
-}
+// ═══════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════
+function setNarration(text)     { document.getElementById('narration-text').textContent = text; }
+function setChapterTitle(text)  { document.getElementById('chapter-title').textContent  = text; }
+function setLoading(on)         { document.getElementById('loading').style.display = on ? 'block' : 'none'; }
 
 function updateProgress() {
   const el = document.getElementById('progress');
@@ -1235,7 +1444,6 @@ function showInteraction() {
   document.getElementById('c1').textContent = '② ' + choices[1];
   document.getElementById('c0').disabled = false;
   document.getElementById('c1').disabled = false;
-
   if (hasSR) {
     document.getElementById('voice-zone').classList.add('on');
     document.getElementById('btn-zone').classList.remove('on');
@@ -1252,39 +1460,70 @@ function hideInteraction() {
 }
 
 function showEnding(isFailure) {
-  const trophy  = document.getElementById('ending-glyph');
-  const title   = document.getElementById('ending-title');
-  const sub     = document.getElementById('ending-sub');
-  const btn     = document.getElementById('ending-btn');
+  const trophy     = document.getElementById('ending-glyph');
+  const title      = document.getElementById('ending-title');
+  const sub        = document.getElementById('ending-sub');
+  const btn        = document.getElementById('ending-btn');
+  const badgeZone  = document.getElementById('badge-zone');
+  const rewindZone = document.getElementById('rewind-zone');
+
+  badgeZone.classList.remove('on');
+  rewindZone.classList.remove('on');
+
   if (isFailure) {
     trophy.textContent = '😂';
     title.textContent  = 'Well, that happened.';
-    sub.textContent    = 'You may have made a slightly questionable decision back there. Honestly? Pretty funny. Go on — try again and choose differently!';
+    sub.textContent    = 'You may have made a slightly questionable decision back there. Honestly? Pretty funny. Go on — try again!';
     btn.textContent    = '🔄 Try Again!';
+
+    if (choiceLog.length > 0) {
+      const list = document.getElementById('rewind-list');
+      list.innerHTML = '';
+      choiceLog.forEach((entry, idx) => {
+        const b = document.createElement('button');
+        b.className = 'rewind-btn';
+        b.innerHTML =
+          '<span class="rewind-step">Chapter ' + entry.stepNum + '</span>' +
+          'Go back to: "' + entry.choiceText + '"?';
+        b.onclick = () => rewindTo(idx);
+        list.appendChild(b);
+      });
+      rewindZone.classList.add('on');
+    }
+
   } else {
     trophy.textContent = '🏆';
     title.textContent  = 'You did it!';
     sub.textContent    = 'What an incredible adventure. You were brave, clever, and completely brilliant.';
     btn.textContent    = '🌟 New Adventure!';
+
+    const badges = GENRE_BADGES[storyGenre] || ['🌟 Story Hero', '🏆 Adventure Master', '✨ Quest Complete'];
+    const row = document.getElementById('badge-row');
+    row.innerHTML = '';
+    badges.forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'badge-item';
+      el.textContent = b;
+      row.appendChild(el);
+    });
+    badgeZone.classList.add('on');
   }
+
   showScreen('screen-ending');
 }
 
 function showError(msg) {
-  document.getElementById('error-area').innerHTML =
-    `<div class="err-box">${msg}</div>`;
+  document.getElementById('error-area').innerHTML = '<div class="err-box">' + msg + '</div>';
 }
 
-function clearError() {
-  document.getElementById('error-area').innerHTML = '';
-}
+function clearError() { document.getElementById('error-area').innerHTML = ''; }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 // SETTINGS
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
 function toggleGear() {
   const m = document.getElementById('gear-modal');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  m.style.display = (m.style.display === 'none' || !m.style.display) ? 'block' : 'none';
 }
 
 function saveKey() {
@@ -1297,79 +1536,45 @@ function saveKey() {
   document.getElementById('gear-modal').style.display = 'none';
 }
 
-// ═══════════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+// SYSTEM PROMPT (age-aware)
+// ═══════════════════════════════════════════════
+function buildSystemPrompt() {
+  const ageSection = ageGroup === 'young'
+    ? 'AGE GROUP: 5-7 years (Little Adventurers). Use short simple sentences, max 10 words each. Vocabulary for a 5-year-old. Warm and silly tone, gentle tension only — nothing scary. Opening: 6-8 sentences. Middle nodes: 4-6 sentences. Comedy failures should be sweet and extra silly.'
+    : 'AGE GROUP: 8-12 years (Story Heroes). Richer vocabulary and longer sentences welcome. Genuine moral complexity and real tension. Full narration specs apply as written.';
+
+  return 'You are a master choose-your-own-adventure storyteller for children. The child IS the hero — always address them as "you." This is an AUDIO experience: write for the ear, not the eye.\n\n' +
+    ageSection + '\n\n' +
+    'Respond ONLY with a single valid JSON object — no markdown, no extra text:\n' +
+    '{"narration":"...","chapterTitle":"...","choices":["...","..."],"isEnding":false,"isFailure":false}\n\n' +
+    '━━━ CORE RULES ━━━\n\n' +
+    'HOOK FAST: Drop into action immediately — no backstory. Every node ends on a micro-cliffhanger.\n\n' +
+    'HERO DRIVES EVERYTHING: YOU solve problems through cleverness or courage. Never rescued by luck.\n\n' +
+    'GENUINE CHOICES: Choices must differ in TONE AND TEXTURE — one dark and tense, one silly and fast.\n\n' +
+    'AUDIO CONTEXT BRIDGE (CRITICAL): Every middle node (nodeCount > 0) MUST open: "You chose to [action], and now..." Then move forward.\n\n' +
+    'SECONDARY CHARACTERS: One vivid sidekick, villain, or weird helper per adventure. Give them a memorable detail.\n\n' +
+    'PACING VARIETY: Each branch must feel different — tense, chaotic, or quietly funny. Never same energy twice.\n\n' +
+    '━━━ NARRATION SPECS ━━━\n\n' +
+    'nodeCount=0 (OPENING): 10-14 sentences (6-8 for ages 5-7). Begin mid-action. One urgent problem. Vivid secondary character. Rich sensory detail. End at cliffhanger.\n\n' +
+    'nodeCount 1-4 (MIDDLE): 6-10 sentences (4-6 for ages 5-7). Open with context bridge. Show consequence of last choice. Vary tone. End on fresh cliffhanger.\n\n' +
+    'isEnding=true, isFailure=false (VICTORY): 6-8 sentences. Specific to path taken. Triumphant. Listener feels proud.\n\n' +
+    'isEnding=true, isFailure=true (COMEDY FAILURE): 3-4 sentences. ABSURD and funny. "You are now a turnip." Kid should laugh and want to retry immediately.\n\n' +
+    '━━━ CHAPTER TITLES ━━━\n' +
+    'Provide a short exciting chapter title (3-6 words) in "chapterTitle". Example: "The Dragon Wakes Up!"\n\n' +
+    '━━━ CHOICES ━━━\n' +
+    'Exactly 2 options, max 9 words each. Genuinely different tone. One daring, one funny/quick.\n\n' +
+    '━━━ FLAGS ━━━\n' +
+    'isFailure:true when previous choice triggers a comedic dead-end. ALWAYS pair with isEnding:true.\n' +
+    'isEnding:true at nodeCount >= 5 OR when isFailure is true.\n\n' +
+    '━━━ HARD RULES ━━━\n' +
+    'Always "you" — never "the hero" or a name. No gore or genuine terror. Thrilling peril = yes.\n' +
+    'ONLY return the JSON object. Nothing else ever.';
+}
+
+// ═══════════════════════════════════════════════
 // API
-// ═══════════════════════════════════════════════════
-const SYSTEM_PROMPT = `You are a master choose-your-own-adventure storyteller for children ages 6-10. The child IS the hero — always address them as "you." This is an AUDIO experience: write for the ear, not the eye. Your narrator voice should feel warm and consistent even as the tone shifts between tense, funny, and action-packed across different branches.
-
-Respond ONLY with a single valid JSON object — no markdown, no extra text, nothing else:
-{"narration":"...","choices":["...","..."],"isEnding":false,"isFailure":false}
-
-━━━ CORE STORYTELLING RULES ━━━
-
-HOOK FAST, KEEP MOVING
-Drop the listener into immediate tension or mystery — never backstory. Every node must end on a micro-cliffhanger that makes the next choice feel urgent. Kids have high expectations and low patience.
-
-THE HERO DRIVES EVERYTHING
-YOU make real mistakes and recover through your own cleverness or courage. Never rescued by luck or adults solving the problem for you. Agency is everything.
-
-GENUINE CHOICES, NOT COSMETIC ONES
-The cardinal sin of bad CYOA: "go left or go right" when both paths are basically the same. Choices must differ in TONE AND TEXTURE — one path dark and tense, another silly and fast. Kids should feel the weight before they choose.
-
-AUDIO CONTEXT BRIDGE (CRITICAL)
-This is audio — listeners can't re-read. Every middle node (nodeCount > 0) MUST open with one sentence that re-establishes context: "You chose to [action], and now..." or "The moment you [action], everything changes." Then move forward.
-
-SECONDARY CHARACTERS
-Every adventure needs at least one vivid sidekick, villain, or weird helper. Give them a specific detail — a nervous laugh, a glowing hat, a voice like gravel. Even characters who appear in only one branch should feel unforgettable.
-
-PACING VARIETY
-Branches must feel genuinely different in texture. One might be tense and whispery. Another fast and chaotic. Another has a moment of quiet and unexpected humour. Never the same energy twice.
-
-MORAL WEIGHT WITHOUT MORALIZING
-This age group can handle "there's no perfect answer." Let consequences speak for themselves — never lecture through the narrator.
-
-━━━ NARRATION SPECS ━━━
-
-nodeCount=0 (OPENING): 10-14 sentences.
-  • Begin in the middle of action or mystery — no scene-setting preamble.
-  • Establish ONE urgent problem only you can solve.
-  • Introduce a vivid secondary character (sidekick, villain, or strange helper).
-  • Rich sensory detail: what you see, hear, smell, feel.
-  • End at a cliffhanger with two genuinely different paths ahead.
-
-nodeCount 1-4 (MIDDLE): 6-10 sentences.
-  • Open with context bridge (see above — mandatory for audio).
-  • Show the real consequence of the last choice — reward a good one, let a bad one sting.
-  • Vary the tone from the previous node.
-  • End on a fresh micro-cliffhanger.
-
-isEnding=true, isFailure=false (VICTORY / TRUE ENDING): 6-8 sentences.
-  • Emotionally earned and specific to the path taken — reference what YOU did.
-  • This is the ending worth finding. Make it feel complete and triumphant.
-  • The listener should feel genuinely proud.
-
-isEnding=true, isFailure=true (COMEDY FAILURE): 3-4 sentences.
-  • ABSURD and funny — not doom. Think "You are now a turnip. The dragon is confused."
-  • The goal is to make the kid LAUGH and immediately want to retry.
-  • No shame, no sadness. Pure delightful ridiculousness.
-
-━━━ CHOICES ━━━
-- Exactly 2 options, max 9 words each.
-- Genuinely different tone: one option dark or daring, the other quick or funny.
-- Name the stakes briefly so listeners can weigh them without re-reading.
-- Wording should carry dramatic energy: "Grab the rope and leap across the gap" not "Cross the gap."
-
-━━━ FLAGS ━━━
-- isFailure: true when the previous choice triggers a comedic dead-end. ALWAYS pair with isEnding:true.
-- isEnding: true at nodeCount >= 5 (earned victory) OR when isFailure is true.
-
-━━━ HARD RULES ━━━
-- Always "you" — never "the hero," never a named character.
-- 3-4 meaningful decision points per playthrough is the sweet spot. Don't rush endings.
-- Vocabulary vivid and cinematic, understood by a 6-year-old. Never babyish.
-- No gore, genuine terror, or dark themes. Thrilling peril = yes.
-- ONLY return the JSON object. Nothing else ever.`;
-
+// ═══════════════════════════════════════════════
 async function callClaude(messages) {
   const resp = await fetch('/.netlify/functions/narrate', {
     method: 'POST',
@@ -1377,9 +1582,9 @@ async function callClaude(messages) {
     body: JSON.stringify({
       apiKey,
       payload: {
-        model: 'claude-sonnet-4-20250514',
+        model:      'claude-sonnet-4-20250514',
         max_tokens: 1800,
-        system: SYSTEM_PROMPT,
+        system:     buildSystemPrompt(),
         messages
       }
     })
@@ -1387,7 +1592,7 @@ async function callClaude(messages) {
 
   if (!resp.ok) {
     const err = await resp.json().catch(() => ({}));
-    throw new Error(err?.error?.message || `HTTP ${resp.status}`);
+    throw new Error(err?.error?.message || 'HTTP ' + resp.status);
   }
 
   const data    = await resp.json();
