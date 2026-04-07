@@ -247,26 +247,61 @@
     }
 
     .type-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 18px 10px 14px;
+      /* 3D bubble — each card sets --c1 (light) and --c2 (dark) via JS */
+      background: radial-gradient(circle at 38% 28%, color-mix(in srgb, var(--c1) 85%, white 15%) 0%, var(--c1) 35%, var(--c2) 100%);
+      border: none;
+      border-radius: 22px;
+      padding: 18px 8px 14px;
       text-align: center;
       cursor: pointer;
-      transition: transform .13s, background .13s, border-color .13s;
+      position: relative;
+      overflow: hidden;
+      /* Multi-layer shadow for the 3D raised effect */
+      box-shadow:
+        0 7px 0 color-mix(in srgb, var(--c2) 80%, black 20%),
+        0 10px 20px rgba(0,0,0,.40),
+        inset 0 1px 0 rgba(255,255,255,.35);
+      transition: transform .12s ease, box-shadow .12s ease;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
       user-select: none;
     }
 
-    .type-card:active {
-      transform: scale(.93);
-      background: rgba(139,92,246,.15);
-      border-color: var(--purple);
+    /* Glossy highlight sweep across the top */
+    .type-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 48%;
+      background: linear-gradient(180deg, rgba(255,255,255,.22) 0%, transparent 100%);
+      border-radius: 22px 22px 60% 60% / 22px 22px 40% 40%;
+      pointer-events: none;
     }
 
-    .type-card .te { font-size: 2.2rem; display: block; margin-bottom: 7px; }
-    .type-card .tn { font-size: .76rem; font-weight: 600; color: var(--text); line-height: 1.3; }
+    /* Press down — squish into the surface */
+    .type-card:active {
+      transform: translateY(5px) scale(.97);
+      box-shadow:
+        0 2px 0 color-mix(in srgb, var(--c2) 80%, black 20%),
+        0 4px 10px rgba(0,0,0,.35),
+        inset 0 1px 0 rgba(255,255,255,.25);
+    }
+
+    .type-card .te {
+      font-size: 2.3rem;
+      display: block;
+      margin-bottom: 7px;
+      position: relative; /* above ::before */
+      filter: drop-shadow(0 2px 3px rgba(0,0,0,.25));
+    }
+    .type-card .tn {
+      font-size: .75rem;
+      font-weight: 700;
+      color: rgba(255,255,255,.95);
+      line-height: 1.3;
+      position: relative;
+      text-shadow: 0 1px 3px rgba(0,0,0,.4);
+    }
 
     /* More button */
     .more-toggle {
@@ -724,11 +759,11 @@
 
   <!-- ══════════ ENDING ══════════ -->
   <div id="screen-ending" class="screen">
-    <span class="trophy">🏆</span>
+    <span class="trophy" id="ending-glyph">🏆</span>
     <div class="card ending-card">
-      <div class="ending-title">The End!</div>
-      <div class="ending-sub" id="ending-sub">What an amazing adventure!<br>You were so brave and clever!</div>
-      <button class="btn btn-replay" onclick="goPickWorld()">🌟 New Adventure!</button>
+      <div class="ending-title" id="ending-title">You did it!</div>
+      <div class="ending-sub" id="ending-sub">What an incredible adventure! You were brave, clever, and brilliant.</div>
+      <button class="btn btn-replay" id="ending-btn" onclick="goPickWorld()">🌟 New Adventure!</button>
     </div>
   </div>
 
@@ -757,24 +792,24 @@
 // STORY TYPES
 // ═══════════════════════════════════════════════════
 const MAIN_TYPES = [
-  { e:'🐉', n:'Fantasy Quest',    t:'dragons, enchanted castles, and brave heroes on a magical quest' },
-  { e:'🚀', n:'Space Adventure',  t:'rockets, friendly aliens, and daring missions on distant planets' },
-  { e:'🌊', n:'Under the Sea',    t:'mermaids, talking fish, glowing coral reefs, and hidden treasure' },
-  { e:'🦕', n:'Dino World',       t:'friendly dinosaurs, ancient jungles, and incredible prehistoric discoveries' },
-  { e:'🏴‍☠️', n:'Pirate Treasure', t:'brave pirates, mysterious treasure maps, and adventures on the high seas' },
-  { e:'🦸', n:'Superhero Day',    t:'amazing superpowers, saving the city, and secret hero identities' },
+  { e:'🐉', n:'Fantasy Quest',    c1:'#c084fc', c2:'#6d28d9', t:'dragons, enchanted castles, and brave heroes on a magical quest' },
+  { e:'🚀', n:'Space Adventure',  c1:'#60a5fa', c2:'#1d4ed8', t:'rockets, alien worlds, and daring missions on distant planets' },
+  { e:'🌊', n:'Under the Sea',    c1:'#22d3ee', c2:'#0e7490', t:'mermaids, sea monsters, glowing coral reefs, and sunken treasure' },
+  { e:'🦕', n:'Dino World',       c1:'#86efac', c2:'#15803d', t:'dinosaurs, ancient jungles, volcanoes, and prehistoric discoveries' },
+  { e:'🏴‍☠️', n:'Pirate Treasure', c1:'#fbbf24', c2:'#b45309', t:'pirates, mysterious treasure maps, and adventures on the high seas' },
+  { e:'🦸', n:'Superhero Day',    c1:'#f87171', c2:'#b91c1c', t:'superpowers, a city in danger, and a secret hero identity' },
 ];
 
 const MORE_TYPES = [
-  { e:'🧙‍♀️', n:'Magic School',    t:'young wizards, funny spells gone wrong, and magical creatures at school' },
-  { e:'🦄', n:'Unicorn Kingdom', t:'unicorns, rainbow magic, sparkling meadows, and a kingdom of wonder' },
-  { e:'🤖', n:'Robot World',     t:'friendly robots, awesome gadgets, and adventures in a futuristic city' },
-  { e:'🌴', n:'Jungle Explorer', t:'jungle animals, hidden ancient temples, and wild exploration' },
-  { e:'⚔️', n:'Knights & Castles',t:'brave knights, noble quests, castle dungeons, and fire-breathing dragons' },
-  { e:'🍄', n:'Fairy Forest',    t:'tiny fairies, magical woodland creatures, and secret forest adventures' },
-  { e:'🐾', n:'Animal Friends',  t:'talking animals, big hearts, teamwork, and helping others in need' },
-  { e:'🎪', n:'Magic Circus',    t:'acrobats, impossible magic tricks, amazing performers, and circus mysteries' },
-  { e:'👻', n:'Friendly Ghosts', t:'friendly ghosts, a cozy haunted house full of surprises, and new friendships' },
+  { e:'🧙‍♀️', n:'Magic School',    c1:'#f472b6', c2:'#be185d', t:'young wizards, dangerous spells, and magical creatures at school' },
+  { e:'🦄', n:'Unicorn Kingdom', c1:'#e879f9', c2:'#a21caf', t:'unicorns, rainbow magic, and a kingdom under a dark spell' },
+  { e:'🤖', n:'Robot World',     c1:'#94a3b8', c2:'#334155', t:'friendly robots, malfunctioning machines, and a futuristic city in trouble' },
+  { e:'🌴', n:'Jungle Explorer', c1:'#a3e635', c2:'#4d7c0f', t:'jungle animals, hidden ancient temples, and wild exploration' },
+  { e:'⚔️', n:'Knights & Castles',c1:'#fb923c', c2:'#c2410c', t:'brave knights, castle dungeons, and a fire-breathing dragon to face' },
+  { e:'🍄', n:'Fairy Forest',    c1:'#a78bfa', c2:'#5b21b6', t:'tiny fairies, magical woodland creatures, and an enchanted forest in danger' },
+  { e:'🐾', n:'Animal Friends',  c1:'#fdba74', c2:'#ea580c', t:'talking animals, a missing friend, and a dangerous rescue mission' },
+  { e:'🎪', n:'Magic Circus',    c1:'#fb7185', c2:'#be123c', t:'acrobats, a runaway magic act, and circus mysteries to solve' },
+  { e:'👻', n:'Friendly Ghosts', c1:'#7dd3fc', c2:'#0369a1', t:'friendly ghosts, a haunted house full of puzzles, and new friendships' },
 ];
 
 // ═══════════════════════════════════════════════════
@@ -816,6 +851,8 @@ function buildGrids() {
 function mkCard(type) {
   const d = document.createElement('div');
   d.className = 'type-card';
+  d.style.setProperty('--c1', type.c1);
+  d.style.setProperty('--c2', type.c2);
   d.innerHTML = `<span class="te">${type.e}</span><span class="tn">${type.n}</span>`;
   d.onclick = () => pickType(type);
   return d;
@@ -1137,11 +1174,15 @@ async function fetchNode() {
   setNarration(narration);
 
   if (result.isEnding) {
+    const isFailure = !!result.isFailure;
     speakText(narration, () => {
       setTimeout(() => {
         cancelAudio();
-        showScreen('screen-ending');
-        speakText('The End! You were so brave and clever! Tap New Adventure to go on another quest!');
+        showEnding(isFailure);
+        const outroText = isFailure
+          ? 'Oh no! That didn\'t quite work out this time. But every great hero needs a few tries. Tap New Adventure and give it another go!'
+          : 'The End! You did it — you were so brave and so clever! Tap New Adventure to go on another quest!';
+        speakText(outroText);
       }, 500);
     });
   } else {
@@ -1210,6 +1251,25 @@ function hideInteraction() {
   setMicState('idle');
 }
 
+function showEnding(isFailure) {
+  const trophy  = document.getElementById('ending-glyph');
+  const title   = document.getElementById('ending-title');
+  const sub     = document.getElementById('ending-sub');
+  const btn     = document.getElementById('ending-btn');
+  if (isFailure) {
+    trophy.textContent = '💫';
+    title.textContent  = 'Uh oh…';
+    sub.textContent    = 'That path didn\'t work out this time — but every hero needs a few tries! The adventure is waiting for you.';
+    btn.textContent    = '🔄 Try Again!';
+  } else {
+    trophy.textContent = '🏆';
+    title.textContent  = 'You did it!';
+    sub.textContent    = 'What an incredible adventure! You were brave, clever, and brilliant.';
+    btn.textContent    = '🌟 New Adventure!';
+  }
+  showScreen('screen-ending');
+}
+
 function showError(msg) {
   document.getElementById('error-area').innerHTML =
     `<div class="err-box">${msg}</div>`;
@@ -1240,23 +1300,37 @@ function saveKey() {
 // ═══════════════════════════════════════════════════
 // API
 // ═══════════════════════════════════════════════════
-const SYSTEM_PROMPT = `You are a master children's storyteller — the kind who makes children close their eyes and feel utterly transported into another world.
+const SYSTEM_PROMPT = `You are a master choose-your-own-adventure storyteller for children ages 5-8. The child listening IS the hero — always address them as "you." Every moment must feel like it is happening to THEM, right now.
 
-Your narration is cinematic and immersive. Paint the world with sensory detail: colours, sounds, smells, textures, temperature. Make the child feel the warm sun on their face, hear the crunch of leaves underfoot, smell the salt of the sea. Build atmosphere slowly and beautifully. Every story beat should feel like a chapter worth reading aloud.
+Respond ONLY with a single valid JSON object — no markdown, no extra text, nothing else:
+{"narration":"...","choices":["...","..."],"isEnding":false,"isFailure":false}
 
-Respond ONLY with a single valid JSON object — no markdown, no explanation, nothing else:
-{"narration":"...","choices":["...","..."],"isEnding":false}
+STORY STRUCTURE:
+- Every adventure opens with YOU already inside an urgent, exciting situation — a real problem that only you can solve. Drop the listener straight into the action, not a gentle introduction.
+- Choices must carry real weight. Before giving the options, name the risk of each path so the listener can feel the stakes. "To the left, a growling noise echoes in the dark. To the right, you'd have to jump across a very long gap..."
+- There are RIGHT and WRONG choices. A bold, clever, or brave choice advances the story. A reckless or fearful choice can trigger an early gentle failure ending. This tension makes the story exciting.
+- Kid-friendly peril is strongly encouraged: being chased, getting trapped, a plan going wrong, a friend in danger. Never truly frightening, but absolutely thrilling.
 
-Narration length and style:
-- Opening node (nodeCount=0): 10-14 sentences. Begin with a stunning, unhurried description of the world the child has stepped into. Introduce the young hero with warmth. Describe the call to adventure with rising excitement. End at a dramatic moment of decision.
-- Middle nodes (nodeCount 1-4): 6-10 sentences. Honour the choice that was made — describe how the world changes because of it. Deepen the atmosphere. Raise the stakes. Build toward a climax. Each branch should feel genuinely different, not interchangeable.
-- Final node (nodeCount >= 5, isEnding true): 6-8 sentences. A triumphant, emotionally satisfying conclusion. The hero succeeds. The world feels whole and bright. Leave the child feeling proud, joyful, and full of wonder.
+NARRATION LENGTH:
+- nodeCount=0 (opening): 10-14 sentences. Begin in the middle of the action. Rich sensory world-building AND a clear problem you must solve. End with the stakes firmly established and a decision looming.
+- nodeCount 1-4 (middle): 6-10 sentences. Show the consequence of the last choice — reward a good one, let a bad one sting a little. Build tension toward the climax.
+- isEnding=true, isFailure=false (victory): 5-7 warm triumphant sentences. YOU saved the day. Feel proud.
+- isEnding=true, isFailure=true (failure): 3-5 gentle encouraging sentences. Something went wrong this time — but every great hero fails before they succeed. Invite them to try again.
 
-Rules:
-- choices: exactly 2 options, each 8 words or fewer. Make them feel meaningfully different.
-- Language: vivid and poetic, yet every word must be understood by a 6-year-old. Never babyish, never scary.
-- No dark, violent, or frightening content. Always warm, encouraging, and magical.
-- ONLY return the JSON. Nothing else. Ever.`;
+CHOICES:
+- Exactly 2 options, max 9 words each.
+- Make the tension visible in the wording itself: e.g. "Grab the rope and swing across the gap" vs "Climb down the dark slippery rocks."
+- One option should feel bolder or cleverer; the other safer but potentially wrong.
+
+FLAGS:
+- isFailure: true if the previous choice was clearly reckless or wrong AND this ends the adventure early. Always pair with isEnding:true.
+- isEnding: true when nodeCount >= 5 (full victory) OR when isFailure is true (early ending).
+
+RULES:
+- Always address the listener as "you" — never "the hero," never a named character.
+- Vocabulary simple enough for age 6, but writing vivid and cinematic, never babyish.
+- No gore, real terror, or genuinely dark themes. Exciting danger = absolutely yes.
+- ONLY return the JSON object. Nothing else ever.`;
 
 async function callClaude(messages) {
   const resp = await fetch('/.netlify/functions/narrate', {
