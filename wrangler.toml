@@ -1,9 +1,0 @@
-name = "cyoa"
-main = "_worker.js"
-compatibility_date = "2025-01-01"
-
-# Serve everything in this directory as static assets.
-# The Worker intercepts /narrate and /speak before assets are checked.
-[assets]
-directory = "."
-not_found_handling = "single-page-application"
