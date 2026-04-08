@@ -575,6 +575,9 @@ function cancelAudio() {
 async function speakText(text, onDone) {
   cancelAudio();
   if (!text||!text.trim()){onDone&&onDone();return;}
+  // Ensure AudioContext is running (iOS can re-suspend it between user gesture and async callback)
+  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e){} }
   setAudioBars(true);
   try {
     const resp = await fetch('/.netlify/functions/speak',{
@@ -589,11 +592,15 @@ async function speakText(text, onDone) {
     const src=audioCtx.createBufferSource();
     activeSrc=src; src.buffer=buf; src.connect(audioCtx.destination);
     src.onended=()=>{activeSrc=null;setAudioBars(false);onDone&&onDone();};
+    // Resume once more right before start — belt-and-suspenders for iOS
+    if (audioCtx.state === 'suspended') await audioCtx.resume();
     src.start(0);
   } catch(err) { console.warn('ElevenLabs failed:',err); setAudioBars(false); speakFallback(text,onDone); }
 }
 
 function speakFallback(text,onDone) {
+  // On iOS onvoiceschanged may never fire — check voices directly each time
+  if (!voicesReady) voicesReady = speechSynthesis.getVoices().length > 0;
   if (!voicesReady){pendingSpeak=()=>speakFallback(text,onDone);return;}
   const sentences=text.match(/[^.!?…]+[.!?…]+\s*/g)||[text];
   const chunks=[]; let cur='';
@@ -615,7 +622,7 @@ function speakFallback(text,onDone) {
   }
   next();
 }
-function setAudioBars(on){document.getElementById('abars').classList.toggle('on',on);}
+function setAudioBars(on){const el=document.getElementById('abars');if(el)el.classList.toggle('on',on);}
 
 // ═══════════════════════════════════
 // SPEECH RECOGNITION
