@@ -599,9 +599,13 @@ async function speakText(text, onDone) {
 }
 
 function speakFallback(text,onDone) {
-  // On iOS onvoiceschanged may never fire — check voices directly each time
   if (!voicesReady) voicesReady = speechSynthesis.getVoices().length > 0;
-  if (!voicesReady){pendingSpeak=()=>speakFallback(text,onDone);return;}
+  if (!voicesReady) {
+    // Give voices up to 2 seconds to load; then give up and call onDone so the app never stalls
+    const voiceTimer=setTimeout(()=>{pendingSpeak=null;setAudioBars(false);onDone&&onDone();},2000);
+    pendingSpeak=()=>{clearTimeout(voiceTimer);speakFallback(text,onDone);};
+    return;
+  }
   const sentences=text.match(/[^.!?…]+[.!?…]+\s*/g)||[text];
   const chunks=[]; let cur='';
   for(const s of sentences){if(cur.length+s.length>185&&cur.length){chunks.push(cur.trim());cur=s;}else cur+=s;}
@@ -615,9 +619,13 @@ function speakFallback(text,onDone) {
   let i=0; setAudioBars(true);
   function next(){
     if(i>=all.length){setAudioBars(false);onDone&&onDone();return;}
-    const u=new SpeechSynthesisUtterance(all[i]);
+    const chunk=all[i];
+    const u=new SpeechSynthesisUtterance(chunk);
     u.voice=voice;u.rate=0.86;u.pitch=1.05;u.volume=1;
-    u.onend=()=>{i++;next();};u.onerror=e=>{console.warn('TTS:',e.error);i++;next();};
+    // Per-utterance timeout: if onend never fires (iOS after async gap), move on anyway
+    const t=setTimeout(()=>{i++;next();},Math.max(chunk.length*120,4000));
+    u.onend=()=>{clearTimeout(t);i++;next();};
+    u.onerror=e=>{clearTimeout(t);console.warn('TTS:',e.error);i++;next();};
     speechSynthesis.speak(u);
   }
   next();
@@ -761,7 +769,10 @@ async function fetchNode(){
   const isFailure=!!result.isFailure;
   setNarration(narration); setChapter(chapter);
   if(result.isEnding){
+    // Safety: show ending after 15s even if audio stalls
+    const endTimer=setTimeout(()=>{cancelAudio();showEnding(isFailure);},15000);
     speakText(narration,()=>{
+      clearTimeout(endTimer);
       setTimeout(()=>{
         cancelAudio();
         showEnding(isFailure);
@@ -772,8 +783,10 @@ async function fetchNode(){
     });
   } else {
     choices=result.choices&&result.choices.length===2?result.choices:['Keep going','Try something else'];
+    // Show choices immediately — audio plays in background, so the app never stalls if TTS fails
+    showInteraction();
     speakText(narration,()=>{
-      speakText('Here are your choices. One: '+choices[0]+'. Two: '+choices[1]+'.',()=>{showInteraction();});
+      speakText('Here are your choices. One: '+choices[0]+'. Two: '+choices[1]+'.');
     });
   }
 }
