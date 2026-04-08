@@ -580,7 +580,7 @@ async function speakText(text, onDone) {
   if (audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e){} }
   setAudioBars(true);
   try {
-    const resp = await fetch('/.netlify/functions/speak',{
+    const resp = await fetch('/speak',{
       method:'POST', headers:{'content-type':'application/json'},
       body:JSON.stringify({text,voiceId:elevenVoiceId,elevenLabsKey}),
     });
@@ -954,7 +954,7 @@ function buildSystemPrompt(){
 // API
 // ═══════════════════════════════════
 async function callClaude(messages){
-  const resp=await fetch('/.netlify/functions/narrate',{
+  const resp=await fetch('/narrate',{
     method:'POST', headers:{'content-type':'application/json'},
     body:JSON.stringify({apiKey,payload:{model:'claude-sonnet-4-20250514',max_tokens:1800,system:buildSystemPrompt(),messages}})
   });
