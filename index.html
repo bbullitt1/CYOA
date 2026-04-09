@@ -561,8 +561,16 @@ let voicesReady = false;
 let pendingSpeak = null;
 
 function unlockAudio() {
+  // Unlock AudioContext
   if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
   if (audioCtx.state==='suspended') audioCtx.resume();
+  // Pre-warm speech synthesis — iOS requires the first speak() call to happen
+  // inside a user gesture; all subsequent async calls will then work.
+  try {
+    const warm = new SpeechSynthesisUtterance('');
+    warm.volume = 0;
+    speechSynthesis.speak(warm);
+  } catch(e) {}
 }
 function initVoices() { if (speechSynthesis.getVoices().length) voicesReady = true; }
 speechSynthesis.onvoiceschanged = () => { voicesReady=true; if (pendingSpeak){const f=pendingSpeak;pendingSpeak=null;f();} };
