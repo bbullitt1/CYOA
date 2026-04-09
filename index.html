@@ -593,7 +593,10 @@ async function speakText(text, onDone) {
       body:JSON.stringify({text,voiceId:elevenVoiceId,elevenLabsKey}),
     });
     const data = await resp.json();
-    if (data.fallback||!data.audio){setAudioBars(false);speakFallback(text,onDone);return;}
+    if (data.fallback||!data.audio){
+      console.warn('ElevenLabs fallback. Reason:',data.reason||'no audio data. resp.status:',resp.status,'hasKey check: key sent=',!!elevenLabsKey);
+      setAudioBars(false);speakFallback(text,onDone);return;
+    }
     const binary=atob(data.audio), bytes=new Uint8Array(binary.length);
     for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
     const buf=await audioCtx.decodeAudioData(bytes.buffer);

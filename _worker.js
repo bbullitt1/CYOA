@@ -65,7 +65,7 @@ async function handleSpeak(request, env) {
   const apiKey = env.ELEVENLABS_API_KEY || body.elevenLabsKey;
 
   // No key → tell the frontend to fall back to Web Speech API
-  if (!apiKey) return json({ fallback: true }, 200);
+  if (!apiKey) return json({ fallback: true, reason: 'no_key: ELEVENLABS_API_KEY env var not set and no key in request body' }, 200);
 
   const { text, voiceId = 'XB0fDUnXU5powFXDhCwa' } = body; // Charlotte (British female)
   if (!text || !text.trim()) return json({ error: 'No text' }, 400);
