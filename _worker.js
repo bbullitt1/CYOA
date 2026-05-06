@@ -22,6 +22,9 @@ export default {
     if (request.method === 'PUT') {
       if (path === '/api/profile') return handleUpdateProfile(request, env);
     }
+    if (request.method === 'POST') {
+      if (path === '/api/change-password') return handleChangePassword(request, env);
+    }
 
     if (env.ASSETS) return env.ASSETS.fetch(request);
     return new Response('Not found', { status: 404 });
@@ -211,6 +214,26 @@ async function handleGoogleCallback(request, env) {
   } catch (err) {
     return Response.redirect(`/?auth_error=${encodeURIComponent(err.message)}`, 302);
   }
+}
+
+// ─── API: change password ──────────────────────────────────────────────────
+
+async function handleChangePassword(request, env) {
+  if (!env.DB) return json({ error: 'Database not configured.' }, 503);
+  const authUser = await authenticate(request, env);
+  if (!authUser) return json({ error: 'Unauthorized' }, 401);
+  if (!authUser.password_hash) return json({ error: 'This account uses Google sign-in. Password cannot be changed here.' }, 400);
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
+  const { currentPassword, newPassword } = body;
+  if (!currentPassword || !newPassword) return json({ error: 'Current and new password are required.' }, 400);
+  if (newPassword.length < 8) return json({ error: 'New password must be at least 8 characters.' }, 400);
+  const ok = await verifyPassword(currentPassword, authUser.password_hash, authUser.password_salt);
+  if (!ok) return json({ error: 'Current password is incorrect.' }, 401);
+  const { hash, salt } = await hashPassword(newPassword);
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare('UPDATE users SET password_hash=?,password_salt=?,updated_at=? WHERE id=?').bind(hash, salt, now, authUser.id).run();
+  return json({ ok: true });
 }
 
 // ─── API: profile ──────────────────────────────────────────────────────────
