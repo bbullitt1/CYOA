@@ -3,347 +3,1250 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-  <title>StoryQuest</title>
+  <title>Branched</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --ink:          #1a1035;
-      --cream:        #fdf6e3;
-      --gold:         #f5c842;
-      --purple:       #7c3aed;
-      --purple-light: #a78bfa;
-      --teal-light:   #5eead4;
-      --coral:        #f43f5e;
-      --fhead: 'Fredoka One', cursive;
-      --fbody: 'Nunito', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --bark:        #2c1a0e;
+      --bark-mid:    #4a2c14;
+      --bark-light:  #7a4a28;
+      --moss:        #3d5a2c;
+      --moss-light:  #6a8f4a;
+      --leaf:        #a8c66c;
+      --leaf-bright: #c8e07a;
+      --sky:         #e8f4f0;
+      --sky-deep:    #c5ddd6;
+      --amber:       #e8a838;
+      --amber-light: #f0c060;
+      --cream:       #faf6ee;
+      --cream-dark:  #f0e8d8;
+      --ink:         #1a0e06;
+      --ink-soft:    #3d2810;
+      --coral:       #d4604a;
+      --teal:        #4a8a7a;
+      --fhead: 'Playfair Display', Georgia, serif;
+      --fbody: 'Lato', -apple-system, sans-serif;
     }
+
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: var(--fbody);
-      background: linear-gradient(160deg, #1a1035 0%, #3b1a7a 55%, #7c3aed 100%);
+      background: var(--sky);
       min-height: 100vh;
-      color: #f1f5f9;
+      color: var(--ink);
+      overflow-x: hidden;
     }
+
     #app {
-      position: relative; z-index: 1;
+      position: relative;
       min-height: 100vh;
-      display: flex; flex-direction: column; align-items: center;
-      max-width: 480px; margin: 0 auto; width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
     }
+
     .screen { display: none; width: 100%; }
     .screen.active {
-      display: flex; flex-direction: column; align-items: center;
-      animation: fadeUp .28s ease forwards;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      animation: fadeUp .3s ease forwards;
     }
     @keyframes fadeUp {
-      from { opacity:0; transform:translateY(12px); }
-      to   { opacity:1; transform:translateY(0); }
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── SCREEN 1: WELCOME + AGE ── */
-    #screen-welcome { padding: 0 24px 48px; min-height:100vh; position:relative; }
-    .stars { position:absolute; inset:0; pointer-events:none; overflow:hidden; z-index:0; }
-    .star  { position:absolute; width:4px; height:4px; background:white; border-radius:50%; animation:twinkle 2.5s infinite alternate; }
-    @keyframes twinkle {
-      from { opacity:.15; transform:scale(1); }
-      to   { opacity:.75; transform:scale(1.5); }
+    /* ══════════════════════════════════
+       SCREEN 1: WELCOME
+    ══════════════════════════════════ */
+    #screen-welcome {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #d4ead8 0%, #b8d4c0 40%, #8fb89a 100%);
+      position: relative;
+      overflow-x: hidden;
+      overflow-y: auto;
+      padding: 0 0 40px;
     }
-    .logo-area { margin-top:56px; text-align:center; position:relative; z-index:2; }
-    .logo-icon  { font-size:64px; display:block; margin-bottom:8px; filter:drop-shadow(0 4px 16px rgba(245,200,66,.5)); animation:float 3s ease-in-out infinite; }
-    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
-    .welcome-title { font-family:var(--fhead); font-size:clamp(2.6rem,10vw,3.4rem); color:var(--gold); line-height:1; letter-spacing:.5px; text-shadow:0 4px 20px rgba(245,200,66,.3); }
-    .tagline       { font-size:12px; color:var(--purple-light); font-weight:800; margin-top:7px; letter-spacing:1.8px; text-transform:uppercase; }
-    .section-title { font-family:var(--fhead); font-size:22px; color:white; margin-top:44px; margin-bottom:18px; text-align:center; position:relative; z-index:2; }
-    .age-cards { display:flex; gap:16px; width:100%; position:relative; z-index:2; }
-    .age-card  {
-      flex:1; border-radius:22px; padding:22px 16px; text-align:center; cursor:pointer;
-      border:3px solid transparent; display:flex; flex-direction:column; align-items:center; gap:6px;
-      font-family:var(--fbody); transition:transform .15s;
-      -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-    }
-    .age-card:active { transform:scale(.94); }
-    .age-young { background:linear-gradient(135deg,#0ea5e9,#38bdf8); border-color:#7dd3fc; }
-    .age-older { background:linear-gradient(135deg,#f43f5e,#fb7185); border-color:#fda4af; }
-    .age-emoji { font-size:44px; display:block; }
-    .age-range { font-family:var(--fhead); font-size:24px; color:white; line-height:1; }
-    .age-label { font-size:11px; color:rgba(255,255,255,.85); font-weight:800; text-transform:uppercase; letter-spacing:1px; }
-    .footer-note { font-size:12px; color:rgba(255,255,255,.4); margin-top:28px; text-align:center; position:relative; z-index:2; }
 
-    /* ── SCREEN 2: GENRE PICKER ── */
-    #screen-type { padding:0 0 40px; }
+    .hero-branch {
+      width: 100%;
+      position: relative;
+      height: 160px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      overflow: visible;
+    }
+    .hero-branch svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+    .branch-book {
+      animation: bookSway 4s ease-in-out infinite;
+      transform-origin: top center;
+    }
+    .branch-book:nth-child(2) { animation-delay: .6s; }
+    .branch-book:nth-child(3) { animation-delay: 1.2s; }
+    .branch-book:nth-child(4) { animation-delay: .3s; }
+    @keyframes bookSway {
+      0%,100% { transform: rotate(-2deg); }
+      50%      { transform: rotate(2deg); }
+    }
+
+    .leaf-particle {
+      position: absolute;
+      font-size: 16px;
+      animation: leafFall linear infinite;
+      opacity: 0;
+      pointer-events: none;
+    }
+    @keyframes leafFall {
+      0%   { opacity: 0; transform: translateY(-20px) rotate(0deg); }
+      10%  { opacity: 0.7; }
+      90%  { opacity: 0.5; }
+      100% { opacity: 0; transform: translateY(360px) rotate(360deg); }
+    }
+
+    .welcome-content {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      padding: 0 28px;
+      margin-top: 8px;
+    }
+
+    .brand-lockup {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .brand-name {
+      font-family: var(--fhead);
+      font-size: clamp(3rem, 14vw, 4rem);
+      font-weight: 900;
+      color: var(--bark);
+      line-height: 1;
+      letter-spacing: -1px;
+      text-shadow: 0 3px 0 rgba(255,255,255,0.4);
+    }
+
+    .brand-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: var(--amber);
+      border-radius: 50%;
+      margin-left: 2px;
+      vertical-align: middle;
+      margin-bottom: 6px;
+    }
+
+    .brand-tagline {
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--moss);
+      margin-top: 4px;
+    }
+
+    .section-label {
+      font-family: var(--fhead);
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--bark);
+      margin-top: 36px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .age-cards {
+      display: flex;
+      gap: 14px;
+      width: 100%;
+    }
+
+    .age-card {
+      flex: 1;
+      border-radius: 20px;
+      padding: 24px 16px 20px;
+      text-align: center;
+      cursor: pointer;
+      border: 3px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--fbody);
+      transition: transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      position: relative;
+      overflow: hidden;
+    }
+    .age-card:active { transform: scale(.93); }
+
+    .age-young {
+      background: linear-gradient(145deg, #5ba05a, #7abe6a);
+      border-color: rgba(255,255,255,0.35);
+      box-shadow: 0 6px 24px rgba(91,160,90,0.4);
+    }
+    .age-older {
+      background: linear-gradient(145deg, #7a4a28, #a06030);
+      border-color: rgba(255,255,255,0.25);
+      box-shadow: 0 6px 24px rgba(122,74,40,0.4);
+    }
+
+    .age-emoji { font-size: 46px; display: block; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.2)); }
+    .age-range { font-family: var(--fhead); font-size: 26px; color: white; font-weight: 700; line-height: 1; }
+    .age-label { font-size: 10px; color: rgba(255,255,255,.85); font-weight: 900; text-transform: uppercase; letter-spacing: 1.2px; }
+
+    .footer-note {
+      font-size: 12px;
+      color: var(--moss);
+      margin-top: 24px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    /* ══════════════════════════════════
+       SCREEN 2: GENRE PICKER
+    ══════════════════════════════════ */
+    #screen-type {
+      background: var(--cream);
+      min-height: 100vh;
+      padding: 0 0 48px;
+    }
+
     .s2-header {
-      width:100%;
-      background:linear-gradient(135deg,var(--purple),var(--purple-light));
-      padding:40px 24px 28px; border-radius:0 0 32px 32px;
-      text-align:center; margin-bottom:22px;
+      width: 100%;
+      background: linear-gradient(145deg, var(--bark), var(--bark-mid));
+      padding: 44px 24px 32px;
+      border-radius: 0 0 36px 36px;
+      text-align: center;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
     }
-    .s2-header h2 { font-family:var(--fhead); font-size:26px; color:white; line-height:1.2; }
-    .s2-header p  { font-size:13px; color:rgba(255,255,255,.8); margin-top:5px; font-weight:700; }
-    .genres-wrap  { padding:0 18px; width:100%; }
+    .s2-header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 0; right: 0;
+      height: 8px;
+      background: repeating-linear-gradient(
+        90deg,
+        var(--moss) 0px, var(--moss) 18px,
+        var(--moss-light) 18px, var(--moss-light) 36px
+      );
+      opacity: 0.6;
+    }
+
+    .s2-header h2 {
+      font-family: var(--fhead);
+      font-size: 24px;
+      color: var(--cream);
+      line-height: 1.25;
+      font-weight: 700;
+    }
+    .s2-header p {
+      font-size: 12px;
+      color: var(--leaf);
+      margin-top: 6px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .genres-wrap { padding: 0 18px; width: 100%; }
+
     .type-grid {
-      display:grid; grid-template-columns:1fr 1fr; gap:13px;
-      width:100%; margin-bottom:12px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      width: 100%;
+      margin-bottom: 12px;
     }
+
     .type-card {
-      border-radius:20px; overflow:hidden; cursor:pointer;
-      box-shadow:0 6px 20px rgba(0,0,0,.2); transition:transform .13s;
-      -webkit-tap-highlight-color:transparent; touch-action:manipulation; user-select:none;
-      display:flex; flex-direction:column;
+      border-radius: 18px;
+      overflow: hidden;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(44,26,14,.2);
+      transition: transform .13s, box-shadow .13s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      display: flex;
+      flex-direction: column;
+      border: 2px solid rgba(255,255,255,0.15);
     }
-    .type-card:active { transform:scale(.95); }
-    .card-accent-bar { height:4px; flex-shrink:0; }
-    .card-inner      { padding:16px 14px 14px; display:flex; flex-direction:column; gap:4px; }
-    .te   { font-size:44px; display:block; line-height:1; margin-bottom:4px; filter:drop-shadow(0 3px 8px rgba(0,0,0,.3)); }
-    .tn   { font-family:var(--fhead); font-size:17px; color:white; line-height:1.15; }
-    .tsub { font-size:10px; color:rgba(255,255,255,.6); font-weight:800; text-transform:uppercase; letter-spacing:.8px; }
+    .type-card:active {
+      transform: scale(.94);
+      box-shadow: 0 2px 8px rgba(44,26,14,.15);
+    }
+
+    .card-accent-bar { height: 5px; flex-shrink: 0; }
+    .card-inner { padding: 14px 13px 13px; display: flex; flex-direction: column; gap: 3px; align-items: center; text-align: center; }
+    .te   { font-size: 40px; display: block; line-height: 1; margin-bottom: 5px; filter: drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
+    .tn   { font-family: var(--fhead); font-size: 15px; color: white; line-height: 1.2; font-weight: 700; }
+    .tsub { font-size: 9px; color: rgba(255,255,255,.65); font-weight: 900; text-transform: uppercase; letter-spacing: .8px; }
+
     .more-toggle {
-      width:100%; background:rgba(124,58,237,.08); border:2px dashed rgba(124,58,237,.3);
-      border-radius:14px; padding:14px; color:var(--purple); font-family:var(--fbody);
-      font-size:.9rem; font-weight:800; cursor:pointer; display:flex; align-items:center;
-      justify-content:center; gap:7px; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-      margin-bottom:12px; transition:background .15s;
+      width: 100%;
+      background: rgba(44,26,14,.06);
+      border: 2px dashed rgba(44,26,14,.2);
+      border-radius: 14px;
+      padding: 14px;
+      color: var(--bark-mid);
+      font-family: var(--fbody);
+      font-size: .9rem;
+      font-weight: 900;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      margin-bottom: 12px;
+      transition: background .15s;
     }
-    .more-toggle:active { background:rgba(124,58,237,.14); }
-    #more-section { display:none; width:100%; }
-    .custom-row   { display:flex; gap:8px; margin-top:4px; margin-bottom:8px; }
-    .custom-inp   {
-      flex:1; background:white; border:2px solid rgba(124,58,237,.25); border-radius:12px;
-      padding:13px 14px; color:var(--ink); font-size:.93rem; font-family:var(--fbody);
-      font-weight:600; outline:none; transition:border-color .2s;
+    .more-toggle:active { background: rgba(44,26,14,.12); }
+
+    #more-section { display: none; width: 100%; }
+
+    .custom-row { display: flex; gap: 8px; margin-top: 4px; margin-bottom: 8px; }
+    .custom-inp {
+      flex: 1;
+      background: white;
+      border: 2px solid rgba(44,26,14,.15);
+      border-radius: 12px;
+      padding: 13px 14px;
+      color: var(--ink);
+      font-size: .93rem;
+      font-family: var(--fbody);
+      font-weight: 700;
+      outline: none;
+      transition: border-color .2s;
     }
-    .custom-inp:focus       { border-color:var(--purple); }
-    .custom-inp::placeholder{ color:#94a3b8; }
+    .custom-inp:focus { border-color: var(--bark-mid); }
+    .custom-inp::placeholder { color: #a09080; }
     .custom-go {
-      background:var(--purple); border:none; border-radius:12px; padding:13px 18px;
-      color:white; font-size:1.2rem; cursor:pointer; touch-action:manipulation; flex-shrink:0;
+      background: var(--bark);
+      border: none;
+      border-radius: 12px;
+      padding: 13px 18px;
+      color: white;
+      font-size: 1.2rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      flex-shrink: 0;
     }
 
-    /* ── SCREEN 3: STORY ── */
-    #screen-story { padding:0; align-items:stretch; }
+    /* ══════════════════════════════════
+       SCREEN 3: STORY
+    ══════════════════════════════════ */
+    #screen-story {
+      background: linear-gradient(180deg, #1a2e1a 0%, #0e1e0e 100%);
+      align-items: stretch;
+      min-height: 100vh;
+    }
+
     .story-topbar {
-      display:flex; align-items:center; justify-content:space-between;
-      padding:18px 22px 14px; border-bottom:1px solid rgba(255,255,255,.07); gap:10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 20px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      gap: 10px;
+      background: rgba(0,0,0,.2);
     }
+
     .story-back {
-      width:36px; height:36px; background:rgba(255,255,255,.09); border:none; border-radius:12px;
-      display:flex; align-items:center; justify-content:center; font-size:17px; color:white;
-      cursor:pointer; flex-shrink:0; font-family:var(--fbody); touch-action:manipulation;
-      -webkit-tap-highlight-color:transparent;
+      width: 36px;
+      height: 36px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      color: var(--leaf);
+      cursor: pointer;
+      flex-shrink: 0;
+      font-family: var(--fbody);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
     }
-    .story-back:active { background:rgba(255,255,255,.16); }
+    .story-back:active { background: rgba(255,255,255,.14); }
+
     .story-genre-badge {
-      font-family:var(--fhead); font-size:13px; color:var(--gold);
-      background:rgba(245,200,66,.12); padding:5px 14px; border-radius:20px;
-      border:1px solid rgba(245,200,66,.28); flex:1; text-align:center;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+      font-family: var(--fhead);
+      font-size: 13px;
+      color: var(--amber-light);
+      background: rgba(232,168,56,.1);
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(232,168,56,.25);
+      flex: 1;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
-    .story-progress { display:flex; gap:5px; flex-shrink:0; }
+
+    .story-progress { display: flex; gap: 5px; flex-shrink: 0; }
     .prog-dot {
-      width:8px; height:8px; border-radius:50%;
-      background:rgba(255,255,255,.2); transition:background .4s;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      transition: background .4s;
     }
-    .prog-dot.done   { background:var(--teal-light); }
-    .prog-dot.active { background:var(--gold); box-shadow:0 0 7px var(--gold); animation:dotPop .4s ease; }
+    .prog-dot.done   { background: var(--leaf); }
+    .prog-dot.active { background: var(--amber); box-shadow: 0 0 8px var(--amber); animation: dotPop .4s ease; }
     @keyframes dotPop { 0%{transform:scale(.4)} 70%{transform:scale(1.5)} 100%{transform:scale(1)} }
-    .story-content { padding:26px 24px 12px; width:100%; }
+
+    .story-content {
+      padding: 24px 22px 10px;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     .story-chapter {
-      font-family:var(--fhead); font-size:12px; color:var(--purple-light);
-      text-transform:uppercase; letter-spacing:2px; margin-bottom:14px; min-height:16px;
+      align-self: flex-start;
+      font-family: var(--fbody);
+      font-size: 10px;
+      color: var(--leaf);
+      text-transform: uppercase;
+      letter-spacing: 2.5px;
+      font-weight: 900;
+      margin-bottom: 14px;
+      min-height: 14px;
     }
-    .story-text { font-size:16px; line-height:1.78; color:rgba(255,255,255,.88); font-weight:600; min-height:80px; }
-    .abars { display:none; align-items:flex-end; gap:3px; height:22px; margin-top:20px; padding-top:16px; border-top:1px solid rgba(255,255,255,.07); }
-    .abars.on { display:flex; }
-    .abar { width:4px; border-radius:3px; background:var(--gold); animation:abar .9s ease-in-out infinite; }
-    .abar:nth-child(1){height:7px;  animation-delay:0s}
-    .abar:nth-child(2){height:14px; animation-delay:.1s}
-    .abar:nth-child(3){height:20px; animation-delay:.2s}
-    .abar:nth-child(4){height:16px; animation-delay:.15s}
-    .abar:nth-child(5){height:10px; animation-delay:.05s}
-    .abar:nth-child(6){height:18px; animation-delay:.25s}
-    .abar:nth-child(7){height:12px; animation-delay:.12s}
-    @keyframes abar { 0%,100%{transform:scaleY(.3);opacity:.4} 50%{transform:scaleY(1);opacity:1} }
+
+    .story-text {
+      font-family: var(--fhead);
+      font-size: 16px;
+      line-height: 1.75;
+      color: rgba(255,255,255,.85);
+      font-weight: 600;
+      width: 100%;
+      margin-top: 8px;
+    }
+
+    /* Audio playing mic visual */
+    #audio-mic {
+      display: none;
+      position: relative;
+      width: 130px;
+      height: 130px;
+      align-items: center;
+      justify-content: center;
+      margin: auto;
+      flex-shrink: 0;
+    }
+    #audio-mic.on { display: flex; }
+    .amic-icon { font-size: 52px; position: relative; z-index: 2; filter: drop-shadow(0 2px 12px rgba(0,0,0,.35)); }
+    .amic-ring {
+      position: absolute;
+      border-radius: 50%;
+      border: 2.5px solid var(--amber);
+      opacity: 0;
+      animation: amicPulse 2.2s ease-out infinite;
+    }
+    .amic-ring:nth-child(1) { width:  74px; height:  74px; animation-delay: 0s; }
+    .amic-ring:nth-child(2) { width: 100px; height: 100px; animation-delay: 0.55s; }
+    .amic-ring:nth-child(3) { width: 130px; height: 130px; animation-delay: 1.1s; }
+    @keyframes amicPulse {
+      0%   { transform: scale(.7); opacity: .75; }
+      100% { transform: scale(1.1); opacity: 0; }
+    }
+
+    /* Pause / rewind controls */
+    .audio-controls {
+      display: none;
+      gap: 12px;
+      margin-top: 14px;
+      flex-shrink: 0;
+    }
+    .audio-controls.on { display: flex; }
+    .audio-ctrl-btn {
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 22px;
+      color: rgba(255,255,255,.75);
+      font-family: var(--fbody);
+      font-size: .8rem;
+      font-weight: 700;
+      padding: 8px 18px;
+      cursor: pointer;
+      letter-spacing: .3px;
+      transition: background .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .audio-ctrl-btn:active { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.3); }
+    #audio-mic.paused .amic-ring { animation-play-state: paused; opacity: .2; }
+    #audio-mic.paused .amic-icon { opacity: .55; }
+
+    /* Show text toggle */
+    .show-text-btn {
+      display: none;
+      background: none;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 20px;
+      color: rgba(255,255,255,.45);
+      font-family: var(--fbody);
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .5px;
+      padding: 6px 18px;
+      cursor: pointer;
+      margin-top: 14px;
+      flex-shrink: 0;
+      transition: color .2s, border-color .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .show-text-btn.visible { display: block; }
+    .show-text-btn:hover { color: rgba(255,255,255,.75); border-color: rgba(255,255,255,.35); }
+
     #loading {
-      display:none; text-align:center; padding:22px 0;
-      color:rgba(255,255,255,.5); font-size:.9rem; font-weight:700;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      text-align: center;
+      padding: 28px 0;
+      color: rgba(255,255,255,.5);
+      font-size: .9rem;
+      font-weight: 700;
+      margin: auto;
     }
-    .spinner {
-      width:30px; height:30px; border:2px solid rgba(255,255,255,.15);
-      border-top-color:var(--gold); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto 10px;
+    #loading.on { display: flex; }
+    .branch-grow-icon {
+      font-size: 44px;
+      animation: branchSway 1.9s ease-in-out infinite;
     }
-    @keyframes spin { to{transform:rotate(360deg)} }
+    @keyframes branchSway {
+      0%, 100% { transform: rotate(-9deg) scale(.93); }
+      50%       { transform: rotate(9deg) scale(1.07); }
+    }
+
     .err-box {
-      background:rgba(244,63,94,.12); border:1px solid rgba(244,63,94,.28); border-radius:12px;
-      padding:13px 15px; color:#fda4af; font-size:.88rem; line-height:1.5; font-weight:700;
+      background: rgba(212,96,74,.12);
+      border: 1px solid rgba(212,96,74,.3);
+      border-radius: 12px;
+      padding: 13px 15px;
+      color: #f4a090;
+      font-size: .88rem;
+      line-height: 1.5;
+      font-weight: 700;
     }
-    #error-area { width:100%; margin-top:8px; }
+    #error-area { width: 100%; margin-top: 8px; }
 
-    /* Mic area */
     .mic-area {
-      display:none; flex-direction:column; align-items:center; gap:12px;
-      padding:20px 24px 36px; border-top:1px solid rgba(255,255,255,.06);
-      background:linear-gradient(to top,rgba(124,58,237,.1),transparent); width:100%;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 20px 24px 36px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      background: linear-gradient(to top, rgba(61,90,44,.15), transparent);
+      width: 100%;
     }
-    .mic-area.on { display:flex; }
+    .mic-area.on { display: flex; }
+
     .narrator-label {
-      font-size:11px; font-weight:800; text-transform:uppercase;
-      letter-spacing:1.5px; color:var(--purple-light); opacity:.85;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--leaf);
+      opacity: .85;
     }
+
     .mic-ring-outer {
-      width:90px; height:90px; border-radius:50%;
-      display:flex; align-items:center; justify-content:center; position:relative;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
     }
-    .mic-ring-outer::before,.mic-ring-outer::after {
-      content:''; position:absolute; border-radius:50%;
-      border:2px solid var(--purple-light); animation:pulse-ring 1.8s ease-out infinite; opacity:0;
+    .mic-ring-outer::before, .mic-ring-outer::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      border: 2px solid var(--leaf);
+      animation: pulse-ring 1.8s ease-out infinite;
+      opacity: 0;
     }
-    .mic-ring-outer::before { width:90px;  height:90px;  animation-delay:0s; }
-    .mic-ring-outer::after  { width:110px; height:110px; animation-delay:.5s; }
+    .mic-ring-outer::before { width: 90px; height: 90px; animation-delay: 0s; }
+    .mic-ring-outer::after  { width: 110px; height: 110px; animation-delay: .5s; }
     @keyframes pulse-ring {
-      0%  { transform:scale(.9); opacity:.5; }
-      70% { transform:scale(1.2); opacity:0; }
-      100%{ opacity:0; }
+      0%  { transform: scale(.9); opacity: .5; }
+      70% { transform: scale(1.2); opacity: 0; }
+      100%{ opacity: 0; }
     }
-    .mic-ring-outer.listening::before,.mic-ring-outer.listening::after { border-color:var(--coral); }
+    .mic-ring-outer.listening::before,
+    .mic-ring-outer.listening::after { border-color: var(--coral); }
+
     .mic-btn {
-      width:72px; height:72px; border-radius:50%; border:none;
-      background:linear-gradient(135deg,var(--purple),var(--purple-light));
-      font-size:28px; cursor:pointer; position:relative; z-index:2;
-      box-shadow:0 0 0 4px rgba(124,58,237,.25),0 8px 24px rgba(124,58,237,.4);
-      transition:transform .13s; touch-action:manipulation; -webkit-tap-highlight-color:transparent;
-      display:flex; align-items:center; justify-content:center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: none;
+      background: linear-gradient(135deg, var(--moss), var(--moss-light));
+      font-size: 28px;
+      cursor: pointer;
+      position: relative;
+      z-index: 2;
+      box-shadow: 0 0 0 4px rgba(61,90,44,.3), 0 8px 24px rgba(61,90,44,.5);
+      transition: transform .13s;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .mic-btn:active { transform:scale(.9); }
+    .mic-btn:active { transform: scale(.9); }
     .mic-btn.listening {
-      background:linear-gradient(135deg,var(--coral),#be123c);
-      box-shadow:0 0 0 4px rgba(244,63,94,.3),0 8px 24px rgba(244,63,94,.45);
+      background: linear-gradient(135deg, var(--coral), #a04030);
+      box-shadow: 0 0 0 4px rgba(212,96,74,.3), 0 8px 24px rgba(212,96,74,.5);
     }
-    .choice-prompt { font-size:13px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:1px; text-align:center; min-height:18px; }
-    .choice-prompt.error { color:#fda4af; text-transform:none; }
-    .mic-hint { font-size:12px; color:rgba(255,255,255,.35); font-weight:700; text-align:center; }
 
-    /* Button fallback */
-    .btn-choice-zone {
-      display:none; flex-direction:column; align-items:center;
-      padding:16px 24px 36px; border-top:1px solid rgba(255,255,255,.06); width:100%;
+    .choice-prompt {
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--amber-light);
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      text-align: center;
+      min-height: 18px;
     }
-    .btn-choice-zone.on { display:flex; }
-    .btn-choice {
-      width:100%; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12);
-      border-radius:14px; padding:18px 20px; color:rgba(255,255,255,.9); font-family:var(--fbody);
-      font-size:1.05rem; font-weight:700; text-align:left; cursor:pointer; margin-bottom:10px;
-      touch-action:manipulation; -webkit-tap-highlight-color:transparent; line-height:1.4;
-      transition:background .13s,border-color .13s;
-    }
-    .btn-choice:active { background:rgba(124,58,237,.2); border-color:var(--purple-light); }
-    .btn-choice:disabled { opacity:.35; pointer-events:none; }
+    .choice-prompt.error { color: #f4a090; text-transform: none; }
+
     .btn-ghost-dark {
-      background:transparent; border:none; color:rgba(255,255,255,.35); font-family:var(--fbody);
-      font-size:.85rem; font-weight:700; padding:8px; cursor:pointer;
-      text-decoration:underline; text-underline-offset:3px; touch-action:manipulation;
+      background: transparent;
+      border: none;
+      color: rgba(255,255,255,.35);
+      font-family: var(--fbody);
+      font-size: .85rem;
+      font-weight: 700;
+      padding: 8px;
+      cursor: pointer;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      touch-action: manipulation;
     }
 
-    /* ── SCREEN 4: ENDING ── */
-    #screen-ending { padding:0 24px 48px; min-height:100vh; text-align:center; align-items:center; }
-    .trophy { font-size:80px; display:block; margin-top:52px; }
-    .trophy.win  { animation:bounce 1s ease-in-out infinite alternate; }
-    .trophy.fail { animation:wobble 1.2s ease-in-out infinite; }
+    .btn-choice-zone {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      padding: 16px 22px 36px;
+      border-top: 1px solid rgba(255,255,255,.06);
+      width: 100%;
+    }
+    .btn-choice-zone.on { display: flex; }
+
+    .btn-choice {
+      width: 100%;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 14px;
+      padding: 17px 20px;
+      color: rgba(255,255,255,.9);
+      font-family: var(--fhead);
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: left;
+      cursor: pointer;
+      margin-bottom: 10px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1.4;
+      transition: background .13s, border-color .13s;
+    }
+    .btn-choice:active { background: rgba(106,143,74,.25); border-color: var(--leaf); }
+    .btn-choice:disabled { opacity: .35; pointer-events: none; }
+    .btn-choice.moral {
+      background: rgba(160,70,10,.1);
+      border-color: rgba(200,100,30,.28);
+      color: rgba(255,205,155,.9);
+    }
+    .btn-choice.moral:active { background: rgba(160,70,10,.22); border-color: rgba(200,100,30,.5); }
+
+    /* ══════════════════════════════════
+       SCREEN 4: ENDING
+    ══════════════════════════════════ */
+    #screen-ending {
+      padding: 0 24px 48px;
+      min-height: 100vh;
+      text-align: center;
+      align-items: center;
+    }
+
+    .trophy { font-size: 80px; display: block; margin-top: 52px; }
+    .trophy.win    { animation: bounce 1s ease-in-out infinite alternate; }
+    .trophy.fail   { animation: wobble 1.2s ease-in-out infinite; }
+    .trophy.lesson { animation: reflect 2.8s ease-in-out infinite alternate; }
+    @keyframes reflect { from { transform: scale(.93) rotate(-4deg); } to { transform: scale(1.05) rotate(4deg); } }
     @keyframes bounce { from{transform:translateY(0) scale(1)} to{transform:translateY(-10px) scale(1.08)} }
     @keyframes wobble { 0%,100%{transform:rotate(-5deg)} 50%{transform:rotate(5deg)} }
-    .confetti-row { font-size:26px; margin-top:10px; letter-spacing:6px; min-height:34px; animation:shimmer 1.5s ease infinite alternate; }
-    @keyframes shimmer { from{opacity:.7} to{opacity:1} }
-    .ending-title { font-family:var(--fhead); font-size:34px; color:white; margin-top:16px; line-height:1.1; }
-    .outcome-text { font-size:15px; color:rgba(255,255,255,.85); font-weight:700; line-height:1.65; margin-top:12px; max-width:300px; }
-    #badge-zone { display:none; margin-top:26px; }
-    #badge-zone.on { display:block; }
-    .badge-row   { display:flex; gap:12px; justify-content:center; }
-    .badge       { background:rgba(255,255,255,.12); border:2px solid rgba(255,255,255,.25); border-radius:16px; padding:10px 14px; text-align:center; flex:1; max-width:100px; }
-    .badge-icon  { font-size:22px; display:block; margin-bottom:4px; }
-    .badge-label { font-size:10px; font-weight:800; color:rgba(255,255,255,.8); text-transform:uppercase; letter-spacing:.7px; display:block; line-height:1.3; }
-    #rewind-zone { display:none; margin-top:26px; width:100%; text-align:left; }
-    #rewind-zone.on { display:block; }
-    .rewind-title { font-family:var(--fhead); font-size:16px; color:rgba(255,255,255,.9); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
-    .choice-history { display:flex; flex-direction:column; gap:8px; }
-    .choice-node {
-      background:rgba(255,255,255,.07); border:2px solid rgba(255,255,255,.13); border-radius:14px;
-      padding:12px 16px; display:flex; align-items:center; gap:12px; cursor:pointer;
-      transition:background .15s,border-color .15s; -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-    }
-    .choice-node:active { background:rgba(94,234,212,.1); border-color:var(--teal-light); }
-    .choice-num { width:28px; height:28px; border-radius:50%; background:rgba(255,255,255,.13); display:flex; align-items:center; justify-content:center; font-family:var(--fhead); font-size:14px; color:white; flex-shrink:0; }
-    .choice-info { flex:1; }
-    .choice-label-sm { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:1px; color:rgba(255,255,255,.4); display:block; margin-bottom:2px; }
-    .choice-desc { font-size:13px; font-weight:700; color:rgba(255,255,255,.85); display:block; }
-    .redo-arrow  { font-size:18px; color:var(--teal-light); flex-shrink:0; }
-    .end-btns { display:flex; flex-direction:column; gap:12px; width:100%; margin-top:32px; }
-    .btn-end-primary {
-      font-family:var(--fhead); font-size:20px; border:none; border-radius:16px;
-      padding:16px; cursor:pointer; width:100%; touch-action:manipulation;
-      -webkit-tap-highlight-color:transparent; transition:transform .12s;
-    }
-    .btn-end-primary:active { transform:scale(.96); }
-    .btn-end-primary.win  { background:var(--gold); color:var(--ink); box-shadow:0 6px 20px rgba(245,200,66,.4); }
-    .btn-end-primary.fail { background:var(--coral); color:white; box-shadow:0 6px 20px rgba(244,63,94,.35); }
-    .btn-end-secondary {
-      background:rgba(255,255,255,.1); border:2px solid rgba(255,255,255,.22); color:white;
-      font-family:var(--fhead); font-size:16px; border-radius:16px; padding:14px;
-      cursor:pointer; width:100%; touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:background .12s;
-    }
-    .btn-end-secondary:active { background:rgba(255,255,255,.18); }
 
-    /* ── SETTINGS ── */
-    #gear-btn {
-      position:fixed; bottom:18px; right:18px; z-index:300;
-      width:38px; height:38px; border-radius:50%;
-      background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.18);
-      font-size:1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;
-      opacity:.45; transition:opacity .2s;
+    .confetti-row { font-size: 26px; margin-top: 10px; letter-spacing: 6px; min-height: 34px; animation: shimmer 1.5s ease infinite alternate; }
+    @keyframes shimmer { from{opacity:.7} to{opacity:1} }
+
+    .ending-title { font-family: var(--fhead); font-size: 34px; color: white; margin-top: 16px; line-height: 1.1; font-weight: 900; }
+    .outcome-text { font-size: 15px; color: rgba(255,255,255,.85); font-weight: 700; line-height: 1.65; margin-top: 12px; max-width: 300px; }
+
+    #badge-zone { display: none; margin-top: 26px; }
+    #badge-zone.on { display: block; }
+
+    .badge-row { display: flex; gap: 12px; justify-content: center; }
+    .badge {
+      background: rgba(255,255,255,.12);
+      border: 2px solid rgba(255,255,255,.22);
+      border-radius: 16px;
+      padding: 10px 12px;
+      text-align: center;
+      flex: 1;
+      max-width: 100px;
     }
-    #gear-btn:hover { opacity:1; }
-    #gear-modal {
-      position:fixed; bottom:66px; right:18px; z-index:301;
-      background:#1a1230; border:1px solid rgba(255,255,255,.12); border-radius:16px;
-      padding:18px; width:270px; box-shadow:0 20px 60px rgba(0,0,0,.6);
+    .badge-icon  { font-size: 22px; display: block; margin-bottom: 4px; }
+    .badge-label { font-size: 10px; font-weight: 900; color: rgba(255,255,255,.8); text-transform: uppercase; letter-spacing: .7px; display: block; line-height: 1.3; }
+
+    #rewind-zone { display: none; margin-top: 26px; width: 100%; text-align: left; }
+    #rewind-zone.on { display: block; }
+
+    .rewind-title { font-family: var(--fhead); font-size: 16px; color: rgba(255,255,255,.9); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+    .choice-history { display: flex; flex-direction: column; gap: 8px; }
+    .choice-node {
+      background: rgba(255,255,255,.07);
+      border: 2px solid rgba(255,255,255,.13);
+      border-radius: 14px;
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: background .15s, border-color .15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
     }
-    #gear-modal h4 { font-size:.75rem; color:rgba(255,255,255,.45); text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; font-weight:800; }
-    .gear-input { width:100%; background:rgba(255,255,255,.07); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:11px 12px; color:#f1f5f9; font-family:monospace; font-size:.82rem; margin-bottom:9px; outline:none; }
-    .gear-input:focus { border-color:var(--purple-light); }
-    .gear-save { width:100%; background:var(--purple); border:none; border-radius:10px; padding:11px; color:white; font-family:var(--fbody); font-size:.9rem; font-weight:800; cursor:pointer; }
+    .choice-node:active { background: rgba(106,143,74,.15); border-color: var(--leaf); }
+    .choice-num { width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; font-family: var(--fhead); font-size: 14px; color: white; flex-shrink: 0; }
+    .choice-info { flex: 1; }
+    .choice-label-sm { font-size: 10px; font-weight: 900; text-transform: uppercase; letter-spacing: 1px; color: rgba(255,255,255,.4); display: block; margin-bottom: 2px; }
+    .choice-desc { font-size: 13px; font-weight: 700; color: rgba(255,255,255,.85); display: block; }
+    .redo-arrow { font-size: 18px; color: var(--leaf); flex-shrink: 0; }
+
+    .end-btns { display: flex; flex-direction: column; gap: 12px; width: 100%; margin-top: 32px; }
+    .btn-end-primary {
+      font-family: var(--fhead);
+      font-size: 20px;
+      font-weight: 700;
+      border: none;
+      border-radius: 16px;
+      padding: 16px;
+      cursor: pointer;
+      width: 100%;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform .12s;
+    }
+    .btn-end-primary:active { transform: scale(.96); }
+    .btn-end-primary.win  { background: var(--amber); color: var(--bark); box-shadow: 0 6px 20px rgba(232,168,56,.4); }
+    .btn-end-primary.fail { background: var(--coral); color: white; box-shadow: 0 6px 20px rgba(212,96,74,.35); }
+
+    .btn-end-secondary {
+      background: rgba(255,255,255,.1);
+      border: 2px solid rgba(255,255,255,.2);
+      color: white;
+      font-family: var(--fhead);
+      font-size: 16px;
+      font-weight: 700;
+      border-radius: 16px;
+      padding: 14px;
+      cursor: pointer;
+      width: 100%;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .12s;
+    }
+    .btn-end-secondary:active { background: rgba(255,255,255,.17); }
+
+    /* ══════════════════════════════════
+       AUTH FORM (screen-welcome)
+    ══════════════════════════════════ */
+    .welcome-subtitle {
+      font-size: 13px;
+      color: var(--bark-mid);
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.5;
+      margin-bottom: 18px;
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: rgba(44,26,14,.09);
+      border-radius: 12px;
+      padding: 3px;
+      margin-bottom: 14px;
+      width: 100%;
+    }
+    .auth-tab {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      border-radius: 10px;
+      font-family: var(--fbody);
+      font-size: .9rem;
+      font-weight: 700;
+      color: var(--bark-mid);
+      cursor: pointer;
+      transition: all .2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .auth-tab.active {
+      background: white;
+      color: var(--bark);
+      box-shadow: 0 2px 8px rgba(44,26,14,.15);
+    }
+
+    .auth-form { width: 100%; display: flex; flex-direction: column; gap: 10px; }
+
+    .auth-input {
+      width: 100%;
+      background: white;
+      border: 2px solid rgba(44,26,14,.12);
+      border-radius: 14px;
+      padding: 14px 16px;
+      font-family: var(--fbody);
+      font-size: 1rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color .2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .auth-input:focus { border-color: var(--bark-mid); }
+    .auth-input::placeholder { color: #b0a090; }
+
+    .auth-error {
+      font-size: .84rem;
+      color: #c04030;
+      font-weight: 700;
+      text-align: center;
+      min-height: 16px;
+    }
+
+    .btn-auth-primary {
+      width: 100%;
+      background: var(--bark);
+      border: none;
+      border-radius: 14px;
+      padding: 15px;
+      color: white;
+      font-family: var(--fhead);
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .2s;
+      margin-top: 2px;
+    }
+    .btn-auth-primary:active { opacity: .82; }
+    .btn-auth-primary:disabled { opacity: .48; }
+
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--bark-light);
+      font-size: .8rem;
+      font-weight: 700;
+      margin: 6px 0;
+    }
+    .auth-divider::before, .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(44,26,14,.18);
+    }
+
+    .btn-sso {
+      width: 100%;
+      background: white;
+      border: 2px solid rgba(44,26,14,.14);
+      border-radius: 14px;
+      padding: 13px 16px;
+      color: var(--bark);
+      font-family: var(--fbody);
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background .15s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .btn-sso:active { background: rgba(44,26,14,.05); }
+
+    .auth-footnote {
+      font-size: 11px;
+      color: var(--bark-light);
+      text-align: center;
+      line-height: 1.5;
+      margin-top: 6px;
+    }
+
+    /* ══════════════════════════════════
+       SCREEN: PROFILE SETUP
+    ══════════════════════════════════ */
+    #screen-profile {
+      min-height: 100vh;
+      background: linear-gradient(180deg, #d4ead8 0%, #b8d4c0 40%, #8fb89a 100%);
+      padding: 0 0 48px;
+    }
+
+    .profile-header {
+      width: 100%;
+      background: linear-gradient(145deg, var(--bark), var(--bark-mid));
+      padding: 52px 24px 30px;
+      border-radius: 0 0 36px 36px;
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .profile-header h1 {
+      font-family: var(--fhead);
+      font-size: 26px;
+      color: var(--cream);
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 6px;
+    }
+    .profile-header p {
+      font-size: 13px;
+      color: var(--leaf);
+      font-weight: 700;
+    }
+
+    .profile-body { padding: 0 22px; width: 100%; }
+
+    .profile-section-lbl {
+      font-family: var(--fhead);
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--bark);
+      margin-bottom: 14px;
+    }
+
+    .profile-age-row {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 30px;
+    }
+    .profile-age-card {
+      flex: 1;
+      border-radius: 20px;
+      padding: 22px 14px 18px;
+      text-align: center;
+      cursor: pointer;
+      border: 3px solid transparent;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--fbody);
+      transition: transform .15s, box-shadow .15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .profile-age-card:active { transform: scale(.93); }
+    .profile-age-card.p-young {
+      background: linear-gradient(145deg, #5ba05a, #7abe6a);
+      border-color: rgba(255,255,255,0.35);
+      box-shadow: 0 6px 24px rgba(91,160,90,0.4);
+    }
+    .profile-age-card.p-older {
+      background: linear-gradient(145deg, #7a4a28, #a06030);
+      border-color: rgba(255,255,255,0.25);
+      box-shadow: 0 6px 24px rgba(122,74,40,0.4);
+    }
+    .profile-age-card.selected {
+      outline: 3px solid rgba(255,255,255,.75);
+      outline-offset: 2px;
+      transform: scale(1.04);
+    }
+
+    .purpose-cards { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+
+    .purpose-card {
+      background: white;
+      border: 2.5px solid rgba(44,26,14,.1);
+      border-radius: 16px;
+      padding: 15px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      transition: border-color .15s, background .15s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .purpose-card.selected { border-color: var(--bark-mid); background: rgba(44,26,14,.04); }
+    .purpose-card:active { background: rgba(44,26,14,.06); }
+    .purpose-icon { font-size: 28px; flex-shrink: 0; }
+    .purpose-text-wrap { flex: 1; }
+    .purpose-title { font-family: var(--fhead); font-size: 14px; color: var(--bark); font-weight: 700; line-height: 1.2; }
+    .purpose-desc  { font-size: 11px; color: var(--ink-soft); font-weight: 700; margin-top: 2px; }
+    .purpose-dot {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      border: 2.5px solid rgba(44,26,14,.22);
+      flex-shrink: 0;
+      position: relative;
+    }
+    .purpose-card.selected .purpose-dot { border-color: var(--bark); background: var(--bark); }
+    .purpose-card.selected .purpose-dot::after {
+      content: '';
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: white;
+    }
+
+    #purpose-custom-inp {
+      width: 100%;
+      background: rgba(44,26,14,.04);
+      border: 2px solid rgba(44,26,14,.18);
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-family: var(--fbody);
+      font-size: .93rem;
+      color: var(--ink);
+      margin-top: 8px;
+      display: none;
+      outline: none;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    #purpose-custom-inp:focus { border-color: var(--bark-mid); }
+    #purpose-custom-inp.visible { display: block; }
+
+    .btn-profile-go {
+      width: 100%;
+      background: var(--bark);
+      border: none;
+      border-radius: 16px;
+      padding: 18px;
+      color: white;
+      font-family: var(--fhead);
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .2s;
+      box-shadow: 0 6px 20px rgba(44,26,14,.28);
+      margin-top: 4px;
+    }
+    .btn-profile-go:active { opacity: .85; }
+    .btn-profile-go:disabled { opacity: .48; }
   </style>
 </head>
 <body>
 <div id="app">
 
-  <!-- ══ SCREEN 1: WELCOME + AGE PICK ══ -->
+  <!-- ══ SCREEN 1: WELCOME + AGE ══ -->
   <div id="screen-welcome" class="screen active">
-    <div class="stars" id="stars"></div>
-    <div class="logo-area">
-      <span class="logo-icon">📚</span>
-      <h1 class="welcome-title">StoryQuest</h1>
-      <div class="tagline">Your Choice · Your Story</div>
+
+    <div id="leaf-particles"></div>
+
+    <div class="hero-branch">
+      <svg viewBox="0 0 480 260" fill="none" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax meet">
+        <defs>
+          <linearGradient id="branchGrad" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0%" stop-color="#2c1a0e"/>
+            <stop offset="100%" stop-color="#6a3a18"/>
+          </linearGradient>
+        </defs>
+        <path d="M-10 180 C60 178 130 172 200 160 C260 150 310 138 370 128 C410 120 450 116 490 114"
+              stroke="url(#branchGrad)" stroke-width="18" stroke-linecap="round" fill="none"/>
+        <path d="M160 165 C148 148 138 128 128 104 C122 88 118 72 116 54"
+              stroke="#4a2810" stroke-width="9" stroke-linecap="round" fill="none"/>
+        <path d="M138 122 C126 112 114 102 100 94"
+              stroke="#5a3418" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <path d="M310 136 C318 118 326 98 332 76 C336 62 338 48 338 34"
+              stroke="#4a2810" stroke-width="8" stroke-linecap="round" fill="none"/>
+        <path d="M328 90 C340 82 352 74 364 68"
+              stroke="#5a3418" stroke-width="4" stroke-linecap="round" fill="none"/>
+        <path d="M420 118 C424 104 426 90 424 76"
+              stroke="#5a3418" stroke-width="5" stroke-linecap="round" fill="none"/>
+        <g transform="translate(68,152) rotate(-6)">
+          <rect x="0" y="0" width="30" height="20" rx="2.5" fill="#c03828"/>
+          <rect x="0" y="0" width="5" height="20" rx="1.5" fill="#8a2818"/>
+          <rect x="7" y="4"  width="17" height="1.8" fill="rgba(255,255,255,.45)" rx="1"/>
+          <rect x="7" y="8"  width="12" height="1.8" fill="rgba(255,255,255,.3)"  rx="1"/>
+          <rect x="7" y="12" width="15" height="1.8" fill="rgba(255,255,255,.2)"  rx="1"/>
+        </g>
+        <g transform="translate(246,126) rotate(4)">
+          <rect x="0" y="0" width="32" height="21" rx="2.5" fill="#1e4a8a"/>
+          <rect x="0" y="0" width="5" height="21" rx="1.5" fill="#0e2a5a"/>
+          <rect x="7" y="4"   width="19" height="1.8" fill="rgba(255,255,255,.45)" rx="1"/>
+          <rect x="7" y="8.5" width="14" height="1.8" fill="rgba(255,255,255,.3)"  rx="1"/>
+          <rect x="7" y="13"  width="17" height="1.8" fill="rgba(255,255,255,.2)"  rx="1"/>
+        </g>
+        <g transform="translate(108,50) rotate(-14)">
+          <rect x="0" y="0" width="24" height="16" rx="2" fill="#2a6a38"/>
+          <rect x="0" y="0" width="4" height="16" rx="1.5" fill="#1a4828"/>
+          <rect x="5" y="3"  width="14" height="1.5" fill="rgba(255,255,255,.4)" rx="1"/>
+          <rect x="5" y="7"  width="10" height="1.5" fill="rgba(255,255,255,.3)" rx="1"/>
+          <rect x="5" y="11" width="12" height="1.5" fill="rgba(255,255,255,.2)" rx="1"/>
+        </g>
+        <g transform="translate(326,28) rotate(8)">
+          <rect x="0" y="0" width="26" height="17" rx="2" fill="#c88020"/>
+          <rect x="0" y="0" width="4" height="17" rx="1.5" fill="#946010"/>
+          <rect x="5" y="3"  width="15" height="1.5" fill="rgba(255,255,255,.45)" rx="1"/>
+          <rect x="5" y="7"  width="11" height="1.5" fill="rgba(255,255,255,.3)"  rx="1"/>
+          <rect x="5" y="11" width="13" height="1.5" fill="rgba(255,255,255,.2)"  rx="1"/>
+        </g>
+        <g transform="translate(356,62) rotate(16)">
+          <rect x="0" y="0" width="20" height="13" rx="2" fill="#6a2878"/>
+          <rect x="0" y="0" width="3" height="13" rx="1.5" fill="#481860"/>
+          <rect x="4" y="2.5" width="12" height="1.2" fill="rgba(255,255,255,.4)" rx="0.8"/>
+          <rect x="4" y="6"   width="9"  height="1.2" fill="rgba(255,255,255,.3)" rx="0.8"/>
+          <rect x="4" y="9.2" width="11" height="1.2" fill="rgba(255,255,255,.2)" rx="0.8"/>
+        </g>
+        <ellipse cx="116" cy="50" rx="18" ry="14" fill="#4a7a2c" opacity="0.22"/>
+        <ellipse cx="338" cy="30" rx="20" ry="15" fill="#4a7a2c" opacity="0.2"/>
+        <ellipse cx="424" cy="72" rx="14" ry="11" fill="#4a7a2c" opacity="0.18"/>
+      </svg>
     </div>
-    <div class="section-title">How old are you?</div>
-    <div class="age-cards">
-      <button class="age-card age-young" onclick="pickAge('young')">
-        <span class="age-emoji">🐣</span>
-        <span class="age-range">5–7</span>
-        <span class="age-label">Little Adventurer</span>
+
+    <div class="welcome-content" style="width:100%">
+      <div class="brand-lockup">
+        <div class="brand-name">Branched<span class="brand-dot"></span></div>
+        <div class="brand-tagline">Your choice · your story</div>
+      </div>
+      <div class="welcome-subtitle">Immersive interactive audio stories for kids</div>
+      <div class="auth-tabs">
+        <button class="auth-tab active" id="tab-register" onclick="setAuthMode('register')">Create Account</button>
+        <button class="auth-tab"        id="tab-login"    onclick="setAuthMode('login')">Sign In</button>
+      </div>
+      <div class="auth-form">
+        <input class="auth-input" id="auth-email"    type="email"    placeholder="Email address"
+               autocomplete="email" autocapitalize="none" autocorrect="off" spellcheck="false" />
+        <input class="auth-input" id="auth-password" type="password" placeholder="Password (8+ characters)"
+               autocomplete="new-password" />
+        <div class="auth-error" id="auth-error"></div>
+        <button class="btn-auth-primary" id="auth-btn" onclick="submitAuth()">Create Account</button>
+      </div>
+      <div class="auth-divider">or</div>
+      <button class="btn-sso" onclick="loginWithGoogle()">
+        <svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true">
+          <path fill="#4285F4" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.9 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3 12.9 3 4 11.9 4 23s8.9 20 20 20 20-8.9 20-20c0-1.3-.2-2.7-.5-4z"/>
+          <path fill="#34A853" d="M6.3 14.7l7 5.1C15.1 16.1 19.2 13 24 13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 5.1 29.6 3 24 3c-7.6 0-14.2 4.2-17.7 11.7z"/>
+          <path fill="#FBBC05" d="M24 47c5.5 0 10.5-1.8 14.4-4.9l-6.6-5.4C29.8 38.6 27 39.5 24 39.5c-5.8 0-10.7-3.9-12.4-9.2l-7 5.4C8.1 43.1 15.5 47 24 47z"/>
+          <path fill="#EA4335" d="M44.5 20H24v8.5h11.8c-.9 2.8-2.7 5.1-5.2 6.7l6.6 5.4c3.8-3.5 6.3-8.7 6.3-15.6 0-1.3-.2-2.7-.5-4z"/>
+        </svg>
+        Continue with Google
       </button>
-      <button class="age-card age-older" onclick="pickAge('older')">
-        <span class="age-emoji">🦁</span>
-        <span class="age-range">8–12</span>
-        <span class="age-label">Story Hero</span>
-      </button>
+      <div class="auth-footnote">By continuing, you agree to our Terms of Service.</div>
     </div>
-    <div class="footer-note">Ask a grown-up to help pick! 👆</div>
+
+  </div>
+
+  <!-- ══ SCREEN 1b: PROFILE SETUP ══ -->
+  <div id="screen-profile" class="screen">
+    <div class="profile-header">
+      <h1>Customize Your Stories</h1>
+      <p>Helps us craft the perfect adventure</p>
+    </div>
+    <div class="profile-body">
+      <div class="profile-section-lbl">How old is your reader?</div>
+      <div class="profile-age-row">
+        <button class="profile-age-card p-young" id="pa-young" onclick="selectProfileAge('young')">
+          <span class="age-emoji">🐣</span>
+          <span class="age-range">5–7</span>
+          <span class="age-label">Younger Kids</span>
+        </button>
+        <button class="profile-age-card p-older selected" id="pa-older" onclick="selectProfileAge('older')">
+          <span class="age-emoji">🦁</span>
+          <span class="age-range">8–12</span>
+          <span class="age-label">Older Kids</span>
+        </button>
+      </div>
+
+      <div class="profile-section-lbl">What do you want your kids to get out of this?</div>
+      <div class="purpose-cards">
+        <div class="purpose-card selected" id="pur-entertainment" onclick="selectPurpose('entertainment')">
+          <span class="purpose-icon">🎉</span>
+          <div class="purpose-text-wrap">
+            <div class="purpose-title">Entertainment</div>
+            <div class="purpose-desc">Fun stories and great storytelling</div>
+          </div>
+          <div class="purpose-dot"></div>
+        </div>
+        <div class="purpose-card" id="pur-decisions" onclick="selectPurpose('decisions')">
+          <span class="purpose-icon">🧠</span>
+          <div class="purpose-text-wrap">
+            <div class="purpose-title">Entertain &amp; teach decision making</div>
+            <div class="purpose-desc">Fun stories with meaningful consequences</div>
+          </div>
+          <div class="purpose-dot"></div>
+        </div>
+        <div class="purpose-card" id="pur-other" onclick="selectPurpose('other')">
+          <span class="purpose-icon">✏️</span>
+          <div class="purpose-text-wrap">
+            <div class="purpose-title">Other</div>
+            <div class="purpose-desc">Tell us in your own words</div>
+          </div>
+          <div class="purpose-dot"></div>
+        </div>
+      </div>
+      <input id="purpose-custom-inp" placeholder="What are you hoping for?" />
+
+      <button class="btn-profile-go" onclick="finishProfileSetup()">Start My Adventure 🌿</button>
+    </div>
   </div>
 
   <!-- ══ SCREEN 2: GENRE PICKER ══ -->
   <div id="screen-type" class="screen">
     <div class="s2-header">
       <h2>What kind of adventure<br>do you want?</h2>
-      <p>Tap to choose your world 🌍</p>
+      <p>Choose your branch 🌿</p>
     </div>
     <div class="genres-wrap">
       <div class="type-grid" id="main-grid"></div>
@@ -373,19 +1276,24 @@
     <div class="story-content">
       <div id="chapter-title" class="story-chapter"></div>
       <div id="loading">
-        <div class="spinner"></div>
-        <div>Crafting your story…</div>
+        <div class="branch-grow-icon">🌿</div>
+        <div>Generating branch…</div>
       </div>
+      <div id="audio-mic">
+        <div class="amic-ring"></div>
+        <div class="amic-ring"></div>
+        <div class="amic-ring"></div>
+        <div class="amic-icon">🎙️</div>
+      </div>
+      <div class="audio-controls" id="audio-controls">
+        <button class="audio-ctrl-btn" onclick="audioGoBack()">⏪ 10s</button>
+        <button class="audio-ctrl-btn" id="pause-btn" onclick="audioPauseToggle()">⏸ Pause</button>
+      </div>
+      <button class="show-text-btn" id="show-text-btn" onclick="toggleNarrationText()">Show text ↓</button>
       <div id="narration-text" class="story-text"></div>
-      <div class="abars" id="abars">
-        <div class="abar"></div><div class="abar"></div><div class="abar"></div>
-        <div class="abar"></div><div class="abar"></div><div class="abar"></div>
-        <div class="abar"></div>
-      </div>
       <div id="error-area"></div>
     </div>
 
-    <!-- Primary: voice -->
     <div class="mic-area" id="voice-zone">
       <div class="narrator-label" id="narrator-state">Tap the mic and choose</div>
       <div class="mic-ring-outer" id="mic-ring">
@@ -395,12 +1303,13 @@
       <button class="btn-ghost-dark" onclick="switchToButtons()">Can't talk right now →</button>
     </div>
 
-    <!-- Fallback: buttons -->
     <div class="btn-choice-zone" id="btn-zone">
       <button class="btn-choice" id="c0" onclick="makeChoice(0)"></button>
       <button class="btn-choice" id="c1" onclick="makeChoice(1)"></button>
+      <button class="btn-choice" id="c2" onclick="makeChoice(2)" style="display:none"></button>
       <button class="btn-ghost-dark" onclick="switchToVoice()">🎙️ Use voice instead</button>
     </div>
+
   </div>
 
   <!-- ══ SCREEN 4: ENDING ══ -->
@@ -427,28 +1336,10 @@
 
 </div><!-- #app -->
 
-<button id="gear-btn" onclick="toggleGear()">⚙️</button>
-<div id="gear-modal" style="display:none">
-  <h4>Anthropic API Key</h4>
-  <input class="gear-input" id="key-inp" type="password" placeholder="sk-ant-…"
-    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <h4 style="margin-top:12px">ElevenLabs API Key</h4>
-  <input class="gear-input" id="el-key-inp" type="password"
-    placeholder="ElevenLabs key for human voice…" autocomplete="off"
-    autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <h4 style="margin-top:12px">Voice ID <span style="font-weight:400;text-transform:none;letter-spacing:0">(Charlotte = default)</span></h4>
-  <input class="gear-input" id="el-voice-inp" type="text"
-    placeholder="XB0fDUnXU5powFXDhCwa" autocomplete="off"
-    autocorrect="off" autocapitalize="off" spellcheck="false" />
-  <button class="gear-save" onclick="saveKey()">Save</button>
-</div>
 
 <script>
-// ═══════════════════════════════════
-// STORY TYPES
-// ═══════════════════════════════════
 const MAIN_TYPES = [
-  { e:'🧙‍♂️', n:'Magic & Dragons',   sub:'Fantasy Quest',    ac:'#f5c842', bg:'linear-gradient(145deg,#1a1035,#3b1a7a)', t:'dragons, enchanted castles, and brave heroes on a magical quest', gn:'Fantasy Quest' },
+  { e:'🧙‍♂️', n:'Magic & Dragons',   sub:'Fantasy Quest',    ac:'#e8a838', bg:'linear-gradient(145deg,#1a1035,#3b1a7a)', t:'dragons, enchanted castles, and brave heroes on a magical quest', gn:'Fantasy Quest' },
   { e:'🚀',   n:'Space Explorer',    sub:'Sci-Fi Adventure',  ac:'#60a5fa', bg:'linear-gradient(145deg,#0c1445,#1e3a8a)', t:'rockets, alien worlds, and daring missions on distant planets',   gn:'Space Adventure' },
   { e:'🦜',   n:'Jungle Quest',      sub:'Wild & Dangerous',  ac:'#84cc16', bg:'linear-gradient(145deg,#14532d,#166534)', t:'jungle animals, hidden ancient temples, and wild exploration',    gn:'Jungle Explorer' },
   { e:'🔍',   n:'Mystery Island',    sub:'Solve the Puzzle',  ac:'#f43f5e', bg:'linear-gradient(145deg,#1c1917,#44403c)', t:'hidden clues, suspicious strangers, and a mystery only you can solve', gn:'Mystery Island' },
@@ -481,20 +1372,17 @@ const GENRE_BADGES = {
 };
 
 const BG = {
-  welcome: 'linear-gradient(160deg,#1a1035 0%,#3b1a7a 55%,#7c3aed 100%)',
-  type:    '#fdf6e3',
-  story:   '#0f0a1e',
-  win:     'linear-gradient(160deg,#052e16,#166534,#4ade80 120%)',
-  fail:    'linear-gradient(160deg,#1c0a00,#7c2d12,#b45309 120%)',
+  welcome: 'linear-gradient(180deg,#d4ead8 0%,#b8d4c0 40%,#8fb89a 100%)',
+  type:    '#faf6ee',
+  story:   'linear-gradient(180deg,#1a2e1a 0%,#0e1e0e 100%)',
+  win:     'linear-gradient(160deg,#0a2a0e,#1a5a22,#4aaa44 120%)',
+  fail:    'linear-gradient(160deg,#2a1008,#7a2c10,#b45020 120%)',
+  lesson:  'linear-gradient(160deg,#110a22,#1e1240,#2d1a5a 120%)',
 };
 
-// ═══════════════════════════════════
-// STATE
-// ═══════════════════════════════════
 const MAX_NODES = 6;
-let apiKey        = localStorage.getItem('sq_key')   || '';
-let elevenLabsKey = localStorage.getItem('sq_elkey') || '';
-let elevenVoiceId = localStorage.getItem('sq_voice') || 'XB0fDUnXU5powFXDhCwa';
+let apiKey        = localStorage.getItem('sq_key') || '';
+let googleVoice   = localStorage.getItem('sq_gtts_voice') || 'en-US-Chirp3-HD-Aoede';
 let ageGroup      = 'older';
 let storyTheme    = '';
 let storyGenre    = '';
@@ -503,32 +1391,62 @@ let nodeCount     = 0;
 let choices       = [];
 let choiceLog     = [];
 let activeRec     = null;
+let initialStoryState = null;
 
-// ═══════════════════════════════════
-// BOOT
-// ═══════════════════════════════════
+// Auth & profile state
+let authToken     = localStorage.getItem('branched_token') || '';
+let currentUser   = null;
+let authMode      = 'register';
+let storyPurpose  = 'entertainment';
+let storyPurposeCustom = '';
+
 (function boot() {
-  buildStars();
+  buildLeaves();
   buildGrids();
-  if (apiKey)        document.getElementById('key-inp').value    = apiKey;
-  if (elevenLabsKey) document.getElementById('el-key-inp').value = elevenLabsKey;
-  document.getElementById('el-voice-inp').value = elevenVoiceId;
   initVoices();
   document.getElementById('custom-inp').addEventListener('keydown', e => { if (e.key==='Enter') startCustom(); });
-  document.getElementById('key-inp').addEventListener('keydown',    e => { if (e.key==='Enter') saveKey(); });
+  document.getElementById('auth-email').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('auth-password').focus(); });
+  document.getElementById('auth-password').addEventListener('keydown', e => { if (e.key==='Enter') submitAuth(); });
+
+  // Handle Google OAuth callback params in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlToken  = urlParams.get('token');
+  const urlIsNew  = urlParams.get('isNew');
+  const urlError  = urlParams.get('auth_error');
+
+  if (urlError) {
+    history.replaceState({}, '', '/');
+    setAuthError('Google sign-in failed. Please try again.');
+    showScreen('screen-welcome');
+    return;
+  }
+
+  if (urlToken) {
+    history.replaceState({}, '', '/');
+    authToken = urlToken;
+    localStorage.setItem('branched_token', authToken);
+    loadUserProfile(urlIsNew === 'true');
+    return;
+  }
+
+  if (authToken) {
+    loadUserProfile(false);
+    return;
+  }
+
+  showScreen('screen-welcome');
 })();
 
-function buildStars() {
-  const c = document.getElementById('stars');
-  const positions = [
-    [10,15],[18,72],[30,88],[40,6],[55,50],[65,80],[75,30],[85,60],[92,12],
-    [22,40],[48,90],[60,22],[80,70],[35,55],[15,95]
-  ];
-  positions.forEach(([top,left],i) => {
-    const s = document.createElement('div');
-    s.className = 'star';
-    s.style.cssText = 'top:'+top+'%;left:'+left+'%;animation-delay:'+(i*0.18).toFixed(2)+'s';
-    c.appendChild(s);
+function buildLeaves() {
+  const c = document.getElementById('leaf-particles');
+  const emojis = ['🍃','🍂','🌿','🍀'];
+  const positions = [8,18,28,38,52,62,72,82,92];
+  positions.forEach((left, i) => {
+    const el = document.createElement('div');
+    el.className = 'leaf-particle';
+    el.textContent = emojis[i % emojis.length];
+    el.style.cssText = `left:${left}%;top:-20px;animation-duration:${5+i*0.8}s;animation-delay:${i*0.7}s;font-size:${12+i%3*4}px`;
+    c.appendChild(el);
   });
 }
 
@@ -552,311 +1470,695 @@ function mkCard(type) {
   return d;
 }
 
-// ═══════════════════════════════════
-// AUDIO
-// ═══════════════════════════════════
+// ── AUTH ──
+function setAuthMode(mode) {
+  authMode = mode;
+  document.getElementById('tab-register').classList.toggle('active', mode === 'register');
+  document.getElementById('tab-login').classList.toggle('active', mode === 'login');
+  const pwEl = document.getElementById('auth-password');
+  pwEl.placeholder = mode === 'register' ? 'Password (8+ characters)' : 'Password';
+  pwEl.autocomplete = mode === 'register' ? 'new-password' : 'current-password';
+  document.getElementById('auth-btn').textContent = mode === 'register' ? 'Create Account' : 'Sign In';
+  setAuthError('');
+}
+
+function setAuthError(msg) {
+  const el = document.getElementById('auth-error');
+  if (el) el.textContent = msg || '';
+}
+
+async function submitAuth() {
+  const email    = (document.getElementById('auth-email').value || '').trim();
+  const password = document.getElementById('auth-password').value || '';
+  if (!email || !password) { setAuthError('Please fill in all fields.'); return; }
+
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true;
+  btn.textContent = authMode === 'register' ? 'Creating…' : 'Signing in…';
+  setAuthError('');
+
+  try {
+    const resp = await fetch(authMode === 'register' ? '/auth/register' : '/auth/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    const data = await resp.json();
+    if (!resp.ok || data.error) { setAuthError(data.error || 'Something went wrong — try again.'); return; }
+
+    authToken   = data.token;
+    currentUser = data.user;
+    localStorage.setItem('branched_token', authToken);
+    applyUserProfile(currentUser);
+
+    if (data.user.isNew || authMode === 'register') {
+      showProfileScreen();
+    } else {
+      showScreen('screen-type');
+    }
+  } catch(err) {
+    setAuthError('Connection error — please try again.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'register' ? 'Create Account' : 'Sign In';
+  }
+}
+
+function loginWithGoogle() {
+  window.location.href = '/auth/google';
+}
+
+async function loadUserProfile(isNew) {
+  try {
+    const resp = await fetch('/api/profile', {
+      headers: { 'Authorization': 'Bearer ' + authToken },
+    });
+    if (!resp.ok) {
+      localStorage.removeItem('branched_token');
+      authToken = '';
+      showScreen('screen-welcome');
+      return;
+    }
+    const data = await resp.json();
+    currentUser = data.user;
+    applyUserProfile(currentUser);
+    if (isNew) { showProfileScreen(); } else { showScreen('screen-type'); }
+  } catch(err) {
+    showScreen('screen-welcome');
+  }
+}
+
+function applyUserProfile(user) {
+  ageGroup           = user.age_group           || 'older';
+  storyPurpose       = user.story_purpose       || 'entertainment';
+  storyPurposeCustom = user.story_purpose_custom || '';
+}
+
+// ── PROFILE SETUP ──
+function showProfileScreen() {
+  const ag = (currentUser && currentUser.age_group) || 'older';
+  selectProfileAge(ag);
+  const sp = (currentUser && currentUser.story_purpose) || 'entertainment';
+  selectPurpose(sp);
+  if (currentUser && currentUser.story_purpose_custom) {
+    document.getElementById('purpose-custom-inp').value = currentUser.story_purpose_custom;
+  }
+  showScreen('screen-profile');
+}
+
+function selectProfileAge(group) {
+  ageGroup = group;
+  document.getElementById('pa-young').classList.toggle('selected', group === 'young');
+  document.getElementById('pa-older').classList.toggle('selected', group === 'older');
+}
+
+function selectPurpose(purpose) {
+  storyPurpose = purpose;
+  ['entertainment', 'decisions', 'other'].forEach(p => {
+    document.getElementById('pur-' + p)?.classList.toggle('selected', p === purpose);
+  });
+  document.getElementById('purpose-custom-inp').classList.toggle('visible', purpose === 'other');
+}
+
+async function finishProfileSetup() {
+  storyPurposeCustom = (document.getElementById('purpose-custom-inp').value || '').trim();
+  const btn = document.querySelector('.btn-profile-go');
+  if (btn) { btn.disabled = true; btn.textContent = 'Saving…'; }
+  try {
+    if (authToken) {
+      await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+        body: JSON.stringify({ age_group: ageGroup, story_purpose: storyPurpose, story_purpose_custom: storyPurposeCustom }),
+      });
+    }
+  } catch(e) { /* non-critical */ }
+  if (btn) { btn.disabled = false; btn.textContent = 'Start My Adventure 🌿'; }
+  pickAge(ageGroup);
+}
+
+// ── AUDIO — iOS-safe ──
+let audioEl     = null;
 let audioCtx    = null;
-let activeSrc   = null;
 let voicesReady = false;
 let pendingSpeak = null;
+let speakToken         = 0;
+let ttsAbortController = null;
+const ttsCache = new Map(); // keyed by "voice|text", stores base64 audio
+
+const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
+function getAudioEl() {
+  if (!audioEl) audioEl = new Audio();
+  return audioEl;
+}
 
 function unlockAudio() {
-  // Unlock AudioContext
-  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  if (audioCtx.state==='suspended') audioCtx.resume();
-  // Pre-warm speech synthesis — iOS requires the first speak() call to happen
-  // inside a user gesture; all subsequent async calls will then work.
+  const el = getAudioEl();
+  if (el._blobUrl) { URL.revokeObjectURL(el._blobUrl); el._blobUrl = null; }
+  el.onended = null; el.onerror = null;
+  el.loop = true; el.muted = false; el.volume = 1; el.src = SILENT_WAV;
+  el.play().catch(() => {});
   try {
-    const warm = new SpeechSynthesisUtterance('');
-    warm.volume = 0;
-    speechSynthesis.speak(warm);
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
   } catch(e) {}
 }
+
 function initVoices() { if (speechSynthesis.getVoices().length) voicesReady = true; }
-speechSynthesis.onvoiceschanged = () => { voicesReady=true; if (pendingSpeak){const f=pendingSpeak;pendingSpeak=null;f();} };
+speechSynthesis.onvoiceschanged = () => {
+  voicesReady = true;
+  if (pendingSpeak) { const f = pendingSpeak; pendingSpeak = null; f(); }
+};
+
 function cancelAudio() {
-  if (activeSrc){try{activeSrc.stop();}catch(e){}activeSrc=null;}
-  speechSynthesis.cancel();
+  speakToken++;
+  audioPaused = false;
+  pendingSpeak = null;
+  if (ttsAbortController) { ttsAbortController.abort(); ttsAbortController = null; }
+  if (audioEl) {
+    audioEl.pause();
+    audioEl.muted = false; audioEl.loop = false; audioEl.volume = 1;
+    audioEl.onended = null; audioEl.onerror = null;
+    if (audioEl._blobUrl) { URL.revokeObjectURL(audioEl._blobUrl); audioEl._blobUrl = null; }
+  }
+  if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
   setAudioBars(false);
 }
 
-async function speakText(text, onDone) {
-  cancelAudio();
-  if (!text||!text.trim()){onDone&&onDone();return;}
-  // Ensure AudioContext is running (iOS can re-suspend it between user gesture and async callback)
-  if (!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  if (audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e){} }
-  setAudioBars(true);
+function stripSSML(text) {
+  return text.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function splitSSMLSentences(inner) {
+  const out = [];
+  let cur = '', inTag = false;
+  for (let i = 0; i < inner.length; i++) {
+    const ch = inner[i];
+    if (ch === '<') inTag = true;
+    else if (ch === '>') { inTag = false; cur += ch; continue; }
+    cur += ch;
+    if (!inTag && (ch === '.' || ch === '!' || ch === '?')) {
+      const display = cur.replace(/<[^>]*>/g, '').trim();
+      if (display.length > 0) { out.push(cur.trim()); cur = ''; }
+    }
+  }
+  const last = cur.replace(/<[^>]*>/g, '').trim();
+  if (last) out.push(cur.trim());
+  return out.length ? out : [inner];
+}
+
+function makeChunks(text) {
+  const t = text.trim();
+  if (t.startsWith('<speak>')) {
+    const inner = t.replace(/^<speak>\s*/, '').replace(/\s*<\/speak>$/, '');
+    const sentences = splitSSMLSentences(inner);
+    const chunks = [];
+    let cur = '', curLen = 0;
+    for (const s of sentences) {
+      const sLen = s.replace(/<[^>]*>/g, '').length;
+      if (curLen + sLen > 220 && curLen > 0) {
+        chunks.push('<speak>' + cur.trim() + '</speak>');
+        cur = s; curLen = sLen;
+      } else {
+        cur += (cur ? ' ' : '') + s; curLen += sLen;
+      }
+    }
+    if (curLen > 0) chunks.push('<speak>' + cur.trim() + '</speak>');
+    return chunks.length ? chunks : [t];
+  }
+  const sentences = t.match(/[^.!?…]+[.!?…]+\s*/g) || [t];
+  if (sentences.length <= 1) return [t];
+  const chunks = [sentences[0].trim()];
+  let cur = '';
+  for (let i = 1; i < sentences.length; i++) {
+    if (cur.length + sentences[i].length > 220 && cur.length) { chunks.push(cur.trim()); cur = sentences[i]; }
+    else cur += sentences[i];
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  return chunks;
+}
+
+async function fetchTTSChunk(text, signal) {
+  const cacheKey = googleVoice + '|' + text;
+  if (ttsCache.has(cacheKey)) {
+    const b64 = ttsCache.get(cacheKey);
+    const bin = atob(b64);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
+  }
   try {
-    const resp = await fetch('/speak',{
-      method:'POST', headers:{'content-type':'application/json'},
-      body:JSON.stringify({text,voiceId:elevenVoiceId,elevenLabsKey}),
+    const resp = await fetch('/speak', {
+      method: 'POST', signal,
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text, voice: googleVoice }),
     });
     const data = await resp.json();
-    if (data.fallback||!data.audio){
-      console.warn('ElevenLabs fallback. Reason:',data.reason||'no audio data. resp.status:',resp.status,'hasKey check: key sent=',!!elevenLabsKey);
-      setAudioBars(false);speakFallback(text,onDone);return;
-    }
-    const binary=atob(data.audio), bytes=new Uint8Array(binary.length);
-    for(let i=0;i<binary.length;i++) bytes[i]=binary.charCodeAt(i);
-    const buf=await audioCtx.decodeAudioData(bytes.buffer);
-    const src=audioCtx.createBufferSource();
-    activeSrc=src; src.buffer=buf; src.connect(audioCtx.destination);
-    src.onended=()=>{activeSrc=null;setAudioBars(false);onDone&&onDone();};
-    // Resume once more right before start — belt-and-suspenders for iOS
-    if (audioCtx.state === 'suspended') await audioCtx.resume();
-    src.start(0);
-  } catch(err) { console.warn('ElevenLabs failed:',err); setAudioBars(false); speakFallback(text,onDone); }
+    if (data.fallback || !data.audio) return { fallback: true, reason: data.reason };
+    ttsCache.set(cacheKey, data.audio);
+    const bin = atob(data.audio);
+    const bytes = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+    return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
+  } catch (err) {
+    if (err.name === 'AbortError') return { aborted: true };
+    return { fallback: true, reason: err.message };
+  }
 }
 
-function speakFallback(text,onDone) {
+function playChunk(blobUrl, myToken) {
+  return new Promise(resolve => {
+    if (myToken !== speakToken) { URL.revokeObjectURL(blobUrl); resolve(); return; }
+    const el = getAudioEl();
+    el.muted = false; el.loop = false; el.volume = 1;
+    if (el._blobUrl) { URL.revokeObjectURL(el._blobUrl); }
+    el._blobUrl = blobUrl; el.src = blobUrl;
+    const done = () => {
+      URL.revokeObjectURL(blobUrl); el._blobUrl = null;
+      el.onended = null; el.onerror = null; resolve();
+    };
+    el.onended = done;
+    el.onerror = () => { console.warn('Audio error:', el.error && el.error.code); done(); };
+    el.play().catch(e => { console.warn('play() rejected:', e.name); done(); });
+  });
+}
+
+async function speakText(text, onDone) {
+  const myToken = ++speakToken;
+  if (ttsAbortController) { ttsAbortController.abort(); }
+  ttsAbortController = new AbortController();
+  const { signal } = ttsAbortController;
+
+  if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+  if (!text || !text.trim()) { onDone && onDone(); return; }
+  setAudioBars(true);
+
+  const chunks = makeChunks(text);
+  let nextFetch = fetchTTSChunk(chunks[0], signal);
+
+  for (let i = 0; i < chunks.length; i++) {
+    if (myToken !== speakToken) return;
+    const result = await nextFetch;
+    if (myToken !== speakToken) { if (result.blobUrl) URL.revokeObjectURL(result.blobUrl); return; }
+    if (result.aborted) return;
+
+    if (result.fallback) {
+      console.warn('TTS fallback:', result.reason);
+      const el = getAudioEl(); el.pause(); el.loop = false;
+      setAudioBars(false);
+      speakFallback(chunks.slice(i).join(' '), onDone);
+      return;
+    }
+
+    if (i + 1 < chunks.length) nextFetch = fetchTTSChunk(chunks[i + 1], signal);
+    await playChunk(result.blobUrl, myToken);
+    if (myToken !== speakToken) return;
+  }
+
+  const el = getAudioEl();
+  el.muted = false; el.loop = true; el.volume = 1; el.src = SILENT_WAV; el.play().catch(() => {});
+  setAudioBars(false);
+  onDone && onDone();
+}
+
+function speakFallback(text, onDone) {
+  text = stripSSML(text);
+  const myToken = speakToken;
   if (!voicesReady) voicesReady = speechSynthesis.getVoices().length > 0;
   if (!voicesReady) {
-    // Give voices up to 2 seconds to load; then give up and call onDone so the app never stalls
-    const voiceTimer=setTimeout(()=>{pendingSpeak=null;setAudioBars(false);onDone&&onDone();},2000);
-    pendingSpeak=()=>{clearTimeout(voiceTimer);speakFallback(text,onDone);};
+    const t = setTimeout(() => { pendingSpeak = null; setAudioBars(false); onDone && onDone(); }, 5000);
+    pendingSpeak = () => { clearTimeout(t); speakFallback(text, onDone); };
     return;
   }
-  const sentences=text.match(/[^.!?…]+[.!?…]+\s*/g)||[text];
-  const chunks=[]; let cur='';
-  for(const s of sentences){if(cur.length+s.length>185&&cur.length){chunks.push(cur.trim());cur=s;}else cur+=s;}
-  if(cur.trim()) chunks.push(cur.trim());
-  const all=chunks.length?chunks:[text];
-  const vv=speechSynthesis.getVoices();
-  const names=['Google UK English Female','Martha','Moira','Tessa','Samantha (Enhanced)','Samantha','Karen'];
-  let voice=null;
-  for(const n of names){voice=vv.find(v=>v.name===n);if(voice)break;}
-  if(!voice) voice=vv.find(v=>v.lang.startsWith('en'))||vv[0]||null;
-  let i=0; setAudioBars(true);
-  function next(){
-    if(i>=all.length){setAudioBars(false);onDone&&onDone();return;}
-    const chunk=all[i];
-    const u=new SpeechSynthesisUtterance(chunk);
-    u.voice=voice;u.rate=0.86;u.pitch=1.05;u.volume=1;
-    // Per-utterance timeout: if onend never fires (iOS after async gap), move on anyway
-    const t=setTimeout(()=>{i++;next();},Math.max(chunk.length*120,4000));
-    u.onend=()=>{clearTimeout(t);i++;next();};
-    u.onerror=e=>{clearTimeout(t);console.warn('TTS:',e.error);i++;next();};
+
+  const sentences = text.match(/[^.!?…]+[.!?…]+\s*/g) || [text];
+  const chunks = []; let cur = '';
+  for (const s of sentences) {
+    if (cur.length + s.length > 185 && cur.length) { chunks.push(cur.trim()); cur = s; }
+    else cur += s;
+  }
+  if (cur.trim()) chunks.push(cur.trim());
+  const all = chunks.length ? chunks : [text];
+
+  const vv = speechSynthesis.getVoices();
+  const names = ['Google UK English Female','Martha','Moira','Tessa','Samantha (Enhanced)','Samantha','Karen'];
+  let voice = null;
+  for (const n of names) { voice = vv.find(v => v.name === n); if (voice) break; }
+  if (!voice) voice = vv.find(v => v.lang.startsWith('en')) || vv[0] || null;
+
+  let i = 0;
+  setAudioBars(true);
+  function next() {
+    if (myToken !== speakToken) { setAudioBars(false); return; }
+    if (i >= all.length) { setAudioBars(false); onDone && onDone(); return; }
+    const chunk = all[i];
+    const u = new SpeechSynthesisUtterance(chunk);
+    u.voice = voice; u.rate = 0.86; u.pitch = 1.05; u.volume = 1;
+    const t = setTimeout(() => { i++; next(); }, Math.max(chunk.length * 120, 4000));
+    u.onend  = () => { clearTimeout(t); i++; next(); };
+    u.onerror = e => { clearTimeout(t); console.warn('TTS chunk error:', e.error); i++; next(); };
     speechSynthesis.speak(u);
   }
-  next();
-}
-function setAudioBars(on){const el=document.getElementById('abars');if(el)el.classList.toggle('on',on);}
-
-// ═══════════════════════════════════
-// SPEECH RECOGNITION
-// ═══════════════════════════════════
-const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-const hasSR=!!SR;
-
-function onMicTap(){
-  if(!hasSR){switchToButtons();return;}
-  if(activeRec){try{activeRec.abort();}catch(e){}activeRec=null;}
-  const rec=new SR(); activeRec=rec;
-  rec.continuous=false; rec.lang='en-US'; rec.interimResults=false; rec.maxAlternatives=5;
-  rec.onstart=()=>setMicState('listening');
-  rec.onend=()=>{activeRec=null;if(document.getElementById('mic-btn').classList.contains('listening'))setMicState('idle');};
-  rec.onerror=e=>{
-    activeRec=null; setMicState('idle');
-    if(e.error==='not-allowed'||e.error==='service-not-allowed') switchToButtons();
-    else if(e.error!=='no-speech'){setChoicePrompt("Didn't catch that — try again!",'error');setTimeout(()=>setChoicePrompt('Say your choice out loud!',''),3000);}
-  };
-  rec.onresult=e=>{
-    activeRec=null; setMicState('idle');
-    handleVoice(Array.from(e.results[0]).map(r=>r.transcript.toLowerCase().trim()));
-  };
-  try{rec.start();}catch(e){switchToButtons();}
+  setTimeout(next, 80);
 }
 
-function handleVoice(texts){
-  const all=texts.join(' ');
-  if(/\b(one|first|1)\b/.test(all)) return makeChoice(0);
-  if(/\b(two|second|2)\b/.test(all)) return makeChoice(1);
-  if(choices.length===2){
-    const sc=(hay,ch)=>ch.toLowerCase().split(/\s+/).filter(w=>w.length>3&&hay.includes(w)).length;
-    const s0=sc(all,choices[0]),s1=sc(all,choices[1]);
-    if(s0>s1&&s0>0) return makeChoice(0);
-    if(s1>s0&&s1>0) return makeChoice(1);
+let audioPaused = false;
+
+function setAudioBars(on) {
+  document.getElementById('audio-mic')?.classList.toggle('on', on);
+  document.getElementById('audio-controls')?.classList.toggle('on', on);
+  if (!on) {
+    audioPaused = false;
+    document.getElementById('audio-mic')?.classList.remove('paused');
+    const pb = document.getElementById('pause-btn');
+    if (pb) pb.textContent = '⏸ Pause';
   }
-  setChoicePrompt("Hmm, say 'one' or 'two'!",'error');
-  setTimeout(()=>setChoicePrompt('Say your choice out loud!',''),3000);
 }
 
-function setMicState(state){
-  const btn=document.getElementById('mic-btn');
-  const ring=document.getElementById('mic-ring');
-  btn.classList.toggle('listening',state==='listening');
-  ring.classList.toggle('listening',state==='listening');
-  document.getElementById('narrator-state').textContent=state==='listening'?'Listening…':'Tap the mic and choose';
+function audioPauseToggle() {
+  const el = audioEl;
+  if (!el) return;
+  const pb = document.getElementById('pause-btn');
+  const mic = document.getElementById('audio-mic');
+  if (audioPaused) {
+    audioPaused = false;
+    el.play().catch(() => {});
+    mic?.classList.remove('paused');
+    if (pb) pb.textContent = '⏸ Pause';
+  } else {
+    audioPaused = true;
+    el.pause();
+    mic?.classList.add('paused');
+    if (pb) pb.textContent = '▶ Resume';
+  }
 }
 
-function setChoicePrompt(text,cls){
-  const el=document.getElementById('choice-prompt');
-  el.textContent=text; el.className='choice-prompt '+(cls||'');
+function audioGoBack() {
+  const el = audioEl;
+  if (!el) return;
+  el.currentTime = Math.max(0, el.currentTime - 10);
+  if (audioPaused) {
+    audioPaused = false;
+    el.play().catch(() => {});
+    document.getElementById('audio-mic')?.classList.remove('paused');
+    const pb = document.getElementById('pause-btn');
+    if (pb) pb.textContent = '⏸ Pause';
+  }
 }
 
-function switchToButtons(){
-  if(activeRec){try{activeRec.abort();}catch(e){}activeRec=null;}
+// ── SPEECH RECOGNITION ──
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const hasSR = !!SR;
+
+function onMicTap() {
+  if (!hasSR) { switchToButtons(); return; }
+  if (activeRec) { try { activeRec.abort(); } catch(e){} activeRec = null; }
+  const rec = new SR(); activeRec = rec;
+  rec.continuous = false; rec.lang = 'en-US'; rec.interimResults = false; rec.maxAlternatives = 5;
+  rec.onstart  = () => setMicState('listening');
+  rec.onend    = () => { activeRec = null; if (document.getElementById('mic-btn').classList.contains('listening')) setMicState('idle'); };
+  rec.onerror  = e => {
+    activeRec = null; setMicState('idle');
+    if (e.error === 'not-allowed' || e.error === 'service-not-allowed') switchToButtons();
+    else if (e.error !== 'no-speech') {
+      setChoicePrompt("Didn't catch that — try again!", 'error');
+      setTimeout(() => setChoicePrompt('Say your choice out loud!', ''), 3000);
+    }
+  };
+  rec.onresult = e => {
+    activeRec = null; setMicState('idle');
+    handleVoice(Array.from(e.results[0]).map(r => r.transcript.toLowerCase().trim()));
+  };
+  try { rec.start(); } catch(e) { switchToButtons(); }
+}
+
+function handleVoice(texts) {
+  const all = texts.join(' ');
+  if (/\b(one|first|1)\b/.test(all)) return makeChoice(0);
+  if (/\b(two|second|2)\b/.test(all)) return makeChoice(1);
+  if (choices.length === 3 && /\b(three|third|3)\b/.test(all)) return makeChoice(2);
+  const sc = (hay, ch) => ch.toLowerCase().split(/\s+/).filter(w => w.length > 3 && hay.includes(w)).length;
+  const scores = choices.map(c => sc(all, c));
+  const best = Math.max(...scores);
+  const bestIdx = scores.indexOf(best);
+  if (best > 0 && scores.filter(s => s === best).length === 1) return makeChoice(bestIdx);
+  const hint = choices.length === 3 ? "Say 'one', 'two', or 'three'!" : "Say 'one' or 'two'!";
+  setChoicePrompt(hint, 'error');
+  setTimeout(() => setChoicePrompt('Say your choice out loud!', ''), 3000);
+}
+
+function setMicState(state) {
+  const btn  = document.getElementById('mic-btn');
+  const ring = document.getElementById('mic-ring');
+  btn.classList.toggle('listening', state === 'listening');
+  ring.classList.toggle('listening', state === 'listening');
+  document.getElementById('narrator-state').textContent = state === 'listening' ? 'Listening…' : 'Tap the mic and choose';
+}
+
+function setChoicePrompt(text, cls) {
+  const el = document.getElementById('choice-prompt');
+  el.textContent = text; el.className = 'choice-prompt ' + (cls || '');
+}
+
+function switchToButtons() {
+  if (activeRec) { try { activeRec.abort(); } catch(e){} activeRec = null; }
   setMicState('idle');
   document.getElementById('voice-zone').classList.remove('on');
   document.getElementById('btn-zone').classList.add('on');
 }
-function switchToVoice(){
+function switchToVoice() {
   document.getElementById('btn-zone').classList.remove('on');
   document.getElementById('voice-zone').classList.add('on');
 }
 
-// ═══════════════════════════════════
-// NAVIGATION
-// ═══════════════════════════════════
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+// ── NAVIGATION ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   document.body.style.background = BG[{
-    'screen-welcome':'welcome','screen-type':'type','screen-story':'story'
-  }[id]]||BG.story;
+    'screen-welcome': 'welcome',
+    'screen-profile': 'welcome',
+    'screen-type':    'type',
+    'screen-story':   'story'
+  }[id]] || BG.story;
 }
 
-function pickAge(group){
+function pickAge(group) {
   unlockAudio();
-  ageGroup=group;
+  ageGroup = group;
   showScreen('screen-type');
-  speakText("Great! Now pick a world to begin your adventure. When the story pauses, tap the microphone and say 'one' or 'two'. Or tap Can't talk right now to see the choices on screen. Let's find your world!");
+  speakText("Great! Now pick a world to begin your adventure. When the story pauses, tap the microphone and say 'one' or 'two'. Or tap Can't talk right now to see the choices on screen. Let's build your branch!");
 }
 
-function goPickWorld(){ cancelAudio(); showScreen('screen-type'); }
+function goPickWorld() { cancelAudio(); showScreen('screen-type'); }
 
-function toggleMore(){
-  const sec=document.getElementById('more-section');
-  const open=sec.style.display!=='none';
-  sec.style.display=open?'none':'block';
-  document.getElementById('more-label').textContent=open?'＋ More adventures':'— Less';
+function toggleMore() {
+  const sec  = document.getElementById('more-section');
+  const open = sec.style.display !== 'none';
+  sec.style.display = open ? 'none' : 'block';
+  document.getElementById('more-label').textContent = open ? '＋ More adventures' : '— Less';
 }
 
-function pickType(type){
-  unlockAudio(); cancelAudio();
-  storyTheme=type.t; storyGenre=type.gn||type.n;
-  document.getElementById('genre-badge').textContent=type.e+' '+type.n;
+function pickType(type) {
+  unlockAudio();
+  storyTheme = type.t; storyGenre = type.gn || type.n;
+  document.getElementById('genre-badge').textContent = type.e + ' ' + type.n;
   startStory();
 }
 
-function startCustom(){
-  const val=document.getElementById('custom-inp').value.trim();
-  if(!val) return;
-  unlockAudio(); cancelAudio();
-  storyTheme=val; storyGenre=val;
-  document.getElementById('genre-badge').textContent='✨ '+val;
+function startCustom() {
+  const val = document.getElementById('custom-inp').value.trim();
+  if (!val) return;
+  unlockAudio();
+  storyTheme = val; storyGenre = val;
+  document.getElementById('genre-badge').textContent = '✨ ' + val;
   startStory();
 }
 
-function restartSameGenre(){
-  cancelAudio();
-  startStory();
+function restartSameGenre() {
+  unlockAudio();
+  if (!initialStoryState) { startStory(); return; }
+  storyHistory = initialStoryState.history.slice();
+  nodeCount    = 1;
+  choices      = initialStoryState.choices.slice();
+  choiceLog    = [];
+  document.body.style.background = BG.story;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-story').classList.add('active');
+  updateProgress();
+  setNarration(stripSSML(initialStoryState.narration));
+  setChapter(initialStoryState.chapter || '');
+  clearError();
+  showInteraction();
+  speakText('Let\'s try again from the beginning! ' + stripSSML(initialStoryState.narration) +
+    ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
 }
 
-// ═══════════════════════════════════
-// STORY FLOW
-// ═══════════════════════════════════
-function startStory(){
-  storyHistory=[]; nodeCount=0; choices=[]; choiceLog=[];
-  document.body.style.background=BG.story;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+// ── STORY FLOW ──
+function startStory() {
+  storyHistory = []; nodeCount = 0; choices = []; choiceLog = [];
+  initialStoryState = null;
+  document.body.style.background = BG.story;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
   updateProgress(); hideInteraction();
   setChapter(''); setNarration(''); clearError();
-  storyHistory.push({role:'user',content:'Start a brand-new adventure set in a world of '+storyTheme+'. nodeCount=0.'});
+  storyHistory.push({ role: 'user', content: buildUserContext(null, []) });
   fetchNode();
 }
 
-async function fetchNode(){
+async function fetchNode(onError) {
   setLoading(true); setNarration(''); setChapter(''); hideInteraction(); clearError();
-  let result,raw;
-  try{({parsed:result,raw}=await callClaude(storyHistory));}
-  catch(err){setLoading(false);showError('Oops! '+err.message);return;}
-  storyHistory.push({role:'assistant',content:raw});
+  let result, raw;
+  try { ({ parsed: result, raw } = await callClaude(storyHistory)); }
+  catch(err) {
+    setLoading(false);
+    if (onError) { onError(); }
+    else { showError('Oops! ' + err.message); }
+    return;
+  }
+  storyHistory.push({ role: 'assistant', content: raw });
   setLoading(false); nodeCount++; updateProgress();
-  const narration=result.narration||'Something magical happens…';
-  const chapter=result.chapterTitle||'';
-  const isFailure=!!result.isFailure;
-  setNarration(narration); setChapter(chapter);
-  if(result.isEnding){
-    // Safety: show ending after 15s even if audio stalls
-    const endTimer=setTimeout(()=>{cancelAudio();showEnding(isFailure);},15000);
-    speakText(narration,()=>{
+  const narration    = result.narration || 'Something magical happens…';
+  const chapter      = result.chapterTitle || '';
+  const isFailure    = !!result.isFailure;
+  const isMoralLesson = !!result.isMoralLesson;
+  setNarration(stripSSML(narration)); setChapter(chapter);
+
+  if (result.isEnding && nodeCount < 4 && !isMoralLesson) {
+    result.isEnding = false;
+    result.isFailure = false;
+  }
+
+  if (result.isEnding) {
+    const safetyMs = Math.max(120000, narration.length * 120 + 30000);
+    const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
+    speakText(narration, () => {
       clearTimeout(endTimer);
-      setTimeout(()=>{
-        cancelAudio();
-        showEnding(isFailure);
+      showEnding(isFailure, isMoralLesson);
+      if (!isMoralLesson) {
         speakText(isFailure
-          ?'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
-          :'The End! You actually did it. You were brilliant. Tap New Adventure for another quest!');
-      },500);
+          ? 'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
+          : 'You did it! Nice choices, Adventurer. Start a new Story Branch or go back to the same story and make some different choices.');
+      }
     });
   } else {
-    choices=result.choices&&result.choices.length===2?result.choices:['Keep going','Try something else'];
-    // Show choices immediately — audio plays in background, so the app never stalls if TTS fails
+    const raw = result.choices;
+    choices = (raw && (raw.length === 2 || raw.length === 3)) ? raw : ['Keep going', 'Try something else'];
+    if (nodeCount === 1 && !initialStoryState) {
+      initialStoryState = {
+        narration, chapter,
+        choices: choices.slice(),
+        history: storyHistory.slice(),
+      };
+    }
     showInteraction();
-    speakText(narration,()=>{
-      speakText('Here are your choices. One: '+choices[0]+'. Two: '+choices[1]+'.');
-    });
+    const choiceSuffix = choices.length === 3
+      ? ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
+      : ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
+    speakText(stripSSML(narration) + choiceSuffix);
   }
 }
 
-function makeChoice(idx){
-  if(activeRec){try{activeRec.abort();}catch(e){}activeRec=null;}
-  cancelAudio(); hideInteraction();
+function makeChoice(idx) {
+  unlockAudio();
+  if (activeRec) { try { activeRec.abort(); } catch(e){} activeRec = null; }
+  hideInteraction();
+
+  const prevNarration = document.getElementById('narration-text').textContent;
+  const prevChapter   = document.getElementById('chapter-title').textContent;
+  const prevChoices   = choices.slice();
+  const prevHistory   = storyHistory.slice();
+
+  const choiceText = choices[idx];
+  const historyArr = choiceLog.map(e => e.choiceText);
   choiceLog.push({
-    stepNum:nodeCount, choiceText:choices[idx],
-    historySnapshot:storyHistory.slice(),
-    choices:choices.slice(),
-    narration:document.getElementById('narration-text').textContent,
-    chapter:document.getElementById('chapter-title').textContent,
+    stepNum: nodeCount, choiceText,
+    historySnapshot: prevHistory,
+    choices: prevChoices,
+    narration: prevNarration,
+    chapter:   prevChapter,
   });
-  storyHistory.push({role:'user',content:'The child chose: "'+choices[idx]+'". Continue the story. nodeCount='+nodeCount+'.'});
-  fetchNode();
+  storyHistory.push({ role: 'user', content: buildUserContext(choiceText, historyArr) });
+
+  fetchNode(() => {
+    // Rollback: undo history push and choiceLog entry, restore previous state
+    storyHistory = prevHistory;
+    choiceLog.pop();
+    choices = prevChoices;
+    setNarration(prevNarration);
+    setChapter(prevChapter);
+    showInteraction();
+    showError('Something went wrong — try your choice again!');
+    setTimeout(clearError, 4000);
+  });
 }
 
-function rewindTo(logIdx){
-  const entry=choiceLog[logIdx];
-  storyHistory=entry.historySnapshot.slice();
-  nodeCount=entry.stepNum;
-  choiceLog=choiceLog.slice(0,logIdx);
-  choices=entry.choices.slice();
-  document.body.style.background=BG.story;
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+function rewindTo(logIdx) {
+  unlockAudio();
+  const entry = choiceLog[logIdx];
+  storyHistory = entry.historySnapshot.slice();
+  nodeCount    = entry.stepNum;
+  choiceLog    = choiceLog.slice(0, logIdx);
+  choices      = entry.choices.slice();
+  document.body.style.background = BG.story;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
   updateProgress();
-  setNarration(entry.narration); setChapter(entry.chapter||'');
+  setNarration(entry.narration); setChapter(entry.chapter || '');
   showInteraction();
-  speakText('Your choices again. One: '+choices[0]+'. Two: '+choices[1]+'.');
+  speakText('Your choices again. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
 }
 
-// ═══════════════════════════════════
-// UI HELPERS
-// ═══════════════════════════════════
-function setNarration(t){ document.getElementById('narration-text').textContent=t; }
-function setChapter(t)  { document.getElementById('chapter-title').textContent=t; }
-function setLoading(on) { document.getElementById('loading').style.display=on?'block':'none'; }
-function showError(msg) { document.getElementById('error-area').innerHTML='<div class="err-box">'+msg+'</div>'; }
-function clearError()   { document.getElementById('error-area').innerHTML=''; }
+// ── UI HELPERS ──
+function setNarration(t) {
+  const el = document.getElementById('narration-text');
+  const btn = document.getElementById('show-text-btn');
+  el.textContent = t;
+  el.style.display = 'none';
+  if (btn) { btn.textContent = 'Show text ↓'; btn.classList.toggle('visible', !!t); }
+}
+function toggleNarrationText() {
+  const el = document.getElementById('narration-text');
+  const btn = document.getElementById('show-text-btn');
+  const shown = el.style.display !== 'none';
+  el.style.display = shown ? 'none' : 'block';
+  if (btn) btn.textContent = shown ? 'Show text ↓' : 'Hide text ↑';
+}
+function setChapter(t)  { document.getElementById('chapter-title').textContent = t; }
+function setLoading(on) { document.getElementById('loading').classList.toggle('on', on); }
+function showError(msg)  { document.getElementById('error-area').innerHTML = '<div class="err-box">' + msg + '</div>'; }
+function clearError()    { document.getElementById('error-area').innerHTML = ''; }
 
-function updateProgress(){
-  const el=document.getElementById('progress'); el.innerHTML='';
-  for(let i=0;i<MAX_NODES;i++){
-    const d=document.createElement('div');
-    if(i<nodeCount-1) d.className='prog-dot done';
-    else if(i===nodeCount-1) d.className='prog-dot active';
-    else d.className='prog-dot';
+function updateProgress() {
+  const el = document.getElementById('progress'); el.innerHTML = '';
+  for (let i = 0; i < MAX_NODES; i++) {
+    const d = document.createElement('div');
+    if (i < nodeCount - 1)        d.className = 'prog-dot done';
+    else if (i === nodeCount - 1) d.className = 'prog-dot active';
+    else                          d.className = 'prog-dot';
     el.appendChild(d);
   }
 }
 
-function showInteraction(){
-  document.getElementById('c0').textContent='① '+choices[0];
-  document.getElementById('c1').textContent='② '+choices[1];
-  document.getElementById('c0').disabled=false;
-  document.getElementById('c1').disabled=false;
-  if(hasSR){
+function showInteraction() {
+  const c2El = document.getElementById('c2');
+  document.getElementById('c0').textContent = '① ' + choices[0];
+  document.getElementById('c0').disabled = false;
+  document.getElementById('c0').className = 'btn-choice';
+  document.getElementById('c1').textContent = '② ' + choices[1];
+  document.getElementById('c1').disabled = false;
+  document.getElementById('c1').className = 'btn-choice';
+  if (choices.length === 3) {
+    c2El.textContent = '③ ' + choices[2];
+    c2El.disabled = false;
+    c2El.className = 'btn-choice moral';
+    c2El.style.display = '';
+  } else {
+    c2El.style.display = 'none';
+  }
+  if (hasSR) {
     document.getElementById('voice-zone').classList.add('on');
     document.getElementById('btn-zone').classList.remove('on');
   } else {
@@ -865,132 +2167,287 @@ function showInteraction(){
   }
 }
 
-function hideInteraction(){
+function hideInteraction() {
   document.getElementById('voice-zone').classList.remove('on');
   document.getElementById('btn-zone').classList.remove('on');
   setMicState('idle');
 }
 
-function showEnding(isFailure){
-  const glyph=document.getElementById('ending-glyph');
-  const title=document.getElementById('ending-title');
-  const sub=document.getElementById('ending-sub');
-  const btn=document.getElementById('ending-btn');
-  const confetti=document.getElementById('confetti-row');
-  const badgeZone=document.getElementById('badge-zone');
-  const rewindZone=document.getElementById('rewind-zone');
-  const screen=document.getElementById('screen-ending');
+function showEnding(isFailure, isMoralLesson) {
+  const glyph     = document.getElementById('ending-glyph');
+  const title     = document.getElementById('ending-title');
+  const sub       = document.getElementById('ending-sub');
+  const btn       = document.getElementById('ending-btn');
+  const confetti  = document.getElementById('confetti-row');
+  const badgeZone = document.getElementById('badge-zone');
+  const rewindZone= document.getElementById('rewind-zone');
 
   badgeZone.classList.remove('on');
   rewindZone.classList.remove('on');
 
-  if(isFailure){
-    document.body.style.background=BG.fail;
-    glyph.textContent='😬'; glyph.className='trophy fail';
-    confetti.textContent='';
-    title.textContent='Uh Oh… Not Quite!';
-    sub.textContent='You may have made a slightly questionable decision back there. Honestly? Pretty funny. Go on — choose differently!';
-    btn.textContent='🔄 Try Again!'; btn.className='btn-end-primary fail';
-    if(choiceLog.length>0){
-      const list=document.getElementById('rewind-list'); list.innerHTML='';
-      choiceLog.forEach((entry,idx)=>{
-        const node=document.createElement('div'); node.className='choice-node';
-        node.innerHTML='<div class="choice-num">'+(idx+1)+'</div><div class="choice-info"><span class="choice-label-sm">Choice '+(idx+1)+'</span><span class="choice-desc">'+entry.choiceText+'</span></div><div class="redo-arrow">↩</div>';
-        node.onclick=()=>rewindTo(idx);
+  if (isMoralLesson) {
+    document.body.style.background = BG.lesson;
+    glyph.textContent = '⚖️'; glyph.className = 'trophy lesson';
+    confetti.textContent = '';
+    title.textContent = 'Every Choice Has a Consequence.';
+    sub.textContent = 'That path led somewhere difficult — but every story has another way through. Go back and see what a different choice would have done.';
+    btn.textContent = '↩ Try a Different Path'; btn.className = 'btn-end-primary fail';
+    if (choiceLog.length > 0) {
+      const list = document.getElementById('rewind-list'); list.innerHTML = '';
+      choiceLog.forEach((entry, idx) => {
+        const node = document.createElement('div'); node.className = 'choice-node';
+        node.innerHTML =
+          '<div class="choice-num">' + (idx + 1) + '</div>' +
+          '<div class="choice-info">' +
+            '<span class="choice-label-sm">Choice ' + (idx + 1) + '</span>' +
+            '<span class="choice-desc">' + entry.choiceText + '</span>' +
+          '</div>' +
+          '<div class="redo-arrow">↩</div>';
+        node.onclick = () => rewindTo(idx);
+        list.appendChild(node);
+      });
+      rewindZone.classList.add('on');
+    }
+  } else if (isFailure) {
+    document.body.style.background = BG.fail;
+    glyph.textContent = '😬'; glyph.className = 'trophy fail';
+    confetti.textContent = '';
+    title.textContent = 'Uh Oh… Not Quite!';
+    sub.textContent = 'You may have made a slightly questionable decision back there. Honestly? Pretty funny. Go on — choose differently!';
+    btn.textContent = '🔄 Try Again!'; btn.className = 'btn-end-primary fail';
+    if (choiceLog.length > 0) {
+      const list = document.getElementById('rewind-list'); list.innerHTML = '';
+      choiceLog.forEach((entry, idx) => {
+        const node = document.createElement('div'); node.className = 'choice-node';
+        node.innerHTML =
+          '<div class="choice-num">' + (idx + 1) + '</div>' +
+          '<div class="choice-info">' +
+            '<span class="choice-label-sm">Choice ' + (idx + 1) + '</span>' +
+            '<span class="choice-desc">' + entry.choiceText + '</span>' +
+          '</div>' +
+          '<div class="redo-arrow">↩</div>';
+        node.onclick = () => rewindTo(idx);
         list.appendChild(node);
       });
       rewindZone.classList.add('on');
     }
   } else {
-    document.body.style.background=BG.win;
-    glyph.textContent='🏆'; glyph.className='trophy win';
-    confetti.textContent='🎉 🌟 🎊 🌟 🎉';
-    title.textContent='You Did It, Hero!';
-    sub.textContent='What an incredible adventure. You were brave, clever, and completely brilliant!';
-    btn.textContent='🚀 New Adventure!'; btn.className='btn-end-primary win';
-    const badges=GENRE_BADGES[storyGenre]||['🌟 Story Hero','🏆 Adventure Master','✨ Quest Complete'];
-    const row=document.getElementById('badge-row'); row.innerHTML='';
-    badges.forEach(b=>{
-      const[icon,...words]=b.split(' ');
-      const el=document.createElement('div'); el.className='badge';
-      el.innerHTML='<span class="badge-icon">'+icon+'</span><span class="badge-label">'+words.join(' ')+'</span>';
+    document.body.style.background = BG.win;
+    glyph.textContent = '🏆'; glyph.className = 'trophy win';
+    confetti.textContent = '🍃 🌟 🍀 🌟 🍃';
+    title.textContent = 'You Did It, Hero!';
+    sub.textContent = 'What an incredible adventure. You were brave, clever, and completely brilliant!';
+    btn.textContent = '🌿 New Adventure!'; btn.className = 'btn-end-primary win';
+    const badges = GENRE_BADGES[storyGenre] || ['🌟 Story Hero', '🏆 Adventure Master', '✨ Quest Complete'];
+    const row = document.getElementById('badge-row'); row.innerHTML = '';
+    badges.forEach(b => {
+      const [icon, ...words] = b.split(' ');
+      const el = document.createElement('div'); el.className = 'badge';
+      el.innerHTML = '<span class="badge-icon">' + icon + '</span><span class="badge-label">' + words.join(' ') + '</span>';
       row.appendChild(el);
     });
     badgeZone.classList.add('on');
   }
 
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-ending').classList.add('active');
 }
 
-// ═══════════════════════════════════
-// SETTINGS
-// ═══════════════════════════════════
-function toggleGear(){
-  const m=document.getElementById('gear-modal');
-  m.style.display=(m.style.display==='none'||!m.style.display)?'block':'none';
-}
-function saveKey(){
-  const k=document.getElementById('key-inp').value.trim();
-  const ek=document.getElementById('el-key-inp').value.trim();
-  const ev=document.getElementById('el-voice-inp').value.trim();
-  if(k){apiKey=k;localStorage.setItem('sq_key',k);}
-  if(ek){elevenLabsKey=ek;localStorage.setItem('sq_elkey',ek);}
-  if(ev){elevenVoiceId=ev;localStorage.setItem('sq_voice',ev);}
-  document.getElementById('gear-modal').style.display='none';
+// ── SETTINGS ──
+
+// ── CONTEXT BUILDER ──
+function buildUserContext(lastChoice, historyArr) {
+  const purposeStr = storyPurpose === 'other' && storyPurposeCustom
+    ? 'other (' + storyPurposeCustom + ')'
+    : storyPurpose;
+  return [
+    'story_genre: ' + (storyTheme || 'adventure'),
+    'story_length: ' + (ageGroup === 'young' ? 'quick' : 'epic'),
+    'story_purpose: ' + purposeStr,
+    'current_segment_number: ' + (nodeCount + 1),
+    'choice_history: ' + JSON.stringify(historyArr || []),
+    'last_choice_made: ' + (lastChoice || 'beginning of story'),
+  ].join('\n');
 }
 
-// ═══════════════════════════════════
-// SYSTEM PROMPT
-// ═══════════════════════════════════
-function buildSystemPrompt(){
-  const age=ageGroup==='young'
-    ?'AGE GROUP: 5-7 years (Little Adventurers). Short simple sentences, max 10 words each. Warm and silly tone, gentle tension only. Opening: 6-8 sentences. Middle nodes: 4-6 sentences. Comedy failures should be sweet and extra silly.'
-    :'AGE GROUP: 8-12 years (Story Heroes). Richer vocabulary welcome. Real tension and moral complexity. Full narration specs apply.';
-  return 'You are a master choose-your-own-adventure storyteller for children. The child IS the hero — always address them as "you." This is an AUDIO experience: write for the ear, not the eye.\n\n'+
-    age+'\n\n'+
-    'Respond ONLY with a single valid JSON object — no markdown, no extra text:\n'+
-    '{"narration":"...","chapterTitle":"...","choices":["...","..."],"isEnding":false,"isFailure":false}\n\n'+
-    '━━━ CORE RULES ━━━\n\n'+
-    'HOOK FAST: Drop into action immediately. Every node ends on a micro-cliffhanger.\n\n'+
-    'HERO DRIVES EVERYTHING: YOU solve problems through cleverness or courage.\n\n'+
-    'GENUINE CHOICES: Must differ in TONE AND TEXTURE — one dark/tense, one silly/fast.\n\n'+
-    'AUDIO CONTEXT BRIDGE (CRITICAL): Every middle node MUST open: "You chose to [action], and now..." Then move forward.\n\n'+
-    'SECONDARY CHARACTERS: One vivid sidekick, villain, or weird helper. Give them a memorable detail.\n\n'+
-    '━━━ NARRATION SPECS ━━━\n\n'+
-    'nodeCount=0 (OPENING): 10-14 sentences (6-8 for ages 5-7). Begin mid-action. One urgent problem. Vivid secondary character. Rich sensory detail. End at cliffhanger.\n\n'+
-    'nodeCount 1-4 (MIDDLE): 6-10 sentences (4-6 for ages 5-7). Open with context bridge. Show consequence of last choice. Vary tone. End on fresh cliffhanger.\n\n'+
-    'isEnding=true, isFailure=false (VICTORY): 6-8 sentences. Specific to path taken. Triumphant. Listener feels proud.\n\n'+
-    'isEnding=true, isFailure=true (COMEDY FAILURE): 3-4 sentences. ABSURD and funny. "You are now a turnip." Kid should laugh and want to retry immediately.\n\n'+
-    '━━━ CHAPTER TITLES ━━━\n'+
-    'Provide a short exciting chapter title (3-6 words) in "chapterTitle". Example: "The Dragon Wakes Up!"\n\n'+
-    '━━━ CHOICES ━━━\n'+
-    'Exactly 2 options, max 9 words each. One daring, one funny/quick.\n\n'+
-    '━━━ FLAGS ━━━\n'+
-    'isFailure:true = comedic dead-end. ALWAYS pair with isEnding:true.\n'+
-    'isEnding:true at nodeCount >= 5 OR when isFailure is true.\n\n'+
-    '━━━ HARD RULES ━━━\n'+
-    'Always "you". No gore or genuine terror. Thrilling peril = yes.\n'+
-    'ONLY return the JSON object. Nothing else ever.';
+// ── RESPONSE PARSER ──
+function parseStoryResponse(raw) {
+  function block(tag) {
+    const re = new RegExp('\\[' + tag + '[^\\]]*\\]\\s*([\\s\\S]*?)(?=\\s*\\[|$)', 'i');
+    const m = raw.match(re);
+    return m ? m[1].trim() : null;
+  }
+  const narration     = block('STORY SEGMENT') || 'Something magical happens…';
+  const chapterTitle  = block('CHAPTER TITLE') || '';
+  const choiceA       = block('CHOICE A');
+  const choiceB       = block('CHOICE B');
+  const choiceC       = block('CHOICE C');
+  const endingMatch   = raw.match(/\[ENDING:\s*(\w+)\]/i);
+  const endingType    = endingMatch ? endingMatch[1].toLowerCase() : null;
+  const hasChoices    = !!(choiceA && choiceB);
+  const isEnding      = !hasChoices || !!endingType;
+  const isFailure     = endingType === 'failure';
+  const isMoralLesson = endingType === 'lesson';
+  const choices       = hasChoices
+    ? (choiceC ? [choiceA, choiceB, choiceC] : [choiceA, choiceB])
+    : [];
+  return { narration, chapterTitle, choices, isEnding, isFailure, isMoralLesson };
 }
 
-// ═══════════════════════════════════
-// API
-// ═══════════════════════════════════
-async function callClaude(messages){
-  const resp=await fetch('/narrate',{
-    method:'POST', headers:{'content-type':'application/json'},
-    body:JSON.stringify({apiKey,payload:{model:'claude-sonnet-4-20250514',max_tokens:1800,system:buildSystemPrompt(),messages}})
+// ── SYSTEM PROMPT ──
+function buildSystemPrompt() {
+  const isYoung  = ageGroup === 'young';
+  const ageRange = isYoung ? '6–8' : '8–12';
+
+  const outputFormat = `
+━━━ OUTPUT FORMAT — FOLLOW EXACTLY ━━━
+
+Every response must use these exact markers. No preamble, no commentary, nothing else.
+
+[CHAPTER TITLE]
+3–5 word title for this scene. Plain text, no trailing punctuation.
+
+[STORY SEGMENT]
+<speak>
+Your story prose here. Maximum 150 words. Wrap in <speak>…</speak> and use SSML markup — see SSML REQUIREMENTS below.
+</speak>
+
+[CHOICE A]
+A specific action or decision. Max 9 words. Plain text.
+
+[CHOICE B]
+A genuinely different action or decision. Max 9 words. Plain text.
+${isYoung ? '' : `
+For approximately 1 in 3 middle segments (segment 2 onward), add a third option that is tempting but morally wrong — a lie, a theft, an abandonment, a cruelty. Do NOT label it as bad. Write it exactly like the others. Let the child discover.
+
+[CHOICE C]
+The morally questionable option. Max 9 words. Plain text.
+`}
+For ENDINGS — omit [CHOICE A] and [CHOICE B] entirely. Include one of:
+[ENDING: victory]   — earned, satisfying conclusion
+[ENDING: failure]   — surprising, funny, or unexpected conclusion
+[ENDING: lesson]    — moral consequence ending (used only when child chose [CHOICE C])`;
+
+  const ssmlGuide = `
+━━━ SSML — THE VOICE MUST PERFORM THIS ━━━
+
+Wrap the entire [STORY SEGMENT] content in <speak>…</speak>.
+Use these tags to make the voice act the story:
+
+<break time="0.5s"/>   — after a revelation or tense beat; between a moment and its consequence
+<break time="1s"/>     — for the single biggest dramatic pause in the scene (once per scene max)
+<emphasis level="strong">word</emphasis>    — one key word per sentence max
+<emphasis level="moderate">phrase</emphasis> — important names, objects, turning points
+<prosody rate="slow" pitch="-1st">text</prosody>  — spooky, ominous, or eerie
+<prosody rate="fast">text</prosody>               — panic, urgency, breathlessness
+
+Hard rules:
+• Every sentence ends with . ! or ? BEFORE any closing tag — tags never span sentences
+• <break> goes between sentences, never mid-sentence
+• Max 3 breaks per scene, max 4 emphasis tags per scene
+• [CHOICE A], [CHOICE B], [CHOICE C], [CHAPTER TITLE] must be plain text — zero SSML`;
+
+  return `You are the storyteller for Branched, an interactive choose-your-own-adventure app for children ages ${ageRange}. Your job is to generate short, vivid story segments that respond directly to the choices a child makes.
+
+━━━ YOUR VOICE ━━━
+
+Always write in second person, present tense: "You step through the door. The room smells like cinnamon and something older."
+Never use third person. Never name the protagonist or assign them a gender, appearance, or personality. They are the reader.
+${isYoung
+  ? 'Write at a 2nd–3rd grade reading level: very short sentences, concrete imagery, active verbs. Warm and playful. Gentle tension only — thrills without fear. Silly failures are sweet and gloriously absurd.'
+  : 'Write at a 3rd–5th grade reading level: short sentences, concrete imagery, active verbs. No passive voice. Tone is adventurous and warm — never scary enough to frighten, never so safe it\'s boring.'}
+Be vivid and surprising. One unexpected detail beats three predictable ones.
+The narrator has personality. They have opinions: "Now, you might think that was a good idea. It was not."
+
+━━━ STORY SEGMENT STRUCTURE ━━━
+
+Each story segment is 2–4 short paragraphs, maximum 150 words total.
+End every segment at a moment of tension or decision — never resolve it in the same segment.
+Get to the action within the first sentence. No exposition dumps.
+
+━━━ HONORING CHOICES — YOUR MOST IMPORTANT JOB ━━━
+
+When you receive a choice the child made, your continuation MUST:
+
+1. Open with a direct consequence of that choice. The first sentence must make clear the choice mattered. If they chose to climb the tree, the next segment starts in the tree.
+2. Never hedge. Do not write continuations that could follow from either choice. If your segment would make sense regardless of what was chosen, rewrite it.
+3. Remember earlier choices when possible. If the child befriended a character two segments ago, that character can reappear. If they picked up an object, it can become relevant. Continuity makes choices feel real.
+4. Close doors. If a choice was made, the other path is gone. Don't let both options bleed into the same scene.
+
+━━━ DECISIONS HAVE REAL CONSEQUENCES ━━━
+
+Brave choices open doors cowardly choices close — new allies, new paths, earned respect.
+Clever choices solve things sideways — but might miss something only courage would catch.
+Consequences compound: a choice from segment 2 should echo in segment 4 — reference it by name.
+Different paths must feel genuinely different. If both choices lead to roughly the same scene, rewrite.
+
+━━━ ENDINGS ━━━
+
+Trigger an ending after the story_length calls for it, or when the narrative arc naturally resolves.
+quick stories: end after 4–6 segments. epic stories: end after 7–9 segments.
+
+VICTORY ending: earned and specific. Name at least one choice they made: "Back when you chose to [X] — that was the moment everything changed." Leave them proud and a little sad it's over.
+FAILURE ending: 3–4 sentences. ABSURD and SPECIFIC. "You are now a mushroom." Make the child laugh immediately and want to try again.
+LESSON ending (ages 8–12 only, after child picks [CHOICE C]): 4–5 sentences. Warm, honest, direct. Show the real consequence of the wrong choice — someone hurt, trust broken, something lost. Do NOT lecture. End with one quiet observation that invites reflection.
+
+━━━ WHAT YOU MUST NEVER DO ━━━
+
+❌ Write in third person or name the protagonist
+❌ Generate a continuation that ignores or contradicts the choice made
+❌ Exceed 150 words in the story segment
+❌ Present choices where one is obviously correct
+❌ Include content frightening, violent, or inappropriate for ages 6–12
+❌ Moralize or lecture — let consequences speak for themselves
+❌ Write exposition dumps — get to the action within the first sentence
+❌ Use AI-speak: "Suddenly you realize…" / "As you ponder your options…" / "You must decide…"
+❌ Use hollow exclamations: "What a discovery!" / "How exciting!" / "Amazing!"
+
+━━━ CONTEXT YOU WILL RECEIVE ━━━
+
+Each message includes:
+• story_genre — the type of adventure
+• story_length — "quick" (4–6 segments) or "epic" (7–9 segments)
+• story_purpose — what the parent wants their child to get from the story
+• current_segment_number — where we are
+• choice_history — every choice made so far, in order
+• last_choice_made — the specific choice that triggered this generation
+
+Use choice_history to maintain continuity. Use current_segment_number and story_length to pace the arc — rising tension in the middle, resolution at the end.${storyPurpose === 'decisions' ? `
+
+━━━ STORY PURPOSE: DECISION MAKING ━━━
+
+This story is designed to help children develop decision-making skills. Without being preachy:
+• Make consequences feel real and meaningful — not just plot devices
+• Let the narrator occasionally reflect on how a past choice mattered: "Back when you decided to [X] — that changed everything."
+• Ensure courage, honesty, and kindness open doors that selfishness or cowardice close
+• NEVER lecture — let the story do the teaching` : storyPurpose === 'other' && storyPurposeCustom ? `
+
+━━━ STORY PURPOSE: PARENT'S NOTE ━━━
+
+The parent shared: "${storyPurposeCustom}". Keep this in mind while crafting the narrative — weave it in naturally, never reference it explicitly.` : ''}
+
+${outputFormat}
+
+${ssmlGuide}`;
+}
+
+// ── API ──
+async function callClaude(messages) {
+  const resp = await fetch('/narrate', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ apiKey, payload: { model: 'claude-sonnet-4-20250514', max_tokens: 1024, system: buildSystemPrompt(), messages } })
   });
-  if(!resp.ok){const err=await resp.json().catch(()=>({}));throw new Error(err?.error?.message||'HTTP '+resp.status);}
-  const data=await resp.json();
-  const raw=data?.content?.[0]?.text||'';
-  const cleaned=raw.replace(/^```(?:json)?\s*/i,'').replace(/\s*```\s*$/i,'').trim();
+  if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err?.error?.message || 'HTTP ' + resp.status); }
+  const data = await resp.json();
+  const raw = data?.content?.[0]?.text || '';
   let parsed;
-  try{parsed=JSON.parse(cleaned);}
-  catch(e){console.error('JSON parse failed:',raw);throw new Error('Story response garbled — please try again!');}
-  return{raw:cleaned,parsed};
+  try { parsed = parseStoryResponse(raw); }
+  catch(e) { console.error('Parse failed:', raw); throw new Error('Story response garbled — please try again!'); }
+  if (!parsed.narration) throw new Error('Story response garbled — please try again!');
+  return { raw, parsed };
 }
+
 </script>
+
 </body>
 </html>
