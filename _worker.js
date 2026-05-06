@@ -111,7 +111,7 @@ async function handleRegister(request, env) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({ error: 'Please enter a valid email address.' }, 400);
   if (password.length < 8) return json({ error: 'Password must be at least 8 characters.' }, 400);
 
-  await ensureSchema(env.DB);
+  try { await ensureSchema(env.DB); } catch (err) { return json({ error: 'Schema error: ' + err.message }, 500); }
 
   const existing = await env.DB.prepare('SELECT id FROM users WHERE email = ?').bind(email.toLowerCase()).first();
   if (existing) return json({ error: 'An account with this email already exists.' }, 409);
@@ -138,7 +138,7 @@ async function handleLogin(request, env) {
   const { email, password } = body;
   if (!email || !password) return json({ error: 'Email and password are required.' }, 400);
 
-  await ensureSchema(env.DB);
+  try { await ensureSchema(env.DB); } catch (err) { return json({ error: 'Schema error: ' + err.message }, 500); }
 
   const user = await env.DB.prepare('SELECT * FROM users WHERE email = ?').bind(email.toLowerCase()).first();
   if (!user) return json({ error: 'Invalid email or password.' }, 401);
@@ -277,23 +277,9 @@ function pick(u) {
 }
 
 async function ensureSchema(db) {
-  await db.exec(`
-    CREATE TABLE IF NOT EXISTS users (
-      id TEXT PRIMARY KEY,
-      email TEXT UNIQUE NOT NULL,
-      password_hash TEXT,
-      password_salt TEXT,
-      sso_provider TEXT,
-      sso_id TEXT,
-      age_group TEXT NOT NULL DEFAULT 'older',
-      story_purpose TEXT NOT NULL DEFAULT 'entertainment',
-      story_purpose_custom TEXT DEFAULT '',
-      created_at INTEGER NOT NULL,
-      updated_at INTEGER NOT NULL
-    );
-    CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
-    CREATE INDEX IF NOT EXISTS idx_users_sso   ON users(sso_provider, sso_id);
-  `);
+  await db.prepare('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT, password_salt TEXT, sso_provider TEXT, sso_id TEXT, age_group TEXT NOT NULL DEFAULT \'older\', story_purpose TEXT NOT NULL DEFAULT \'entertainment\', story_purpose_custom TEXT DEFAULT \'\', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_users_sso ON users(sso_provider, sso_id)').run();
 }
 
 function jwtSecret(env) {
