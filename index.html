@@ -1232,6 +1232,194 @@
     }
     .btn-profile-go:active { opacity: .85; }
     .btn-profile-go:disabled { opacity: .48; }
+
+    /* ══ LIBRARY BUTTON on genre picker ══ */
+    .s2-library-btn {
+      position: absolute;
+      top: 10px;
+      left: 12px;
+      z-index: 10;
+      background: rgba(255,255,255,.22);
+      border: none;
+      border-radius: 50%;
+      width: 38px;
+      height: 38px;
+      font-size: 1rem;
+      cursor: pointer;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ══ STORY LIBRARY SCREEN ══ */
+    #screen-library { background: var(--cream); min-height: 100vh; }
+    .library-body {
+      width: 100%;
+      padding: 16px 20px 60px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .library-empty {
+      text-align: center;
+      color: var(--bark-mid);
+      padding: 48px 24px;
+      font-size: .95rem;
+      line-height: 1.7;
+      font-weight: 700;
+    }
+    .story-card {
+      background: white;
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 2px 12px rgba(44,26,14,.1);
+      border: 1.5px solid rgba(44,26,14,.07);
+    }
+    .story-card-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .story-card-emoji { font-size: 32px; flex-shrink: 0; }
+    .story-card-info { flex: 1; min-width: 0; }
+    .story-card-genre {
+      font-family: var(--fhead);
+      font-size: 15px;
+      color: var(--bark);
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .story-card-meta { font-size: 11px; color: var(--bark-light); font-weight: 700; margin-top: 2px; }
+    .story-card-outcome {
+      font-size: 11px;
+      font-weight: 900;
+      padding: 4px 10px;
+      border-radius: 20px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+    .outcome-victory { background: rgba(91,160,90,.15); color: #3a7a39; }
+    .outcome-failure { background: rgba(212,96,74,.12); color: #a04030; }
+    .outcome-lesson  { background: rgba(100,80,200,.1);  color: #5040a0; }
+    .story-card-btns { display: flex; gap: 8px; }
+    .story-card-btn {
+      flex: 1;
+      border: 1.5px solid rgba(44,26,14,.15);
+      border-radius: 10px;
+      padding: 10px 8px;
+      font-family: var(--fbody);
+      font-size: .82rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      background: transparent;
+      color: var(--bark);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .story-card-btn:active { background: rgba(44,26,14,.06); }
+    .story-card-btn.primary { background: var(--bark); color: white; border-color: transparent; }
+    .story-card-btn.primary:active { opacity: .85; }
+
+    /* ══ STORY READER SCREEN ══ */
+    #screen-reader { background: var(--cream); min-height: 100vh; }
+    .reader-body {
+      width: 100%;
+      padding: 16px 20px 60px;
+      display: flex;
+      flex-direction: column;
+    }
+    .reader-segment {
+      border-left: 3px solid rgba(44,26,14,.14);
+      padding: 4px 0 28px 18px;
+      position: relative;
+    }
+    .reader-segment::before {
+      content: '';
+      position: absolute;
+      left: -7px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: var(--bark-mid);
+      border: 2px solid var(--cream);
+    }
+    .reader-chapter {
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--bark-light);
+      margin-bottom: 8px;
+    }
+    .reader-narration {
+      font-family: var(--fhead);
+      font-size: 14px;
+      color: var(--ink);
+      line-height: 1.75;
+      margin-bottom: 12px;
+    }
+    .reader-choice-made {
+      background: rgba(44,26,14,.06);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--bark-mid);
+      margin-bottom: 10px;
+    }
+    .reader-branch-btn {
+      background: transparent;
+      border: 1.5px solid rgba(44,26,14,.2);
+      border-radius: 10px;
+      padding: 9px 14px;
+      font-family: var(--fbody);
+      font-size: .82rem;
+      font-weight: 700;
+      color: var(--bark-mid);
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .reader-branch-btn:active { background: rgba(44,26,14,.07); }
+    .reader-ending-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 900;
+      font-size: .9rem;
+      margin: 4px 0 20px;
+      align-self: flex-start;
+    }
+    .reader-play-again {
+      background: var(--bark);
+      color: white;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-family: var(--fhead);
+      font-size: 1.1rem;
+      font-weight: 700;
+      width: 100%;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity .2s;
+    }
+    .reader-play-again:active { opacity: .85; }
   </style>
 </head>
 <body>
@@ -1474,6 +1662,7 @@
 
   <!-- ══ SCREEN 2: GENRE PICKER ══ -->
   <div id="screen-type" class="screen">
+    <button class="s2-library-btn" onclick="showLibrary()" aria-label="My stories">📚</button>
     <button class="s2-settings-btn" onclick="showSettings()" aria-label="Account settings">⚙</button>
     <div class="s2-header">
       <h2>What kind of adventure<br>do you want?</h2>
@@ -1562,6 +1751,29 @@
     <div class="end-btns">
       <button class="btn-end-primary" id="ending-btn" onclick="goPickWorld()"></button>
       <button class="btn-end-secondary" onclick="restartSameGenre()">🔄 Play Again (Different Choices)</button>
+      <button class="btn-end-secondary" id="library-end-btn" style="display:none" onclick="showLibrary()">📚 See My Stories</button>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: LIBRARY ══ -->
+  <div id="screen-library" class="screen">
+    <div class="settings-topbar">
+      <button class="settings-back" onclick="showScreen('screen-type')">← Back</button>
+      <h2>📚 My Stories</h2>
+    </div>
+    <div id="library-body" class="library-body">
+      <div class="library-empty">Loading…</div>
+    </div>
+  </div>
+
+  <!-- ══ SCREEN: READER ══ -->
+  <div id="screen-reader" class="screen">
+    <div class="settings-topbar">
+      <button class="settings-back" onclick="showScreen('screen-library')">← Back</button>
+      <h2 id="reader-genre-title" style="font-size:1.1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Story</h2>
+    </div>
+    <div id="reader-body" class="reader-body">
+      <div class="library-empty">Loading…</div>
     </div>
   </div>
 
@@ -1617,12 +1829,16 @@ let googleVoice   = localStorage.getItem('sq_gtts_voice') || 'en-US-Chirp3-HD-Ao
 let ageGroup      = 'older';
 let storyTheme    = '';
 let storyGenre    = '';
+let genreName     = '';
+let genreEmoji    = '';
 let storyHistory  = [];
 let nodeCount     = 0;
 let choices       = [];
 let choiceLog     = [];
 let activeRec     = null;
 let initialStoryState = null;
+let currentStoryId    = null;
+let savedStory        = null;
 
 // Auth & profile state
 let authToken     = localStorage.getItem('branched_token') || '';
@@ -1914,6 +2130,184 @@ function setSettingsMsg(msg, isErr) {
   if (!el) return;
   el.textContent = msg;
   el.className = 'settings-msg ' + (isErr ? 'err' : 'ok');
+}
+
+// ── STORY LIBRARY ──
+
+async function saveStory(outcome, finalNarration, finalChapter) {
+  if (!authToken) return;
+  try {
+    const segments = choiceLog.map(entry => ({
+      chapter:     entry.chapter,
+      narration:   entry.narration,
+      choices:     entry.choices,
+      choice_made: entry.choiceText,
+      node:        entry.stepNum,
+    }));
+    segments.push({ chapter: finalChapter || '', narration: finalNarration || '', choices: [], choice_made: null, node: nodeCount });
+    const resp = await fetch('/api/stories', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify({ genre_name: genreName || storyGenre, genre_emoji: genreEmoji, story_genre: storyGenre, age_group: ageGroup, outcome, segments, messages: storyHistory }),
+    });
+    const data = await resp.json().catch(() => ({}));
+    if (data.id) currentStoryId = data.id;
+  } catch(e) {}
+}
+
+async function showLibrary() {
+  showScreen('screen-library');
+  const body = document.getElementById('library-body');
+  body.innerHTML = '<div class="library-empty">Loading…</div>';
+  if (!authToken) { body.innerHTML = '<div class="library-empty">Sign in to see your stories.</div>'; return; }
+  try {
+    const resp = await fetch('/api/stories', { headers: { 'Authorization': 'Bearer ' + authToken } });
+    const data = await resp.json();
+    if (!data.stories || data.stories.length === 0) {
+      body.innerHTML = '<div class="library-empty">No saved stories yet.<br><br>Complete an adventure to save it here! 📖</div>';
+      return;
+    }
+    body.innerHTML = '';
+    const outcomeMap = {
+      victory: { label: '🏆 Victory',  cls: 'outcome-victory' },
+      failure: { label: '😬 Oops!',    cls: 'outcome-failure' },
+      lesson:  { label: '⚖️ Lesson',   cls: 'outcome-lesson'  },
+    };
+    data.stories.forEach(s => {
+      const card = document.createElement('div');
+      card.className = 'story-card';
+      const date = new Date(s.created_at * 1000);
+      const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const oc = outcomeMap[s.outcome] || { label: s.outcome, cls: 'outcome-victory' };
+      card.innerHTML =
+        '<div class="story-card-top">' +
+          '<span class="story-card-emoji">' + (s.genre_emoji || '📖') + '</span>' +
+          '<div class="story-card-info">' +
+            '<div class="story-card-genre">' + s.genre_name + '</div>' +
+            '<div class="story-card-meta">' + dateStr + '</div>' +
+          '</div>' +
+          '<span class="story-card-outcome ' + oc.cls + '">' + oc.label + '</span>' +
+        '</div>' +
+        '<div class="story-card-btns">' +
+          '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">📖 Read It</button>' +
+          '<button class="story-card-btn primary" onclick="replayStoryById(\'' + s.id + '\')">🔄 Play Again</button>' +
+        '</div>';
+      body.appendChild(card);
+    });
+  } catch(e) {
+    body.innerHTML = '<div class="library-empty">Could not load stories. Try again.</div>';
+  }
+}
+
+async function openStory(storyId) {
+  showScreen('screen-reader');
+  const body = document.getElementById('reader-body');
+  body.innerHTML = '<div class="library-empty">Loading…</div>';
+  try {
+    const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
+    const data = await resp.json();
+    if (!data.story) { body.innerHTML = '<div class="library-empty">Story not found.</div>'; return; }
+    savedStory = data.story;
+    const titleEl = document.getElementById('reader-genre-title');
+    if (titleEl) titleEl.textContent = (data.story.genre_emoji || '') + ' ' + data.story.genre_name;
+    renderReader(data.story);
+  } catch(e) {
+    body.innerHTML = '<div class="library-empty">Could not load story. Try again.</div>';
+  }
+}
+
+function renderReader(story) {
+  const body = document.getElementById('reader-body');
+  body.innerHTML = '';
+  const { segments, outcome } = story;
+  const outcomeMap = {
+    victory: { emoji: '🏆', label: 'Victory!',       cls: 'outcome-victory' },
+    failure: { emoji: '😬', label: 'Uh Oh…',         cls: 'outcome-failure' },
+    lesson:  { emoji: '⚖️', label: 'Lesson Learned', cls: 'outcome-lesson'  },
+  };
+  segments.forEach((seg, idx) => {
+    const div = document.createElement('div');
+    div.className = 'reader-segment';
+    let html = '';
+    if (seg.chapter)     html += '<div class="reader-chapter">' + seg.chapter + '</div>';
+    if (seg.narration)   html += '<div class="reader-narration">' + seg.narration + '</div>';
+    if (seg.choice_made) html += '<div class="reader-choice-made">You chose: "' + seg.choice_made + '"</div>';
+    if (idx < segments.length - 1) {
+      html += '<button class="reader-branch-btn" onclick="branchFrom(' + idx + ')">🌿 Make different choices from here</button>';
+    }
+    div.innerHTML = html;
+    body.appendChild(div);
+  });
+  const oc = outcomeMap[outcome] || { emoji: '📖', label: outcome, cls: 'outcome-victory' };
+  const badge = document.createElement('div');
+  badge.className = 'reader-ending-badge ' + oc.cls;
+  badge.textContent = oc.emoji + ' ' + oc.label;
+  body.appendChild(badge);
+  const playBtn = document.createElement('button');
+  playBtn.className = 'reader-play-again';
+  playBtn.textContent = '🔄 Play This Genre Again';
+  playBtn.onclick = () => replayStory(story);
+  body.appendChild(playBtn);
+}
+
+function branchFrom(segIdx) {
+  if (!savedStory) return;
+  const { segments, messages, genre_name, genre_emoji: emoji, story_genre, age_group: ag } = savedStory;
+  genreName  = genre_name;
+  genreEmoji = emoji || '';
+  storyGenre = story_genre;
+  storyTheme = story_genre;
+  ageGroup   = ag || 'older';
+  unlockAudio();
+  currentStoryId = null;
+  // storyHistory at the point of seeing segment[segIdx]: length = 2*(segIdx+1)
+  storyHistory = messages.slice(0, 2 * (segIdx + 1));
+  nodeCount    = segIdx + 1;
+  // Reconstruct choiceLog so rewind still works
+  choiceLog = segments.slice(0, segIdx).map((s, j) => ({
+    stepNum:         j + 1,
+    choiceText:      s.choice_made || '',
+    historySnapshot: messages.slice(0, 2 * (j + 1)),
+    choices:         s.choices || [],
+    narration:       s.narration || '',
+    chapter:         s.chapter || '',
+  }));
+  choices = (segments[segIdx] && segments[segIdx].choices && segments[segIdx].choices.length >= 2)
+    ? segments[segIdx].choices
+    : ['Keep going', 'Try something else'];
+  if (segIdx === 0 && !initialStoryState) {
+    initialStoryState = { narration: segments[0].narration || '', chapter: segments[0].chapter || '', choices: choices.slice(), history: storyHistory.slice() };
+  }
+  document.getElementById('genre-badge').textContent = (emoji || '') + ' ' + genre_name;
+  document.body.style.background = BG.story;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-story').classList.add('active');
+  updateProgress();
+  setNarration(segments[segIdx].narration || '');
+  setChapter(segments[segIdx].chapter || '');
+  clearError();
+  showInteraction();
+  const choiceSuffix = choices.length >= 2 ? ' Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.' : '';
+  speakText('Taking you back to that moment!' + choiceSuffix);
+}
+
+function replayStory(story) {
+  genreName  = story.genre_name;
+  genreEmoji = story.genre_emoji || '';
+  storyGenre = story.story_genre;
+  storyTheme = story.story_genre;
+  ageGroup   = story.age_group || 'older';
+  document.getElementById('genre-badge').textContent = (story.genre_emoji || '') + ' ' + story.genre_name;
+  unlockAudio();
+  startStory();
+}
+
+async function replayStoryById(storyId) {
+  try {
+    const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
+    const data = await resp.json();
+    if (data.story) replayStory(data.story);
+  } catch(e) {}
 }
 
 // ── AUDIO — iOS-safe ──
@@ -2259,6 +2653,8 @@ function showScreen(id) {
     'screen-welcome':  'welcome',
     'screen-profile':  'welcome',
     'screen-settings': 'welcome',
+    'screen-library':  'welcome',
+    'screen-reader':   'welcome',
     'screen-type':     'type',
     'screen-story':    'story'
   }[id]] || BG.story;
@@ -2283,6 +2679,7 @@ function toggleMore() {
 
 function pickType(type) {
   unlockAudio();
+  genreName = type.n; genreEmoji = type.e;
   storyTheme = type.t; storyGenre = type.gn || type.n;
   document.getElementById('genre-badge').textContent = type.e + ' ' + type.n;
   startStory();
@@ -2292,6 +2689,7 @@ function startCustom() {
   const val = document.getElementById('custom-inp').value.trim();
   if (!val) return;
   unlockAudio();
+  genreName = val; genreEmoji = '✨';
   storyTheme = val; storyGenre = val;
   document.getElementById('genre-badge').textContent = '✨ ' + val;
   startStory();
@@ -2319,7 +2717,7 @@ function restartSameGenre() {
 // ── STORY FLOW ──
 function startStory() {
   storyHistory = []; nodeCount = 0; choices = []; choiceLog = [];
-  initialStoryState = null;
+  initialStoryState = null; currentStoryId = null;
   document.body.style.background = BG.story;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
@@ -2353,6 +2751,8 @@ async function fetchNode(onError) {
   }
 
   if (result.isEnding) {
+    const outcomeStr = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
+    saveStory(outcomeStr, stripSSML(narration), chapter);
     const safetyMs = Math.max(120000, narration.length * 120 + 30000);
     const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
     speakText(narration, () => {
@@ -2569,6 +2969,9 @@ function showEnding(isFailure, isMoralLesson) {
     });
     badgeZone.classList.add('on');
   }
+
+  const libBtn = document.getElementById('library-end-btn');
+  if (libBtn) libBtn.style.display = authToken ? '' : 'none';
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-ending').classList.add('active');

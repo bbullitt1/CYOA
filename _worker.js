@@ -18,12 +18,18 @@ export default {
       if (path === '/auth/google')          return handleGoogleAuth(request, env);
       if (path === '/auth/google/callback') return handleGoogleCallback(request, env);
       if (path === '/api/profile')          return handleGetProfile(request, env);
+      if (path === '/api/stories')          return handleListStories(request, env);
+      if (path.startsWith('/api/stories/')) return handleGetStory(request, env, path.slice('/api/stories/'.length));
     }
     if (request.method === 'PUT') {
       if (path === '/api/profile') return handleUpdateProfile(request, env);
     }
     if (request.method === 'POST') {
       if (path === '/api/change-password') return handleChangePassword(request, env);
+      if (path === '/api/stories')         return handleSaveStory(request, env);
+    }
+    if (request.method === 'DELETE') {
+      if (path.startsWith('/api/stories/')) return handleDeleteStory(request, env, path.slice('/api/stories/'.length));
     }
 
     if (env.ASSETS) return env.ASSETS.fetch(request);
@@ -280,6 +286,8 @@ async function ensureSchema(db) {
   await db.prepare('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL, password_hash TEXT, password_salt TEXT, sso_provider TEXT, sso_id TEXT, age_group TEXT NOT NULL DEFAULT \'older\', story_purpose TEXT NOT NULL DEFAULT \'entertainment\', story_purpose_custom TEXT DEFAULT \'\', created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL)').run();
   await db.prepare('CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)').run();
   await db.prepare('CREATE INDEX IF NOT EXISTS idx_users_sso ON users(sso_provider, sso_id)').run();
+  await db.prepare('CREATE TABLE IF NOT EXISTS stories (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, genre_name TEXT NOT NULL, genre_emoji TEXT NOT NULL DEFAULT \'\', story_genre TEXT NOT NULL, age_group TEXT NOT NULL DEFAULT \'older\', outcome TEXT NOT NULL, segments TEXT NOT NULL, messages TEXT NOT NULL, created_at INTEGER NOT NULL)').run();
+  await db.prepare('CREATE INDEX IF NOT EXISTS idx_stories_user ON stories(user_id, created_at)').run();
 }
 
 function jwtSecret(env) {
@@ -340,11 +348,60 @@ function json(data, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: cors() });
 }
 
+// ─── API: stories ─────────────────────────────────────────────────────────
+
+async function handleSaveStory(request, env) {
+  if (!env.DB) return json({ error: 'Database not configured.' }, 503);
+  const authUser = await authenticate(request, env);
+  if (!authUser) return json({ error: 'Unauthorized' }, 401);
+  let body;
+  try { body = await request.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
+  const { genre_name, genre_emoji, story_genre, age_group, outcome, segments, messages } = body;
+  if (!genre_name || !story_genre || !outcome || !segments || !messages) return json({ error: 'Missing required fields.' }, 400);
+  try { await ensureSchema(env.DB); } catch (err) { return json({ error: 'Schema error: ' + err.message }, 500); }
+  const id = crypto.randomUUID();
+  const now = Math.floor(Date.now() / 1000);
+  await env.DB.prepare(
+    'INSERT INTO stories (id,user_id,genre_name,genre_emoji,story_genre,age_group,outcome,segments,messages,created_at) VALUES (?,?,?,?,?,?,?,?,?,?)'
+  ).bind(id, authUser.id, genre_name, genre_emoji || '', story_genre, age_group || 'older', outcome, JSON.stringify(segments), JSON.stringify(messages), now).run();
+  return json({ ok: true, id });
+}
+
+async function handleListStories(request, env) {
+  if (!env.DB) return json({ error: 'Database not configured.' }, 503);
+  const authUser = await authenticate(request, env);
+  if (!authUser) return json({ error: 'Unauthorized' }, 401);
+  try { await ensureSchema(env.DB); } catch (err) { return json({ error: 'Schema error: ' + err.message }, 500); }
+  const rows = await env.DB.prepare(
+    'SELECT id,genre_name,genre_emoji,story_genre,age_group,outcome,created_at FROM stories WHERE user_id=? ORDER BY created_at DESC LIMIT 50'
+  ).bind(authUser.id).all();
+  return json({ stories: rows.results || [] });
+}
+
+async function handleGetStory(request, env, storyId) {
+  if (!env.DB) return json({ error: 'Database not configured.' }, 503);
+  if (!storyId) return json({ error: 'Story ID required.' }, 400);
+  const authUser = await authenticate(request, env);
+  if (!authUser) return json({ error: 'Unauthorized' }, 401);
+  const row = await env.DB.prepare('SELECT * FROM stories WHERE id=? AND user_id=?').bind(storyId, authUser.id).first();
+  if (!row) return json({ error: 'Story not found.' }, 404);
+  return json({ story: { ...row, segments: JSON.parse(row.segments), messages: JSON.parse(row.messages) } });
+}
+
+async function handleDeleteStory(request, env, storyId) {
+  if (!env.DB) return json({ error: 'Database not configured.' }, 503);
+  if (!storyId) return json({ error: 'Story ID required.' }, 400);
+  const authUser = await authenticate(request, env);
+  if (!authUser) return json({ error: 'Unauthorized' }, 401);
+  await env.DB.prepare('DELETE FROM stories WHERE id=? AND user_id=?').bind(storyId, authUser.id).run();
+  return json({ ok: true });
+}
+
 function cors() {
   return {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
   };
 }
