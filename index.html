@@ -2865,6 +2865,7 @@ function startStory() {
   document.body.style.background = BG.story;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
+  alert('screen-story now active');
   updateProgress(); hideInteraction();
   setChapter(''); setNarration(''); clearError();
   storyHistory.push({ role: 'user', content: buildUserContext(null, []) });
@@ -2877,6 +2878,7 @@ async function fetchNode(onError) {
   try { ({ parsed: result, raw } = await callClaude(storyHistory)); }
   catch(err) {
     setLoading(false);
+    alert('fetchNode error: ' + err.message);
     if (onError) { onError(); }
     else { showError('Oops! ' + err.message); }
     return;
