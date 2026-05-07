@@ -1892,18 +1892,21 @@ let storyPurposeCustom = '';
   }
 
   if (urlToken) {
-    console.log('[init] Found token in URL, calling loadUserProfile');
     history.replaceState({}, '', '/');
     authToken = urlToken;
     localStorage.setItem('branched_token', authToken);
+    alert('DEBUG: Token found in URL. Calling loadUserProfile. Token starts with: ' + urlToken.slice(0, 20));
     loadUserProfile(urlIsNew === 'true');
     return;
   }
 
   if (authToken) {
+    alert('DEBUG: No URL token, but found saved token. Calling loadUserProfile.');
     loadUserProfile(false);
     return;
   }
+
+  alert('DEBUG: No token found. Showing welcome screen.');
 
   showScreen('screen-welcome');
 })();
@@ -2013,25 +2016,25 @@ function loginWithGoogle() {
 
 async function loadUserProfile(isNew) {
   try {
-    console.log('[loadProfile] Fetching /api/profile with token');
     const resp = await fetch('/api/profile', {
       headers: { 'Authorization': 'Bearer ' + authToken },
     });
-    console.log('[loadProfile] Response status:', resp.status);
+    alert('DEBUG: /api/profile responded with status ' + resp.status);
     if (!resp.ok) {
-      console.log('[loadProfile] Auth failed, clearing token');
+      const errText = await resp.text();
+      alert('DEBUG: Auth failed. Body: ' + errText);
       localStorage.removeItem('branched_token');
       authToken = '';
       showScreen('screen-welcome');
       return;
     }
     const data = await resp.json();
-    console.log('[loadProfile] Got user data:', data.user?.email);
+    alert('DEBUG: Got user: ' + (data.user?.email || 'no email'));
     currentUser = data.user;
     applyUserProfile(currentUser);
     if (isNew) { showProfileScreen(); } else { showScreen('screen-type'); }
   } catch(err) {
-    console.log('[loadProfile] Error:', err.message);
+    alert('DEBUG: loadUserProfile threw: ' + err.message);
     showScreen('screen-welcome');
   }
 }
