@@ -996,6 +996,21 @@
     .settings-msg { font-size: .85rem; min-height: 18px; }
     .settings-msg.err { color: var(--coral); }
     .settings-msg.ok  { color: var(--moss); }
+    .settings-signout-btn {
+      background: transparent;
+      color: var(--coral);
+      border: 1.5px solid var(--coral);
+      border-radius: 12px;
+      padding: 14px;
+      font-family: var(--fbody);
+      font-weight: 700;
+      font-size: .95rem;
+      width: 100%;
+      cursor: pointer;
+      transition: background .15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .settings-signout-btn:active { background: rgba(212,96,74,.08); }
     #settings-custom-inp {
       display: none;
       width: 100%;
@@ -1658,6 +1673,10 @@
         <button class="settings-pw-btn" onclick="changePassword()">Update Password</button>
       </div>
 
+      <div class="settings-pw-section">
+        <button class="settings-signout-btn" onclick="signOut()">Sign Out</button>
+      </div>
+
     </div>
   </div>
 
@@ -2131,6 +2150,22 @@ function setSettingsMsg(msg, isErr) {
   if (!el) return;
   el.textContent = msg;
   el.className = 'settings-msg ' + (isErr ? 'err' : 'ok');
+}
+
+function signOut() {
+  cancelAudio();
+  authToken   = '';
+  currentUser = null;
+  currentStoryId = null;
+  savedStory  = null;
+  storyHistory = []; nodeCount = 0; choices = []; choiceLog = [];
+  initialStoryState = null;
+  localStorage.removeItem('branched_token');
+  setAuthMode('login');
+  document.getElementById('auth-email').value    = '';
+  document.getElementById('auth-password').value = '';
+  setAuthError('');
+  showScreen('screen-welcome');
 }
 
 // ── STORY LIBRARY ──
