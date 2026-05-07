@@ -2232,11 +2232,6 @@ async function showLibrary() {
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const oc = outcomeMap[s.outcome] || { label: s.outcome, cls: 'outcome-victory' };
       const isProgress = s.outcome === 'in_progress';
-      const btns = isProgress
-        ? '<button class="story-card-btn primary" onclick="resumeStoryById(\'' + s.id + '\')">▶ Continue</button>' +
-          '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">🔄 Start Over</button>'
-        : '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">📖 Read It</button>' +
-          '<button class="story-card-btn primary" onclick="replayStoryById(\'' + s.id + '\')">🔄 Play Again</button>';
       card.innerHTML =
         '<div class="story-card-top">' +
           '<span class="story-card-emoji">' + (s.genre_emoji || '📖') + '</span>' +
@@ -2246,7 +2241,31 @@ async function showLibrary() {
           '</div>' +
           '<span class="story-card-outcome ' + oc.cls + '">' + oc.label + '</span>' +
         '</div>' +
-        '<div class="story-card-btns">' + btns + '</div>';
+        '<div class="story-card-btns"></div>';
+      const btnsDiv = card.querySelector('.story-card-btns');
+      if (isProgress) {
+        const continueBtn = document.createElement('button');
+        continueBtn.className = 'story-card-btn primary';
+        continueBtn.textContent = '▶ Continue';
+        continueBtn.addEventListener('click', () => resumeStoryById(s.id));
+        const overBtn = document.createElement('button');
+        overBtn.className = 'story-card-btn';
+        overBtn.textContent = '🔄 Start Over';
+        overBtn.addEventListener('click', () => openStory(s.id));
+        btnsDiv.appendChild(continueBtn);
+        btnsDiv.appendChild(overBtn);
+      } else {
+        const readBtn = document.createElement('button');
+        readBtn.className = 'story-card-btn';
+        readBtn.textContent = '📖 Read It';
+        readBtn.addEventListener('click', () => openStory(s.id));
+        const againBtn = document.createElement('button');
+        againBtn.className = 'story-card-btn primary';
+        againBtn.textContent = '🔄 Play Again';
+        againBtn.addEventListener('click', () => replayStoryById(s.id));
+        btnsDiv.appendChild(readBtn);
+        btnsDiv.appendChild(againBtn);
+      }
       body.appendChild(card);
     });
   } catch(e) {
@@ -2290,12 +2309,21 @@ function renderReader(story) {
     if (seg.chapter)     html += '<div class="reader-chapter">' + seg.chapter + '</div>';
     if (seg.narration)   html += '<div class="reader-narration">' + seg.narration + '</div>';
     if (seg.choice_made) html += '<div class="reader-choice-made">You chose: "' + seg.choice_made + '"</div>';
-    if (isLast && isProgress) {
-      html += '<button class="reader-branch-btn" style="background:var(--bark);color:white;border-color:transparent" onclick="resumeStory(savedStory)">▶ Continue this story</button>';
-    } else if (!isLast) {
-      html += '<button class="reader-branch-btn" onclick="branchFrom(' + idx + ')">🌿 Make different choices from here</button>';
-    }
     div.innerHTML = html;
+    if (isLast && isProgress) {
+      const btn = document.createElement('button');
+      btn.className = 'reader-branch-btn';
+      btn.style.cssText = 'background:var(--bark);color:white;border-color:transparent';
+      btn.textContent = '▶ Continue this story';
+      btn.addEventListener('click', () => resumeStory(savedStory));
+      div.appendChild(btn);
+    } else if (!isLast) {
+      const btn = document.createElement('button');
+      btn.className = 'reader-branch-btn';
+      btn.textContent = '🌿 Make different choices from here';
+      btn.addEventListener('click', () => branchFrom(idx));
+      div.appendChild(btn);
+    }
     body.appendChild(div);
   });
   const oc = outcomeMap[outcome] || { emoji: '📖', label: outcome, cls: 'outcome-victory' };
@@ -2306,7 +2334,7 @@ function renderReader(story) {
   const playBtn = document.createElement('button');
   playBtn.className = 'reader-play-again';
   playBtn.textContent = '🔄 Play This Genre Again';
-  playBtn.onclick = () => replayStory(story);
+  playBtn.addEventListener('click', () => replayStory(story));
   body.appendChild(playBtn);
 }
 
