@@ -1885,7 +1885,12 @@ let storyPurposeCustom = '';
   const urlToken  = hashParams.get('token')  || queryParams.get('token');
   const urlIsNew  = hashParams.get('isNew')  || queryParams.get('isNew');
   const urlError  = hashParams.get('auth_error') || queryParams.get('auth_error');
-  dbg('INIT token=' + (urlToken ? urlToken.slice(0,15)+'…' : 'none') + ' error=' + (urlError||'none'));
+  // Check for token written by OAuth localStorage bridge
+  const lsIsNew   = localStorage.getItem('branched_isNew');
+  if (lsIsNew !== null) localStorage.removeItem('branched_isNew');
+  const isNewFlag  = urlIsNew === 'true' || lsIsNew === 'true';
+
+  dbg('INIT token=' + (urlToken ? urlToken.slice(0,15)+'…' : (authToken ? 'ls:'+authToken.slice(0,10)+'…' : 'none')) + ' error=' + (urlError||'none'));
 
   if (urlError) {
     history.replaceState({}, '', '/');
@@ -1898,14 +1903,14 @@ let storyPurposeCustom = '';
     history.replaceState({}, '', '/');
     authToken = urlToken;
     localStorage.setItem('branched_token', authToken);
-    dbg('Token saved. Calling loadUserProfile...');
-    loadUserProfile(urlIsNew === 'true');
+    dbg('URL token saved. Calling loadUserProfile...');
+    loadUserProfile(isNewFlag);
     return;
   }
 
   if (authToken) {
-    dbg('Saved token found. Calling loadUserProfile...');
-    loadUserProfile(false);
+    dbg('Saved token found (ls). Calling loadUserProfile isNew=' + isNewFlag);
+    loadUserProfile(isNewFlag);
     return;
   }
 

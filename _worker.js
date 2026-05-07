@@ -228,8 +228,13 @@ async function handleGoogleCallback(request, env) {
 
     console.log('[oauth] Signing JWT for user:', user?.id);
     const token = await signJWT({ sub: user.id, email: user.email }, jwtSecret(env));
-    console.log('[oauth] Redirecting with token');
-    return Response.redirect(`${origin}/#token=${encodeURIComponent(token)}&isNew=${isNew}`, 302);
+    console.log('[oauth] Delivering token via localStorage bridge page');
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title>
+<script>
+try { localStorage.setItem('branched_token', ${JSON.stringify(token)}); localStorage.setItem('branched_isNew', ${JSON.stringify(String(isNew))}); } catch(e) {}
+window.location.replace('/');
+</script></head><body>Signing in…</body></html>`;
+    return new Response(html, { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' } });
   } catch (err) {
     return Response.redirect(`${origin}/?auth_error=${encodeURIComponent(err.message)}`, 302);
   }
