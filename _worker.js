@@ -229,7 +229,7 @@ async function handleGoogleCallback(request, env) {
     console.log('[oauth] Signing JWT for user:', user?.id);
     const token = await signJWT({ sub: user.id, email: user.email }, jwtSecret(env));
     console.log('[oauth] Redirecting with token');
-    return Response.redirect(`${origin}/?token=${encodeURIComponent(token)}&isNew=${isNew}`, 302);
+    return Response.redirect(`${origin}/#token=${encodeURIComponent(token)}&isNew=${isNew}`, 302);
   } catch (err) {
     return Response.redirect(`${origin}/?auth_error=${encodeURIComponent(err.message)}`, 302);
   }

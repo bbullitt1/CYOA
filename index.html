@@ -1879,11 +1879,12 @@ let storyPurposeCustom = '';
   showDbgLog(); // show logs from previous page load (survives navigation)
   localStorage.removeItem('_dbg_log'); // clear so next load is fresh
 
-  // Handle Google OAuth callback params in URL
-  const urlParams = new URLSearchParams(window.location.search);
-  const urlToken  = urlParams.get('token');
-  const urlIsNew  = urlParams.get('isNew');
-  const urlError  = urlParams.get('auth_error');
+  // Handle Google OAuth callback params — token is in hash to survive domain redirects
+  const hashParams  = new URLSearchParams(window.location.hash.slice(1));
+  const queryParams = new URLSearchParams(window.location.search);
+  const urlToken  = hashParams.get('token')  || queryParams.get('token');
+  const urlIsNew  = hashParams.get('isNew')  || queryParams.get('isNew');
+  const urlError  = hashParams.get('auth_error') || queryParams.get('auth_error');
   dbg('INIT token=' + (urlToken ? urlToken.slice(0,15)+'…' : 'none') + ' error=' + (urlError||'none'));
 
   if (urlError) {
