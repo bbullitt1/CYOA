@@ -6,6 +6,8 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
+    console.log(`[router] ${request.method} ${path}`);
+
     if (request.method === 'OPTIONS') return new Response('', { status: 200, headers: cors() });
 
     if (request.method === 'POST') {
