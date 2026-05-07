@@ -174,28 +174,29 @@ async function handleGoogleAuth(request, env) {
 }
 
 async function handleGoogleCallback(request, env) {
-  const url = new URL(request.url);
-  const code = url.searchParams.get('code');
-  if (!code) return Response.redirect('/?auth_error=google_cancelled', 302);
+  const url    = new URL(request.url);
+  const origin = url.origin;
+  const code   = url.searchParams.get('code');
+  if (!code) return Response.redirect(origin + '/?auth_error=google_cancelled', 302);
 
   const clientId     = env.GOOGLE_CLIENT_ID;
   const clientSecret = env.GOOGLE_CLIENT_SECRET;
-  if (!clientId || !clientSecret) return Response.redirect('/?auth_error=google_not_configured', 302);
+  if (!clientId || !clientSecret) return Response.redirect(origin + '/?auth_error=google_not_configured', 302);
 
   try {
     const tokenResp = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: `${url.origin}/auth/google/callback`, grant_type: 'authorization_code' }),
+      body: new URLSearchParams({ code, client_id: clientId, client_secret: clientSecret, redirect_uri: `${origin}/auth/google/callback`, grant_type: 'authorization_code' }),
     });
     const tokenData = await tokenResp.json();
-    if (!tokenData.access_token) return Response.redirect('/?auth_error=google_token', 302);
+    if (!tokenData.access_token) return Response.redirect(origin + '/?auth_error=google_token', 302);
 
     const userResp = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
       headers: { Authorization: `Bearer ${tokenData.access_token}` },
     });
     const gUser = await userResp.json();
-    if (!gUser.email) return Response.redirect('/?auth_error=google_userinfo', 302);
+    if (!gUser.email) return Response.redirect(origin + '/?auth_error=google_userinfo', 302);
 
     await ensureSchema(env.DB);
     const now = Math.floor(Date.now() / 1000);
@@ -216,9 +217,9 @@ async function handleGoogleCallback(request, env) {
     }
 
     const token = await signJWT({ sub: user.id, email: user.email }, jwtSecret(env));
-    return Response.redirect(`/?token=${encodeURIComponent(token)}&isNew=${isNew}`, 302);
+    return Response.redirect(`${origin}/?token=${encodeURIComponent(token)}&isNew=${isNew}`, 302);
   } catch (err) {
-    return Response.redirect(`/?auth_error=${encodeURIComponent(err.message)}`, 302);
+    return Response.redirect(`${origin}/?auth_error=${encodeURIComponent(err.message)}`, 302);
   }
 }
 
