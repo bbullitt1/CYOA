@@ -2247,22 +2247,22 @@ async function showLibrary() {
         const continueBtn = document.createElement('button');
         continueBtn.className = 'story-card-btn primary';
         continueBtn.textContent = '▶ Continue';
-        continueBtn.onclick = () => resumeStoryById(s.id);
+        continueBtn.onclick = () => { alert('Continue tapped, id=' + s.id); resumeStoryById(s.id); };
         const overBtn = document.createElement('button');
         overBtn.className = 'story-card-btn';
         overBtn.textContent = '🔄 Start Over';
-        overBtn.onclick = () => openStory(s.id);
+        overBtn.onclick = () => { alert('Start Over tapped, id=' + s.id); openStory(s.id); };
         btnsDiv.appendChild(continueBtn);
         btnsDiv.appendChild(overBtn);
       } else {
         const readBtn = document.createElement('button');
         readBtn.className = 'story-card-btn';
         readBtn.textContent = '📖 Read It';
-        readBtn.onclick = () => openStory(s.id);
+        readBtn.onclick = () => { alert('Read It tapped, id=' + s.id); openStory(s.id); };
         const againBtn = document.createElement('button');
         againBtn.className = 'story-card-btn primary';
         againBtn.textContent = '🔄 Play Again';
-        againBtn.onclick = () => replayStoryById(s.id);
+        againBtn.onclick = () => { alert('Play Again tapped, id=' + s.id); replayStoryById(s.id); };
         btnsDiv.appendChild(readBtn);
         btnsDiv.appendChild(againBtn);
       }
@@ -2274,6 +2274,7 @@ async function showLibrary() {
 }
 
 async function openStory(storyId) {
+  alert('openStory called, id=' + storyId);
   showScreen('screen-reader');
   const body = document.getElementById('reader-body');
   body.innerHTML = '<div class="library-empty">Loading…</div>';
@@ -2444,6 +2445,7 @@ function resumeStory(story) {
 }
 
 async function resumeStoryById(storyId) {
+  alert('resumeStoryById called, id=' + storyId);
   try {
     const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
     const data = await resp.json();
@@ -2819,6 +2821,7 @@ function toggleMore() {
 }
 
 function pickType(type) {
+  alert('pickType: ' + type.n);
   unlockAudio();
   genreName = type.n; genreEmoji = type.e;
   storyTheme = type.t; storyGenre = type.gn || type.n;
