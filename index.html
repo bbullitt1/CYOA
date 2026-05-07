@@ -1876,12 +1876,15 @@ let storyPurposeCustom = '';
   document.getElementById('auth-password').addEventListener('keydown', e => { if (e.key==='Enter') { if (authMode === 'register') document.getElementById('auth-repeat').focus(); else submitAuth(); } });
   document.getElementById('auth-repeat').addEventListener('keydown', e => { if (e.key==='Enter') submitAuth(); });
 
+  showDbgLog(); // show logs from previous page load (survives navigation)
+  localStorage.removeItem('_dbg_log'); // clear so next load is fresh
+
   // Handle Google OAuth callback params in URL
   const urlParams = new URLSearchParams(window.location.search);
   const urlToken  = urlParams.get('token');
   const urlIsNew  = urlParams.get('isNew');
   const urlError  = urlParams.get('auth_error');
-  dbg('token=' + (urlToken ? urlToken.slice(0,15)+'…' : 'none') + ' error=' + (urlError||'none'));
+  dbg('INIT token=' + (urlToken ? urlToken.slice(0,15)+'…' : 'none') + ' error=' + (urlError||'none'));
 
   if (urlError) {
     history.replaceState({}, '', '/');
@@ -1911,6 +1914,15 @@ let storyPurposeCustom = '';
 
 function dbg(msg) {
   console.log('[dbg]', msg);
+  const ts = new Date().toISOString().slice(11,19);
+  const entry = ts + ' ' + msg;
+  // Persist to localStorage so we can see logs across page navigations
+  try {
+    const prev = JSON.parse(localStorage.getItem('_dbg_log') || '[]');
+    prev.push(entry);
+    if (prev.length > 30) prev.splice(0, prev.length - 30);
+    localStorage.setItem('_dbg_log', JSON.stringify(prev));
+  } catch(e) {}
   let panel = document.getElementById('_dbg');
   if (!panel) {
     panel = document.createElement('div');
@@ -1919,10 +1931,26 @@ function dbg(msg) {
     document.body.appendChild(panel);
   }
   const line = document.createElement('div');
-  line.textContent = new Date().toISOString().slice(11,19) + ' ' + msg;
+  line.textContent = entry;
   panel.appendChild(line);
   panel.scrollTop = panel.scrollHeight;
 }
+
+function showDbgLog() {
+  try {
+    const logs = JSON.parse(localStorage.getItem('_dbg_log') || '[]');
+    if (logs.length) logs.forEach(m => dbg('(prev) ' + m));
+  } catch(e) {}
+}
+
+// Re-init if browser restores page from bfcache (iOS/mobile)
+window.addEventListener('pageshow', function(e) {
+  if (e.persisted) {
+    dbg('bfcache restore detected — reinitialising');
+    localStorage.removeItem('_dbg_log');
+    window.location.reload();
+  }
+});
 
 function buildLeaves() {
   const c = document.getElementById('leaf-particles');
