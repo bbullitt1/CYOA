@@ -1881,8 +1881,10 @@ let storyPurposeCustom = '';
   const urlToken  = urlParams.get('token');
   const urlIsNew  = urlParams.get('isNew');
   const urlError  = urlParams.get('auth_error');
+  console.log('[init] URL token:', urlToken ? 'found' : 'not found', 'error:', urlError);
 
   if (urlError) {
+    console.log('[init] Auth error:', urlError);
     history.replaceState({}, '', '/');
     setAuthError('Google sign-in failed. Please try again.');
     showScreen('screen-welcome');
@@ -1890,6 +1892,7 @@ let storyPurposeCustom = '';
   }
 
   if (urlToken) {
+    console.log('[init] Found token in URL, calling loadUserProfile');
     history.replaceState({}, '', '/');
     authToken = urlToken;
     localStorage.setItem('branched_token', authToken);
@@ -2010,20 +2013,25 @@ function loginWithGoogle() {
 
 async function loadUserProfile(isNew) {
   try {
+    console.log('[loadProfile] Fetching /api/profile with token');
     const resp = await fetch('/api/profile', {
       headers: { 'Authorization': 'Bearer ' + authToken },
     });
+    console.log('[loadProfile] Response status:', resp.status);
     if (!resp.ok) {
+      console.log('[loadProfile] Auth failed, clearing token');
       localStorage.removeItem('branched_token');
       authToken = '';
       showScreen('screen-welcome');
       return;
     }
     const data = await resp.json();
+    console.log('[loadProfile] Got user data:', data.user?.email);
     currentUser = data.user;
     applyUserProfile(currentUser);
     if (isNew) { showProfileScreen(); } else { showScreen('screen-type'); }
   } catch(err) {
+    console.log('[loadProfile] Error:', err.message);
     showScreen('screen-welcome');
   }
 }
