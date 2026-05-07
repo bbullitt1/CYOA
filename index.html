@@ -2234,7 +2234,7 @@ async function showLibrary() {
       const isProgress = s.outcome === 'in_progress';
       const btns = isProgress
         ? '<button class="story-card-btn primary" onclick="resumeStoryById(\'' + s.id + '\')">▶ Continue</button>' +
-          '<button class="story-card-btn" onclick="replayStoryById(\'' + s.id + '\')">🔄 Start Over</button>'
+          '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">🔄 Start Over</button>'
         : '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">📖 Read It</button>' +
           '<button class="story-card-btn primary" onclick="replayStoryById(\'' + s.id + '\')">🔄 Play Again</button>';
       card.innerHTML =
