@@ -1799,16 +1799,7 @@
 
 </div><!-- #app -->
 
-<div id="dbg" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,.85);color:#0f0;font:11px monospace;padding:6px 8px;z-index:99999;max-height:120px;overflow-y:auto;display:none"></div>
-
 <script>
-function dbg(msg) {
-  const el = document.getElementById('dbg');
-  el.style.display = 'block';
-  el.innerHTML += '<div>' + msg + '</div>';
-  el.scrollTop = el.scrollHeight;
-}
-window.onerror = function(msg, src, line) { dbg('JS ERROR: ' + msg + ' @' + line); return false; };
 const MAIN_TYPES = [
   { e:'🧙‍♂️', n:'Magic & Dragons',   sub:'Fantasy Quest',    ac:'#e8a838', bg:'linear-gradient(145deg,#1a1035,#3b1a7a)', t:'dragons, enchanted castles, and brave heroes on a magical quest', gn:'Fantasy Quest' },
   { e:'🚀',   n:'Space Explorer',    sub:'Sci-Fi Adventure',  ac:'#60a5fa', bg:'linear-gradient(145deg,#0c1445,#1e3a8a)', t:'rockets, alien worlds, and daring missions on distant planets',   gn:'Space Adventure' },
@@ -1874,6 +1865,16 @@ let currentUser   = null;
 let authMode      = 'register';
 let storyPurpose  = 'entertainment';
 let storyPurposeCustom = '';
+
+// ── AUDIO — iOS-safe ──
+let audioEl     = null;
+let audioCtx    = null;
+let voicesReady = false;
+let pendingSpeak = null;
+let speakToken         = 0;
+let ttsAbortController = null;
+const ttsCache = new Map();
+const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
 (function boot() {
   buildLeaves();
@@ -2255,22 +2256,22 @@ async function showLibrary() {
         const continueBtn = document.createElement('button');
         continueBtn.className = 'story-card-btn primary';
         continueBtn.textContent = '▶ Continue';
-        continueBtn.onclick = () => { dbg('Continue id=' + s.id); resumeStoryById(s.id); };
+        continueBtn.onclick = () => resumeStoryById(s.id);
         const overBtn = document.createElement('button');
         overBtn.className = 'story-card-btn';
         overBtn.textContent = '🔄 Start Over';
-        overBtn.onclick = () => { dbg('StartOver id=' + s.id); openStory(s.id); };
+        overBtn.onclick = () => openStory(s.id);
         btnsDiv.appendChild(continueBtn);
         btnsDiv.appendChild(overBtn);
       } else {
         const readBtn = document.createElement('button');
         readBtn.className = 'story-card-btn';
         readBtn.textContent = '📖 Read It';
-        readBtn.onclick = () => { dbg('ReadIt id=' + s.id); openStory(s.id); };
+        readBtn.onclick = () => openStory(s.id);
         const againBtn = document.createElement('button');
         againBtn.className = 'story-card-btn primary';
         againBtn.textContent = '🔄 Play Again';
-        againBtn.onclick = () => { dbg('PlayAgain id=' + s.id); replayStoryById(s.id); };
+        againBtn.onclick = () => replayStoryById(s.id);
         btnsDiv.appendChild(readBtn);
         btnsDiv.appendChild(againBtn);
       }
@@ -2282,7 +2283,6 @@ async function showLibrary() {
 }
 
 async function openStory(storyId) {
-  dbg('openStory id=' + storyId);
   showScreen('screen-reader');
   const body = document.getElementById('reader-body');
   body.innerHTML = '<div class="library-empty">Loading…</div>';
@@ -2453,24 +2453,12 @@ function resumeStory(story) {
 }
 
 async function resumeStoryById(storyId) {
-  dbg('resumeStoryById id=' + storyId);
   try {
     const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
     const data = await resp.json();
     if (data.story) resumeStory(data.story);
   } catch(e) {}
 }
-
-// ── AUDIO — iOS-safe ──
-let audioEl     = null;
-let audioCtx    = null;
-let voicesReady = false;
-let pendingSpeak = null;
-let speakToken         = 0;
-let ttsAbortController = null;
-const ttsCache = new Map(); // keyed by "voice|text", stores base64 audio
-
-const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
 function getAudioEl() {
   if (!audioEl) audioEl = new Audio();
@@ -2829,18 +2817,11 @@ function toggleMore() {
 }
 
 function pickType(type) {
-  dbg('pickType: ' + type.n);
-  try {
-    unlockAudio();
-    dbg('unlockAudio done');
-    genreName = type.n; genreEmoji = type.e;
-    storyTheme = type.t; storyGenre = type.gn || type.n;
-    const badge = document.getElementById('genre-badge');
-    dbg('badge el: ' + (badge ? 'found' : 'NULL'));
-    if (badge) badge.textContent = type.e + ' ' + type.n;
-    dbg('calling startStory');
-    startStory();
-  } catch(e) { dbg('pickType ERR: ' + e.message); }
+  unlockAudio();
+  genreName = type.n; genreEmoji = type.e;
+  storyTheme = type.t; storyGenre = type.gn || type.n;
+  document.getElementById('genre-badge').textContent = type.e + ' ' + type.n;
+  startStory();
 }
 
 function startCustom() {
@@ -2874,13 +2855,11 @@ function restartSameGenre() {
 
 // ── STORY FLOW ──
 function startStory() {
-  dbg('startStory called');
   storyHistory = []; nodeCount = 0; choices = []; choiceLog = [];
   initialStoryState = null; currentStoryId = null;
   document.body.style.background = BG.story;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
-  dbg('screen-story active, calling fetchNode');
   updateProgress(); hideInteraction();
   setChapter(''); setNarration(''); clearError();
   storyHistory.push({ role: 'user', content: buildUserContext(null, []) });
@@ -2888,13 +2867,11 @@ function startStory() {
 }
 
 async function fetchNode(onError) {
-  dbg('fetchNode start');
   setLoading(true); setNarration(''); setChapter(''); hideInteraction(); clearError();
   let result, raw;
   try { ({ parsed: result, raw } = await callClaude(storyHistory)); }
   catch(err) {
     setLoading(false);
-    dbg('fetchNode ERR: ' + err.message);
     if (onError) { onError(); }
     else { showError('Oops! ' + err.message); }
     return;
