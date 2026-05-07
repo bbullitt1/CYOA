@@ -1876,21 +1876,15 @@ let storyPurposeCustom = '';
   document.getElementById('auth-password').addEventListener('keydown', e => { if (e.key==='Enter') { if (authMode === 'register') document.getElementById('auth-repeat').focus(); else submitAuth(); } });
   document.getElementById('auth-repeat').addEventListener('keydown', e => { if (e.key==='Enter') submitAuth(); });
 
-  showDbgLog(); // show logs from previous page load (survives navigation)
-  localStorage.removeItem('_dbg_log'); // clear so next load is fresh
-
-  // Handle Google OAuth callback params — token is in hash to survive domain redirects
+  // Handle Google OAuth — token written to localStorage by bridge page
   const hashParams  = new URLSearchParams(window.location.hash.slice(1));
   const queryParams = new URLSearchParams(window.location.search);
   const urlToken  = hashParams.get('token')  || queryParams.get('token');
   const urlIsNew  = hashParams.get('isNew')  || queryParams.get('isNew');
   const urlError  = hashParams.get('auth_error') || queryParams.get('auth_error');
-  // Check for token written by OAuth localStorage bridge
   const lsIsNew   = localStorage.getItem('branched_isNew');
   if (lsIsNew !== null) localStorage.removeItem('branched_isNew');
   const isNewFlag  = urlIsNew === 'true' || lsIsNew === 'true';
-
-  dbg('INIT token=' + (urlToken ? urlToken.slice(0,15)+'…' : (authToken ? 'ls:'+authToken.slice(0,10)+'…' : 'none')) + ' error=' + (urlError||'none'));
 
   if (urlError) {
     history.replaceState({}, '', '/');
@@ -1903,60 +1897,23 @@ let storyPurposeCustom = '';
     history.replaceState({}, '', '/');
     authToken = urlToken;
     localStorage.setItem('branched_token', authToken);
-    dbg('URL token saved. Calling loadUserProfile...');
     loadUserProfile(isNewFlag);
     return;
   }
 
   if (authToken) {
-    dbg('Saved token found (ls). Calling loadUserProfile isNew=' + isNewFlag);
     loadUserProfile(isNewFlag);
     return;
   }
 
-  dbg('No token. Showing welcome screen.');
   showScreen('screen-welcome');
 })();
 
-function dbg(msg) {
-  console.log('[dbg]', msg);
-  const ts = new Date().toISOString().slice(11,19);
-  const entry = ts + ' ' + msg;
-  // Persist to localStorage so we can see logs across page navigations
-  try {
-    const prev = JSON.parse(localStorage.getItem('_dbg_log') || '[]');
-    prev.push(entry);
-    if (prev.length > 30) prev.splice(0, prev.length - 30);
-    localStorage.setItem('_dbg_log', JSON.stringify(prev));
-  } catch(e) {}
-  let panel = document.getElementById('_dbg');
-  if (!panel) {
-    panel = document.createElement('div');
-    panel.id = '_dbg';
-    panel.style.cssText = 'position:fixed;bottom:0;left:0;right:0;z-index:99999;background:rgba(0,0,0,0.85);color:#0f0;font:11px monospace;padding:6px 8px;max-height:40vh;overflow-y:auto;pointer-events:none';
-    document.body.appendChild(panel);
-  }
-  const line = document.createElement('div');
-  line.textContent = entry;
-  panel.appendChild(line);
-  panel.scrollTop = panel.scrollHeight;
-}
-
-function showDbgLog() {
-  try {
-    const logs = JSON.parse(localStorage.getItem('_dbg_log') || '[]');
-    if (logs.length) logs.forEach(m => dbg('(prev) ' + m));
-  } catch(e) {}
-}
-
 // Re-init if browser restores page from bfcache (iOS/mobile)
 window.addEventListener('pageshow', function(e) {
-  if (e.persisted) {
-    dbg('bfcache restore detected — reinitialising');
-    localStorage.removeItem('_dbg_log');
-    window.location.reload();
-  }
+  if (e.persisted) window.location.reload();
 });
+
 
 function buildLeaves() {
   const c = document.getElementById('leaf-particles');
@@ -2063,28 +2020,20 @@ function loginWithGoogle() {
 
 async function loadUserProfile(isNew) {
   try {
-    dbg('Fetching /api/profile...');
     const resp = await fetch('/api/profile', {
       headers: { 'Authorization': 'Bearer ' + authToken },
     });
-    dbg('/api/profile status: ' + resp.status + ' type: ' + resp.headers.get('content-type'));
     if (!resp.ok) {
-      const errText = await resp.text();
-      dbg('Auth failed: ' + errText.slice(0, 100));
       localStorage.removeItem('branched_token');
       authToken = '';
       showScreen('screen-welcome');
       return;
     }
-    const text = await resp.text();
-    dbg('Response body (first 80): ' + text.slice(0, 80));
-    const data = JSON.parse(text);
-    dbg('User: ' + (data.user?.email || 'no email'));
+    const data = await resp.json();
     currentUser = data.user;
     applyUserProfile(currentUser);
     if (isNew) { showProfileScreen(); } else { showScreen('screen-type'); }
   } catch(err) {
-    dbg('ERROR: ' + err.message);
     showScreen('screen-welcome');
   }
 }

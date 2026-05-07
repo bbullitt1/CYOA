@@ -6,8 +6,6 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    console.log(`[router] ${request.method} ${path}`);
-
     if (request.method === 'OPTIONS') return new Response('', { status: 200, headers: cors() });
 
     if (request.method === 'POST') {
@@ -203,32 +201,22 @@ async function handleGoogleCallback(request, env) {
     await ensureSchema(env.DB);
     const now = Math.floor(Date.now() / 1000);
 
-    console.log('[oauth] Google email:', gUser.email.toLowerCase());
     let user = await env.DB.prepare('SELECT * FROM users WHERE sso_provider=? AND sso_id=?').bind('google', gUser.id).first();
-    console.log('[oauth] Lookup by SSO:', user ? 'found' : 'not found');
     if (!user) user = await env.DB.prepare('SELECT * FROM users WHERE email=?').bind(gUser.email.toLowerCase()).first();
-    console.log('[oauth] Lookup by email:', user ? 'found' : 'not found', user?.email);
 
     let isNew = false;
     if (!user) {
       isNew = true;
       const id = crypto.randomUUID();
-      console.log('[oauth] Creating new user:', id);
       await env.DB.prepare(
         'INSERT INTO users (id,email,sso_provider,sso_id,age_group,story_purpose,story_purpose_custom,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?)'
       ).bind(id, gUser.email.toLowerCase(), 'google', gUser.id, 'older', 'entertainment', '', now, now).run();
       user = await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(id).first();
-      console.log('[oauth] New user created and fetched:', user?.id);
     } else if (!user.sso_id) {
-      console.log('[oauth] Linking existing user:', user.id);
       await env.DB.prepare('UPDATE users SET sso_provider=?,sso_id=?,updated_at=? WHERE id=?').bind('google', gUser.id, now, user.id).run();
-    } else {
-      console.log('[oauth] User already has SSO linked:', user.id);
     }
 
-    console.log('[oauth] Signing JWT for user:', user?.id);
     const token = await signJWT({ sub: user.id, email: user.email }, jwtSecret(env));
-    console.log('[oauth] Delivering token via localStorage bridge page');
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>Signing in…</title>
 <script>
 try { localStorage.setItem('branched_token', ${JSON.stringify(token)}); localStorage.setItem('branched_isNew', ${JSON.stringify(String(isNew))}); } catch(e) {}
@@ -263,16 +251,9 @@ async function handleChangePassword(request, env) {
 // ─── API: profile ──────────────────────────────────────────────────────────
 
 async function handleGetProfile(request, env) {
-  console.log('[profile] GET /api/profile');
   const user = await authenticate(request, env);
-  if (!user) {
-    console.log('[profile] Auth failed, returning 401');
-    return json({ error: 'Unauthorized' }, 401);
-  }
-  console.log('[profile] Auth success, user:', user.email);
-  const picked = pick(user);
-  console.log('[profile] Picked user:', picked);
-  return json({ user: picked });
+  if (!user) return json({ error: 'Unauthorized' }, 401);
+  return json({ user: pick(user) });
 }
 
 async function handleUpdateProfile(request, env) {
@@ -295,24 +276,12 @@ async function handleUpdateProfile(request, env) {
 
 async function authenticate(request, env) {
   const auth = request.headers.get('Authorization') || '';
-  if (!auth.startsWith('Bearer ')) {
-    console.log('[auth] No Bearer token');
-    return null;
-  }
+  if (!auth.startsWith('Bearer ')) return null;
   try {
     const payload = await verifyJWT(auth.slice(7), jwtSecret(env));
-    console.log('[auth] JWT verified, sub:', payload.sub);
-    if (!env.DB) {
-      console.log('[auth] No DB, returning payload');
-      return payload;
-    }
-    const user = await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(payload.sub).first();
-    console.log('[auth] User lookup result:', user ? 'found' : 'not found', user?.email);
-    return user;
-  } catch (err) {
-    console.log('[auth] Error:', err.message);
-    return null;
-  }
+    if (!env.DB) return payload;
+    return await env.DB.prepare('SELECT * FROM users WHERE id=?').bind(payload.sub).first();
+  } catch { return null; }
 }
 
 function pick(u) {
