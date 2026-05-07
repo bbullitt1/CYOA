@@ -1909,9 +1909,12 @@ let storyPurposeCustom = '';
   showScreen('screen-welcome');
 })();
 
-// Re-init if browser restores page from bfcache (iOS/mobile)
+// Re-check auth when browser restores page from bfcache (iOS/mobile)
 window.addEventListener('pageshow', function(e) {
-  if (e.persisted) window.location.reload();
+  if (e.persisted && !authToken) {
+    authToken = localStorage.getItem('branched_token') || '';
+    if (authToken) loadUserProfile(false);
+  }
 });
 
 
