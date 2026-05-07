@@ -356,9 +356,19 @@ async function handleSaveStory(request, env) {
   if (!authUser) return json({ error: 'Unauthorized' }, 401);
   let body;
   try { body = await request.json(); } catch { return json({ error: 'Bad JSON' }, 400); }
-  const { genre_name, genre_emoji, story_genre, age_group, outcome, segments, messages } = body;
+  const { id: existingId, genre_name, genre_emoji, story_genre, age_group, outcome, segments, messages } = body;
   if (!genre_name || !story_genre || !outcome || !segments || !messages) return json({ error: 'Missing required fields.' }, 400);
   try { await ensureSchema(env.DB); } catch (err) { return json({ error: 'Schema error: ' + err.message }, 500); }
+
+  if (existingId) {
+    const existing = await env.DB.prepare('SELECT id FROM stories WHERE id=? AND user_id=?').bind(existingId, authUser.id).first();
+    if (!existing) return json({ error: 'Story not found.' }, 404);
+    await env.DB.prepare(
+      'UPDATE stories SET genre_name=?,genre_emoji=?,story_genre=?,age_group=?,outcome=?,segments=?,messages=? WHERE id=?'
+    ).bind(genre_name, genre_emoji || '', story_genre, age_group || 'older', outcome, JSON.stringify(segments), JSON.stringify(messages), existingId).run();
+    return json({ ok: true, id: existingId });
+  }
+
   const id = crypto.randomUUID();
   const now = Math.floor(Date.now() / 1000);
   await env.DB.prepare(

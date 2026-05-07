@@ -1306,9 +1306,10 @@
       flex-shrink: 0;
       white-space: nowrap;
     }
-    .outcome-victory { background: rgba(91,160,90,.15); color: #3a7a39; }
-    .outcome-failure { background: rgba(212,96,74,.12); color: #a04030; }
-    .outcome-lesson  { background: rgba(100,80,200,.1);  color: #5040a0; }
+    .outcome-victory  { background: rgba(91,160,90,.15);   color: #3a7a39; }
+    .outcome-failure  { background: rgba(212,96,74,.12);  color: #a04030; }
+    .outcome-lesson   { background: rgba(100,80,200,.1);  color: #5040a0; }
+    .outcome-progress { background: rgba(232,168,56,.15); color: #a07010; }
     .story-card-btns { display: flex; gap: 8px; }
     .story-card-btn {
       flex: 1;
@@ -2134,7 +2135,7 @@ function setSettingsMsg(msg, isErr) {
 
 // ── STORY LIBRARY ──
 
-async function saveStory(outcome, finalNarration, finalChapter) {
+async function persistStory(outcome, narration, chapter, currentChoices) {
   if (!authToken) return;
   try {
     const segments = choiceLog.map(entry => ({
@@ -2144,11 +2145,13 @@ async function saveStory(outcome, finalNarration, finalChapter) {
       choice_made: entry.choiceText,
       node:        entry.stepNum,
     }));
-    segments.push({ chapter: finalChapter || '', narration: finalNarration || '', choices: [], choice_made: null, node: nodeCount });
+    segments.push({ chapter: chapter || '', narration: narration || '', choices: currentChoices || [], choice_made: null, node: nodeCount });
+    const payload = { genre_name: genreName || storyGenre, genre_emoji: genreEmoji, story_genre: storyGenre, age_group: ageGroup, outcome, segments, messages: storyHistory };
+    if (currentStoryId) payload.id = currentStoryId;
     const resp = await fetch('/api/stories', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'Authorization': 'Bearer ' + authToken },
-      body: JSON.stringify({ genre_name: genreName || storyGenre, genre_emoji: genreEmoji, story_genre: storyGenre, age_group: ageGroup, outcome, segments, messages: storyHistory }),
+      body: JSON.stringify(payload),
     });
     const data = await resp.json().catch(() => ({}));
     if (data.id) currentStoryId = data.id;
@@ -2169,9 +2172,10 @@ async function showLibrary() {
     }
     body.innerHTML = '';
     const outcomeMap = {
-      victory: { label: '🏆 Victory',  cls: 'outcome-victory' },
-      failure: { label: '😬 Oops!',    cls: 'outcome-failure' },
-      lesson:  { label: '⚖️ Lesson',   cls: 'outcome-lesson'  },
+      victory:     { label: '🏆 Victory',     cls: 'outcome-victory'  },
+      failure:     { label: '😬 Oops!',       cls: 'outcome-failure'  },
+      lesson:      { label: '⚖️ Lesson',      cls: 'outcome-lesson'   },
+      in_progress: { label: '📖 In Progress', cls: 'outcome-progress' },
     };
     data.stories.forEach(s => {
       const card = document.createElement('div');
@@ -2179,6 +2183,12 @@ async function showLibrary() {
       const date = new Date(s.created_at * 1000);
       const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
       const oc = outcomeMap[s.outcome] || { label: s.outcome, cls: 'outcome-victory' };
+      const isProgress = s.outcome === 'in_progress';
+      const btns = isProgress
+        ? '<button class="story-card-btn primary" onclick="resumeStoryById(\'' + s.id + '\')">▶ Continue</button>' +
+          '<button class="story-card-btn" onclick="replayStoryById(\'' + s.id + '\')">🔄 Start Over</button>'
+        : '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">📖 Read It</button>' +
+          '<button class="story-card-btn primary" onclick="replayStoryById(\'' + s.id + '\')">🔄 Play Again</button>';
       card.innerHTML =
         '<div class="story-card-top">' +
           '<span class="story-card-emoji">' + (s.genre_emoji || '📖') + '</span>' +
@@ -2188,10 +2198,7 @@ async function showLibrary() {
           '</div>' +
           '<span class="story-card-outcome ' + oc.cls + '">' + oc.label + '</span>' +
         '</div>' +
-        '<div class="story-card-btns">' +
-          '<button class="story-card-btn" onclick="openStory(\'' + s.id + '\')">📖 Read It</button>' +
-          '<button class="story-card-btn primary" onclick="replayStoryById(\'' + s.id + '\')">🔄 Play Again</button>' +
-        '</div>';
+        '<div class="story-card-btns">' + btns + '</div>';
       body.appendChild(card);
     });
   } catch(e) {
@@ -2220,19 +2227,24 @@ function renderReader(story) {
   const body = document.getElementById('reader-body');
   body.innerHTML = '';
   const { segments, outcome } = story;
+  const isProgress = outcome === 'in_progress';
   const outcomeMap = {
-    victory: { emoji: '🏆', label: 'Victory!',       cls: 'outcome-victory' },
-    failure: { emoji: '😬', label: 'Uh Oh…',         cls: 'outcome-failure' },
-    lesson:  { emoji: '⚖️', label: 'Lesson Learned', cls: 'outcome-lesson'  },
+    victory:     { emoji: '🏆', label: 'Victory!',         cls: 'outcome-victory'  },
+    failure:     { emoji: '😬', label: 'Uh Oh…',           cls: 'outcome-failure'  },
+    lesson:      { emoji: '⚖️', label: 'Lesson Learned',   cls: 'outcome-lesson'   },
+    in_progress: { emoji: '📖', label: 'Story in progress', cls: 'outcome-progress' },
   };
   segments.forEach((seg, idx) => {
+    const isLast = idx === segments.length - 1;
     const div = document.createElement('div');
     div.className = 'reader-segment';
     let html = '';
     if (seg.chapter)     html += '<div class="reader-chapter">' + seg.chapter + '</div>';
     if (seg.narration)   html += '<div class="reader-narration">' + seg.narration + '</div>';
     if (seg.choice_made) html += '<div class="reader-choice-made">You chose: "' + seg.choice_made + '"</div>';
-    if (idx < segments.length - 1) {
+    if (isLast && isProgress) {
+      html += '<button class="reader-branch-btn" style="background:var(--bark);color:white;border-color:transparent" onclick="resumeStory(savedStory)">▶ Continue this story</button>';
+    } else if (!isLast) {
       html += '<button class="reader-branch-btn" onclick="branchFrom(' + idx + ')">🌿 Make different choices from here</button>';
     }
     div.innerHTML = html;
@@ -2307,6 +2319,59 @@ async function replayStoryById(storyId) {
     const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
     const data = await resp.json();
     if (data.story) replayStory(data.story);
+  } catch(e) {}
+}
+
+function resumeStory(story) {
+  if (!story) return;
+  const { segments, messages, genre_name, genre_emoji: emoji, story_genre, age_group: ag, id } = story;
+  genreName  = genre_name;
+  genreEmoji = emoji || '';
+  storyGenre = story_genre;
+  storyTheme = story_genre;
+  ageGroup   = ag || 'older';
+  currentStoryId = id || null;
+  unlockAudio();
+
+  const lastSeg = segments[segments.length - 1];
+  storyHistory = messages;
+  nodeCount    = lastSeg.node;
+
+  choiceLog = segments.slice(0, -1).map((s, j) => ({
+    stepNum:         j + 1,
+    choiceText:      s.choice_made || '',
+    historySnapshot: messages.slice(0, 2 * (j + 1)),
+    choices:         s.choices || [],
+    narration:       s.narration || '',
+    chapter:         s.chapter || '',
+  }));
+
+  choices = (lastSeg.choices && lastSeg.choices.length >= 2)
+    ? lastSeg.choices
+    : ['Keep going', 'Try something else'];
+
+  if (nodeCount === 1 && !initialStoryState) {
+    initialStoryState = { narration: lastSeg.narration || '', chapter: lastSeg.chapter || '', choices: choices.slice(), history: messages.slice() };
+  }
+
+  document.getElementById('genre-badge').textContent = (emoji || '') + ' ' + genre_name;
+  document.body.style.background = BG.story;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-story').classList.add('active');
+  updateProgress();
+  setNarration(lastSeg.narration || '');
+  setChapter(lastSeg.chapter || '');
+  clearError();
+  showInteraction();
+  const choiceSuffix = choices.length >= 2 ? ' Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.' : '';
+  speakText('Welcome back! Here\'s where you left off.' + choiceSuffix);
+}
+
+async function resumeStoryById(storyId) {
+  try {
+    const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
+    const data = await resp.json();
+    if (data.story) resumeStory(data.story);
   } catch(e) {}
 }
 
@@ -2752,7 +2817,7 @@ async function fetchNode(onError) {
 
   if (result.isEnding) {
     const outcomeStr = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
-    saveStory(outcomeStr, stripSSML(narration), chapter);
+    persistStory(outcomeStr, stripSSML(narration), chapter, []);
     const safetyMs = Math.max(120000, narration.length * 120 + 30000);
     const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
     speakText(narration, () => {
@@ -2775,6 +2840,7 @@ async function fetchNode(onError) {
       };
     }
     showInteraction();
+    persistStory('in_progress', stripSSML(narration), chapter, choices.slice());
     const choiceSuffix = choices.length === 3
       ? ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
       : ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
