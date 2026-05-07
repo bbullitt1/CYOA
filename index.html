@@ -2247,22 +2247,22 @@ async function showLibrary() {
         const continueBtn = document.createElement('button');
         continueBtn.className = 'story-card-btn primary';
         continueBtn.textContent = '▶ Continue';
-        continueBtn.addEventListener('click', () => resumeStoryById(s.id));
+        continueBtn.onclick = () => resumeStoryById(s.id);
         const overBtn = document.createElement('button');
         overBtn.className = 'story-card-btn';
         overBtn.textContent = '🔄 Start Over';
-        overBtn.addEventListener('click', () => openStory(s.id));
+        overBtn.onclick = () => openStory(s.id);
         btnsDiv.appendChild(continueBtn);
         btnsDiv.appendChild(overBtn);
       } else {
         const readBtn = document.createElement('button');
         readBtn.className = 'story-card-btn';
         readBtn.textContent = '📖 Read It';
-        readBtn.addEventListener('click', () => openStory(s.id));
+        readBtn.onclick = () => openStory(s.id);
         const againBtn = document.createElement('button');
         againBtn.className = 'story-card-btn primary';
         againBtn.textContent = '🔄 Play Again';
-        againBtn.addEventListener('click', () => replayStoryById(s.id));
+        againBtn.onclick = () => replayStoryById(s.id);
         btnsDiv.appendChild(readBtn);
         btnsDiv.appendChild(againBtn);
       }
@@ -2315,13 +2315,13 @@ function renderReader(story) {
       btn.className = 'reader-branch-btn';
       btn.style.cssText = 'background:var(--bark);color:white;border-color:transparent';
       btn.textContent = '▶ Continue this story';
-      btn.addEventListener('click', () => resumeStory(savedStory));
+      btn.onclick = () => resumeStory(savedStory);
       div.appendChild(btn);
     } else if (!isLast) {
       const btn = document.createElement('button');
       btn.className = 'reader-branch-btn';
       btn.textContent = '🌿 Make different choices from here';
-      btn.addEventListener('click', () => branchFrom(idx));
+      btn.onclick = () => branchFrom(idx);
       div.appendChild(btn);
     }
     body.appendChild(div);
@@ -2334,7 +2334,7 @@ function renderReader(story) {
   const playBtn = document.createElement('button');
   playBtn.className = 'reader-play-again';
   playBtn.textContent = '🔄 Play This Genre Again';
-  playBtn.addEventListener('click', () => replayStory(story));
+  playBtn.onclick = () => replayStory(story);
   body.appendChild(playBtn);
 }
 
