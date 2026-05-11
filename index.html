@@ -6,7 +6,7 @@
   <title>Branched</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@400;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Lato:wght@400;700;900&family=Baloo+2:wght@700;800;900&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --bark:        #2c1a0e;
@@ -224,14 +224,205 @@
     /* ══════════════════════════════════
        SCREEN 2: GENRE PICKER
     ══════════════════════════════════ */
+    /* ── SCREEN-TYPE: NEW DARK HOME ── */
     #screen-type {
-      background: var(--cream);
+      background: #08060f;
       min-height: 100vh;
-      padding: 0 0 48px;
       position: relative;
+      overflow: hidden;
     }
 
+    #st-particles {
+      position: absolute; inset: 0;
+      pointer-events: none; z-index: 0;
+    }
+    .st-ambient {
+      position: absolute; inset: 0; z-index: 1;
+      background: radial-gradient(ellipse 80% 45% at 50% 0%, rgba(80,30,160,0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .st-top-bar {
+      position: relative; z-index: 5;
+      padding: 48px 20px 0;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .st-brand {
+      font-family: 'Baloo 2', cursive;
+      font-size: 24px; font-weight: 800; letter-spacing: -0.02em;
+      color: white;
+    }
+    .st-brand span { color: rgba(255,255,255,0.3); }
+    .st-icons { display: flex; gap: 8px; }
+    .st-icon-btn {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: white; font-size: 15px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .st-icon-btn:active { opacity: .7; }
+    .st-headline {
+      position: relative; z-index: 5;
+      padding: 16px 20px 12px;
+    }
+    .st-headline h1 {
+      font-family: 'Baloo 2', cursive;
+      font-size: 26px; font-weight: 800; line-height: 1.1;
+      letter-spacing: -0.02em; color: white;
+    }
+    .st-headline h1 em {
+      font-style: normal;
+      background: linear-gradient(90deg, #c084fc, #818cf8);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .st-headline p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px; font-weight: 700;
+      color: rgba(255,255,255,0.35); margin-top: 3px;
+    }
+    .st-grid-scroll {
+      position: relative; z-index: 5;
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 0 14px 32px;
+      scrollbar-width: none;
+    }
+    .st-grid-scroll::-webkit-scrollbar { display: none; }
+    .world-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 11px;
+    }
+    .world-tile {
+      border-radius: 20px;
+      position: relative; overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 1 / 1.05;
+      display: flex; flex-direction: column;
+      justify-content: flex-end;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.07);
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      opacity: 0;
+      animation: wt-in 0.45s cubic-bezier(0.34,1.4,0.64,1) forwards;
+    }
+    .world-tile:active { transform: scale(0.94); }
+    .world-tile:nth-child(1){animation-delay:.05s}
+    .world-tile:nth-child(2){animation-delay:.11s}
+    .world-tile:nth-child(3){animation-delay:.17s}
+    .world-tile:nth-child(4){animation-delay:.23s}
+    .world-tile:nth-child(5){animation-delay:.29s}
+    .world-tile:nth-child(6){animation-delay:.35s}
+    @keyframes wt-in {
+      from { opacity:0; transform:scale(0.88) translateY(10px); }
+      to   { opacity:1; transform:scale(1) translateY(0); }
+    }
+    .tile-fog {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.05) 55%, transparent 100%);
+    }
+    .tile-emoji {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%,-62%);
+      font-size: 48px;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.4));
+      animation: wt-float 5s ease-in-out infinite;
+      z-index: 2;
+    }
+    .world-tile:nth-child(2n)  .tile-emoji { animation-delay: -2.5s; }
+    .world-tile:nth-child(3n)  .tile-emoji { animation-delay: -1.3s; }
+    @keyframes wt-float {
+      0%,100%{ transform: translate(-50%,-62%) rotate(-3deg); }
+      50%    { transform: translate(-50%,-68%) rotate(3deg); }
+    }
+    .tile-info { position: relative; z-index: 3; }
+    .tile-name {
+      font-family: 'Baloo 2', cursive;
+      font-size: 14px; font-weight: 800;
+      line-height: 1.15; color: white;
+    }
+    .tile-tag {
+      font-family: 'Nunito', sans-serif;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: rgba(255,255,255,0.45); margin-top: 2px;
+    }
+
+    /* ── PORTAL OVERLAY ── */
+    #st-portal {
+      position: fixed; inset: 0; z-index: 500;
+      display: none; pointer-events: none;
+    }
+    #st-portal.open { pointer-events: all; display: block; }
+    .portal-iris {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.25s;
+    }
+    #st-portal.open .portal-iris { opacity: 1; }
+    .portal-iris-bg {
+      position: absolute; inset: 0;
+      opacity: 0; transition: opacity 0.5s;
+    }
+    #st-portal.open .portal-iris-bg { opacity: 1; }
+    .portal-iris-circle {
+      position: absolute; border-radius: 50%;
+      transform: translate(-50%,-50%) scale(0);
+      opacity: 0.5; transition: transform 0.65s cubic-bezier(0.2,0.8,0.2,1), opacity 0.65s ease;
+    }
+    #st-portal.open .portal-iris-circle { transform: translate(-50%,-50%) scale(80); opacity: 0; }
+    .portal-content {
+      position: relative; z-index: 10;
+      text-align: center; padding: 0 36px;
+      opacity: 0; transform: scale(0.85) translateY(18px);
+      transition: opacity 0.45s ease 0.3s, transform 0.5s cubic-bezier(0.34,1.3,0.64,1) 0.3s;
+    }
+    #st-portal.open .portal-content { opacity: 1; transform: scale(1) translateY(0); }
+    .portal-emoji { font-size: 90px; display: block; margin-bottom: 14px; filter: drop-shadow(0 6px 24px rgba(0,0,0,0.4)); }
+    .portal-name {
+      font-family: 'Baloo 2', cursive;
+      font-size: 40px; font-weight: 900; line-height: 1;
+      letter-spacing: -0.03em; color: white;
+      text-shadow: 0 3px 24px rgba(0,0,0,0.3);
+    }
+    .portal-tag {
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.5); margin-top: 7px;
+    }
+    .portal-cta {
+      margin-top: 32px;
+      display: inline-flex; align-items: center; gap: 8px;
+      background: white; color: #08060f;
+      border: none; border-radius: 100px;
+      padding: 18px 44px;
+      font-family: 'Baloo 2', cursive;
+      font-size: 20px; font-weight: 900;
+      cursor: pointer; touch-action: manipulation;
+      transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1);
+      letter-spacing: -0.01em;
+    }
+    .portal-cta:active { transform: scale(0.95); }
+    .portal-back {
+      position: absolute; top: 52px; left: 20px; z-index: 20;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 100px; padding: 10px 18px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 13px; font-weight: 800;
+      color: white; cursor: pointer;
+      opacity: 0; transition: opacity 0.35s ease 0.4s;
+      -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+    }
+    #st-portal.open .portal-back { opacity: 1; }
+
     .s2-header {
+      display: none; /* legacy, hidden */
       width: 100%;
       background: linear-gradient(145deg, var(--bark), var(--bark-mid));
       padding: 44px 24px 32px;
@@ -1682,25 +1873,36 @@
 
   <!-- ══ SCREEN 2: GENRE PICKER ══ -->
   <div id="screen-type" class="screen">
-    <button class="s2-library-btn" onclick="showLibrary()" aria-label="My stories">📚</button>
-    <button class="s2-settings-btn" onclick="showSettings()" aria-label="Account settings">⚙</button>
-    <div class="s2-header">
-      <h2>What kind of adventure<br>do you want?</h2>
-      <p>Choose your branch 🌿</p>
+    <canvas id="st-particles"></canvas>
+    <div class="st-ambient"></div>
+    <div class="st-top-bar">
+      <div class="st-brand">branched<span>.</span></div>
+      <div class="st-icons">
+        <button class="st-icon-btn" onclick="showLibrary()" aria-label="My stories">📚</button>
+        <button class="st-icon-btn" onclick="showSettings()" aria-label="Settings">⚙</button>
+      </div>
     </div>
-    <div class="genres-wrap">
-      <div class="type-grid" id="main-grid"></div>
-      <button class="more-toggle" id="more-btn" onclick="toggleMore()">
-        <span id="more-label">＋ More adventures</span>
-      </button>
-      <div id="more-section">
-        <div class="type-grid" id="more-grid" style="margin-bottom:12px"></div>
-        <div class="custom-row">
-          <input class="custom-inp" id="custom-inp"
-            placeholder="Or type your own idea…"
-            autocorrect="off" autocapitalize="none" spellcheck="false" />
-          <button class="custom-go" onclick="startCustom()">→</button>
-        </div>
+    <div class="st-headline">
+      <h1>Choose your <em>world.</em></h1>
+      <p>Tap a world to begin your adventure</p>
+    </div>
+    <div class="st-grid-scroll">
+      <div id="world-grid" class="world-grid"></div>
+    </div>
+    <input id="custom-inp" style="display:none" autocorrect="off" autocapitalize="none" spellcheck="false" />
+  </div>
+
+  <!-- ══ PORTAL OVERLAY ══ -->
+  <div id="st-portal">
+    <div class="portal-iris">
+      <div class="portal-iris-bg" id="portal-iris-bg"></div>
+      <div class="portal-iris-circle" id="portal-iris-circle"></div>
+      <button class="portal-back" onclick="closePortal()">← Back</button>
+      <div class="portal-content">
+        <span class="portal-emoji" id="portal-emoji"></span>
+        <div class="portal-name"  id="portal-name"></div>
+        <div class="portal-tag"   id="portal-tag"></div>
+        <button class="portal-cta" id="portal-cta">Begin Adventure →</button>
       </div>
     </div>
   </div>
@@ -1800,22 +2002,121 @@
 </div><!-- #app -->
 
 <script>
-const MAIN_TYPES = [
-  { e:'🧙‍♂️', n:'Magic & Dragons',   sub:'Fantasy Quest',    ac:'#e8a838', bg:'linear-gradient(145deg,#1a1035,#3b1a7a)', t:'dragons, enchanted castles, and brave heroes on a magical quest', gn:'Fantasy Quest' },
-  { e:'🚀',   n:'Space Explorer',    sub:'Sci-Fi Adventure',  ac:'#60a5fa', bg:'linear-gradient(145deg,#0c1445,#1e3a8a)', t:'rockets, alien worlds, and daring missions on distant planets',   gn:'Space Adventure' },
-  { e:'🦜',   n:'Jungle Quest',      sub:'Wild & Dangerous',  ac:'#84cc16', bg:'linear-gradient(145deg,#14532d,#166534)', t:'jungle animals, hidden ancient temples, and wild exploration',    gn:'Jungle Explorer' },
-  { e:'🔍',   n:'Mystery Island',    sub:'Solve the Puzzle',  ac:'#f43f5e', bg:'linear-gradient(145deg,#1c1917,#44403c)', t:'hidden clues, suspicious strangers, and a mystery only you can solve', gn:'Mystery Island' },
-  { e:'🐙',   n:'Deep Ocean',        sub:'Underwater World',  ac:'#5eead4', bg:'linear-gradient(145deg,#0c4a6e,#075985)', t:'mermaids, sea monsters, glowing coral reefs, and sunken treasure', gn:'Under the Sea' },
-  { e:'🤖',   n:'Robot World',       sub:'Bots & Circuits',   ac:'#f97316', bg:'linear-gradient(145deg,#1f2937,#374151)', t:'friendly robots, malfunctioning machines, and a futuristic city in trouble', gn:'Robot World' },
-];
-
-const MORE_TYPES = [
-  { e:'🏴‍☠️', n:'Pirate Treasure',  sub:'High Seas',         ac:'#fbbf24', bg:'linear-gradient(145deg,#1c1917,#78350f)', t:'pirates, mysterious treasure maps, and adventures on the high seas', gn:'Pirate Treasure' },
-  { e:'🦸',   n:'Superhero Day',    sub:'Powers & Peril',    ac:'#f87171', bg:'linear-gradient(145deg,#1e1b4b,#4338ca)', t:'superpowers, a city in danger, and a secret hero identity',          gn:'Superhero Day' },
-  { e:'🦕',   n:'Dino World',       sub:'Prehistoric',       ac:'#86efac', bg:'linear-gradient(145deg,#14532d,#15803d)', t:'dinosaurs, ancient jungles, volcanoes, and prehistoric discoveries', gn:'Dino World' },
-  { e:'🧙‍♀️', n:'Magic School',     sub:'Spells & Secrets',  ac:'#f472b6', bg:'linear-gradient(145deg,#500724,#9d174d)', t:'young wizards, dangerous spells, and magical creatures at school',   gn:'Magic School' },
-  { e:'🦄',   n:'Unicorn Kingdom',  sub:'Rainbow Magic',     ac:'#e879f9', bg:'linear-gradient(145deg,#2e1065,#6d28d9)', t:'unicorns, rainbow magic, and a kingdom under a dark spell',          gn:'Unicorn Kingdom' },
-  { e:'👻',   n:'Friendly Ghosts',  sub:'Haunted & Fun',     ac:'#7dd3fc', bg:'linear-gradient(145deg,#0c1a2e,#0369a1)', t:'friendly ghosts, a haunted house full of puzzles, and new friendships', gn:'Friendly Ghosts' },
+// 100+ story types — 6 are picked per session via shuffled cycling
+const STORY_TYPES = [
+  // MAGIC & FANTASY
+  { e:'🧙', n:'Magic & Dragons',    sub:'Fantasy Quest',        ac:'#c084fc', bg:'linear-gradient(145deg,#5b1fae,#2d0a60)', t:'dragons, enchanted castles, and brave heroes on a magical quest',          gn:'Fantasy Quest',      portal:'radial-gradient(ellipse at 50% 30%,#7c2de8,#3a0d80 45%,#180440)', glow:'rgba(150,60,255,.8)',  ptcl:'#c084fc' },
+  { e:'🏰', n:'Enchanted Kingdom',  sub:'Royal Adventure',      ac:'#818cf8', bg:'linear-gradient(145deg,#3730a3,#1e1b6b)', t:'magic kingdoms, noble quests, and royal mysteries',                        gn:'Enchanted Kingdom',  portal:'radial-gradient(ellipse at 50% 30%,#4a40cc,#201a70 45%,#0c0830)', glow:'rgba(100,80,255,.8)',  ptcl:'#818cf8' },
+  { e:'🧚', n:'Fairy Realm',        sub:'Magical Creatures',    ac:'#f0abfc', bg:'linear-gradient(145deg,#86198f,#4a0055)', t:'fairies, pixies, and enchanted creatures in a magical forest',              gn:'Fairy Realm',        portal:'radial-gradient(ellipse at 50% 30%,#a020c0,#580068 45%,#200028)', glow:'rgba(180,40,220,.8)', ptcl:'#f0abfc' },
+  { e:'🔮', n:'Crystal Caves',      sub:'Underground Magic',    ac:'#67e8f9', bg:'linear-gradient(145deg,#0e7490,#0a3d50)', t:'mysterious crystal caves, underground magic, and hidden worlds',           gn:'Crystal Caves',      portal:'radial-gradient(ellipse at 50% 30%,#1090b8,#0a4860 45%,#041820)', glow:'rgba(20,170,220,.8)', ptcl:'#67e8f9' },
+  { e:'🪄', n:'Wizard Academy',     sub:'Spells & Studies',     ac:'#a78bfa', bg:'linear-gradient(145deg,#4c1d95,#2e0a70)', t:'a school for young wizards learning spells and facing challenges',         gn:'Wizard Academy',     portal:'radial-gradient(ellipse at 50% 30%,#6020b8,#340870 45%,#120030)', glow:'rgba(130,50,240,.8)', ptcl:'#a78bfa' },
+  { e:'🐉', n:'Dragon Riders',      sub:'Sky & Fire',           ac:'#fb923c', bg:'linear-gradient(145deg,#9a3412,#4a1200)', t:'dragon riders soaring through the skies and battling dark forces',         gn:'Dragon Riders',      portal:'radial-gradient(ellipse at 50% 30%,#c04020,#601800 45%,#200800)', glow:'rgba(220,80,20,.8)',  ptcl:'#fb923c' },
+  { e:'🧝', n:'Elven Forest',       sub:'Ancient Wisdom',       ac:'#86efac', bg:'linear-gradient(145deg,#166534,#052e16)', t:'an ancient elven forest with magical creatures and forgotten secrets',     gn:'Elven Forest',       portal:'radial-gradient(ellipse at 50% 30%,#1e8040,#0a3c1c 45%,#021408)', glow:'rgba(30,150,70,.8)',  ptcl:'#86efac' },
+  { e:'🗡️', n:'Dark Dungeon',       sub:'Brave the Depths',     ac:'#fbbf24', bg:'linear-gradient(145deg,#78350f,#3a1200)', t:'dangerous dungeons, brave adventurers, and ancient monsters',              gn:'Dark Dungeon',       portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#4a1800 45%,#180800)', glow:'rgba(200,100,20,.8)', ptcl:'#fbbf24' },
+  { e:'⚗️', n:'Potion Master',      sub:'Brew & Discover',      ac:'#34d399', bg:'linear-gradient(145deg,#065f46,#022d20)', t:'alchemists brewing magical potions and discovering ancient secrets',        gn:'Potion Master',      portal:'radial-gradient(ellipse at 50% 30%,#087a50,#043828 45%,#011410)', glow:'rgba(10,180,120,.8)', ptcl:'#34d399' },
+  { e:'🦊', n:'Clever Fox',         sub:'Wit & Wisdom',         ac:'#fb923c', bg:'linear-gradient(145deg,#b45309,#3c1a00)', t:'a clever fox using wits and wisdom to outsmart bigger enemies',            gn:'Clever Fox',         portal:'radial-gradient(ellipse at 50% 30%,#d46810,#683200 45%,#221200)', glow:'rgba(220,120,20,.8)', ptcl:'#fb923c' },
+  // SPACE & SCI-FI
+  { e:'🚀', n:'Space Explorer',     sub:'Sci-Fi Adventure',     ac:'#60a5fa', bg:'linear-gradient(145deg,#1040b0,#06173d)', t:'rockets, alien worlds, and daring missions on distant planets',            gn:'Space Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#2060e0,#0c2070 45%,#04091e)', glow:'rgba(40,110,255,.8)', ptcl:'#60a5fa' },
+  { e:'👽', n:'Alien Planet',        sub:'First Contact',        ac:'#4ade80', bg:'linear-gradient(145deg,#14532d,#052512)', t:'exploring alien planets and making first contact with new species',        gn:'Alien Contact',      portal:'radial-gradient(ellipse at 50% 30%,#1a6836,#08301a 45%,#02100a)', glow:'rgba(40,200,90,.8)',  ptcl:'#4ade80' },
+  { e:'🛸', n:'UFO Mystery',         sub:'Close Encounter',      ac:'#a78bfa', bg:'linear-gradient(145deg,#2e1065,#100630)', t:'mysterious UFOs, alien encounters, and unexplained phenomena',              gn:'UFO Mystery',        portal:'radial-gradient(ellipse at 50% 30%,#3c1480,#180840 45%,#080018)', glow:'rgba(130,60,220,.8)', ptcl:'#a78bfa' },
+  { e:'🌌', n:'Galaxy Pirates',      sub:'Stars & Plunder',      ac:'#f472b6', bg:'linear-gradient(145deg,#831843,#3a0820)', t:'space pirates sailing through galaxies seeking cosmic treasure',           gn:'Galaxy Pirates',     portal:'radial-gradient(ellipse at 50% 30%,#a01a50,#4a0828 45%,#180210)', glow:'rgba(220,40,120,.8)', ptcl:'#f472b6' },
+  { e:'🤖', n:'Robot World',         sub:'Bots & Circuits',      ac:'#6ee7b7', bg:'linear-gradient(145deg,#158050,#05281a)', t:'a world where friendly robots and humans solve problems together',         gn:'Robot World',        portal:'radial-gradient(ellipse at 50% 30%,#1ca060,#085030 45%,#021810)', glow:'rgba(40,200,130,.8)', ptcl:'#6ee7b7' },
+  { e:'🌙', n:'Moonbase Alpha',      sub:'Lunar Colony',         ac:'#94a3b8', bg:'linear-gradient(145deg,#1e293b,#0a1220)', t:'a moonbase colony facing challenges while exploring the lunar surface',    gn:'Moonbase',           portal:'radial-gradient(ellipse at 50% 30%,#283850,#121c2a 45%,#060c14)', glow:'rgba(100,130,180,.8)',ptcl:'#94a3b8' },
+  { e:'⚡', n:'Time Machine',        sub:'Through the Ages',     ac:'#fde047', bg:'linear-gradient(145deg,#713f12,#2c1500)', t:'a time machine adventure visiting different historical periods',            gn:'Time Travel',        portal:'radial-gradient(ellipse at 50% 30%,#8a4e15,#401e08 45%,#180a02)', glow:'rgba(220,180,20,.8)', ptcl:'#fde047' },
+  { e:'🔭', n:'Star Gazer',          sub:'Cosmic Discovery',     ac:'#e0e7ff', bg:'linear-gradient(145deg,#312e81,#120e40)', t:'astronomers discovering new planets and solving cosmic mysteries',          gn:'Cosmic Discovery',   portal:'radial-gradient(ellipse at 50% 30%,#3d3a9a,#1a1858 45%,#080620)', glow:'rgba(100,90,220,.8)', ptcl:'#e0e7ff' },
+  { e:'♟️', n:'AI Revolution',       sub:'Cyber Future',         ac:'#22d3ee', bg:'linear-gradient(145deg,#155e75,#042030)', t:'a future city where AI and humans coexist in a technological world',      gn:'Cyber Future',       portal:'radial-gradient(ellipse at 50% 30%,#1c7890,#083848 45%,#021418)', glow:'rgba(20,180,220,.8)', ptcl:'#22d3ee' },
+  { e:'🌟', n:'Star Children',       sub:'Born to Shine',        ac:'#fde047', bg:'linear-gradient(145deg,#1e3a8a,#081030)', t:'children with star powers protecting the universe from darkness',          gn:'Star Powers',        portal:'radial-gradient(ellipse at 50% 30%,#2040b0,#0e1e60 45%,#060820)', glow:'rgba(40,100,220,.8)', ptcl:'#fde047' },
+  // NATURE & ADVENTURE
+  { e:'🦜', n:'Jungle Quest',        sub:'Wild & Dangerous',     ac:'#86efac', bg:'linear-gradient(145deg,#14532d,#052e16)', t:'jungle animals, hidden ancient temples, and wild exploration',             gn:'Jungle Explorer',    portal:'radial-gradient(ellipse at 50% 30%,#1e8040,#0a3c1c 45%,#021408)', glow:'rgba(40,180,60,.8)',  ptcl:'#86efac' },
+  { e:'🌋', n:'Volcano Island',      sub:'Fire & Earth',         ac:'#f97316', bg:'linear-gradient(145deg,#9a3412,#3d0f00)', t:'a volcanic island adventure with lava, danger, and hidden treasure',       gn:'Volcano Island',     portal:'radial-gradient(ellipse at 50% 30%,#bc4020,#5c1800 45%,#1e0800)', glow:'rgba(230,80,20,.8)',  ptcl:'#f97316' },
+  { e:'🏔️', n:'Mountain Climb',     sub:'Peak Challenge',       ac:'#d1d5db', bg:'linear-gradient(145deg,#374151,#111827)', t:'climbing treacherous mountains and surviving dangerous conditions',         gn:'Mountain Adventure', portal:'radial-gradient(ellipse at 50% 30%,#4b5563,#1f2937 45%,#0a0f16)', glow:'rgba(130,140,160,.8)',ptcl:'#d1d5db' },
+  { e:'❄️', n:'Arctic Explorer',    sub:'Frozen Frontier',      ac:'#bae6fd', bg:'linear-gradient(145deg,#0c4a6e,#041e30)', t:'exploring the frozen Arctic, surviving blizzards, and icy challenges',     gn:'Arctic Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#0e70b0,#063060 45%,#020e20)', glow:'rgba(20,160,240,.8)', ptcl:'#bae6fd' },
+  { e:'🦁', n:'Wildlife Safari',    sub:'Savanna Stories',      ac:'#fbbf24', bg:'linear-gradient(145deg,#78350f,#3a1500)', t:'a safari adventure with amazing African wildlife and brave explorers',      gn:'Safari Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#4a1808 45%,#180600)', glow:'rgba(220,140,20,.8)', ptcl:'#fbbf24' },
+  { e:'🦕', n:'Dinosaur Land',       sub:'Jurassic Survival',    ac:'#a3e635', bg:'linear-gradient(145deg,#365314,#1a2d06)', t:'a prehistoric world filled with dinosaurs and ancient creatures',           gn:'Dinosaur Adventure', portal:'radial-gradient(ellipse at 50% 30%,#466a18,#20360a 45%,#0a1402)', glow:'rgba(120,200,20,.8)', ptcl:'#a3e635' },
+  { e:'🌿', n:'Forest Spirits',     sub:'Nature\'s Magic',      ac:'#6ee7b7', bg:'linear-gradient(145deg,#065f46,#022814)', t:'forest spirits, talking animals, and the magic of the natural world',      gn:'Forest Magic',       portal:'radial-gradient(ellipse at 50% 30%,#087a58,#044030 45%,#011810)', glow:'rgba(10,180,110,.8)', ptcl:'#6ee7b7' },
+  { e:'🐺', n:'Wolf Pack',           sub:'Wild & Free',          ac:'#e2e8f0', bg:'linear-gradient(145deg,#1e293b,#0a1220)', t:'life among a wolf pack, survival in the wild, and pack loyalty',           gn:'Wolf Pack',          portal:'radial-gradient(ellipse at 50% 30%,#2a3e54,#121c2a 45%,#060c14)', glow:'rgba(110,140,180,.8)',ptcl:'#e2e8f0' },
+  { e:'🌊', n:'Raging Rapids',       sub:'White Water Rush',     ac:'#38bdf8', bg:'linear-gradient(145deg,#0c4a6e,#041e30)', t:'wild river adventures, white water rapids, and nature survival',          gn:'River Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#1060a0,#062848 45%,#020e1a)', glow:'rgba(20,140,220,.8)', ptcl:'#38bdf8' },
+  { e:'🌸', n:'Cherry Blossom',     sub:'Japanese Adventure',   ac:'#fbcfe8', bg:'linear-gradient(145deg,#9d174d,#4a0826)', t:'a magical journey through ancient Japan with samurai and nature spirits',  gn:'Japanese Quest',     portal:'radial-gradient(ellipse at 50% 30%,#be1e60,#6a1030 45%,#240410)', glow:'rgba(220,40,110,.8)', ptcl:'#fbcfe8' },
+  // OCEAN & UNDERWATER
+  { e:'🐙', n:'Deep Ocean',          sub:'Underwater World',     ac:'#67e8f9', bg:'linear-gradient(145deg,#0e6ea0,#04243a)', t:'discovering the mysteries of the deep ocean and underwater creatures',    gn:'Ocean Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#1890cc,#084868 45%,#021420)', glow:'rgba(20,150,220,.8)', ptcl:'#67e8f9' },
+  { e:'🧜', n:'Mermaid Kingdom',    sub:'Under the Waves',      ac:'#a5f3fc', bg:'linear-gradient(145deg,#0891b2,#053040)', t:'a magical underwater kingdom with mermaids, seahorses, and ocean magic',  gn:'Mermaid Kingdom',    portal:'radial-gradient(ellipse at 50% 30%,#0ca8d8,#064060 45%,#021420)', glow:'rgba(10,180,220,.8)', ptcl:'#a5f3fc' },
+  { e:'🦈', n:'Shark Dive',          sub:'Ocean Predator',       ac:'#7dd3fc', bg:'linear-gradient(145deg,#0c4a6e,#041826)', t:'a thrilling underwater adventure with sharks and ocean predators',         gn:'Ocean Predator',     portal:'radial-gradient(ellipse at 50% 30%,#105888,#062840 45%,#020e18)', glow:'rgba(15,120,200,.8)', ptcl:'#7dd3fc' },
+  { e:'🏴‍☠️',n:'Pirate Ship',       sub:'Seas of Fortune',      ac:'#fbbf24', bg:'linear-gradient(145deg,#44403c,#1c1917)', t:'pirates sailing the high seas in search of treasure and adventure',       gn:'Pirate Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#57534e,#292524 45%,#0c0a09)', glow:'rgba(180,160,40,.8)', ptcl:'#fbbf24' },
+  { e:'🐠', n:'Coral Reef',          sub:'Rainbow Depths',       ac:'#fb923c', bg:'linear-gradient(145deg,#0e7490,#042a38)', t:'the colorful world of coral reefs and tropical ocean creatures',           gn:'Coral Reef',         portal:'radial-gradient(ellipse at 50% 30%,#1290b8,#064858 45%,#021820)', glow:'rgba(20,180,200,.8)', ptcl:'#fb923c' },
+  { e:'🦑', n:'Sea Monster',         sub:'Kraken Rising',        ac:'#818cf8', bg:'linear-gradient(145deg,#1e1b4b,#0a0828)', t:'battling sea monsters in the depths of the ancient ocean',                gn:'Sea Monster',        portal:'radial-gradient(ellipse at 50% 30%,#2820a8,#140c60 45%,#080428)', glow:'rgba(80,60,220,.8)',  ptcl:'#818cf8' },
+  { e:'🐋', n:'Whale Song',          sub:'Ocean Giants',         ac:'#38bdf8', bg:'linear-gradient(145deg,#075985,#02243c)', t:'journeying with majestic whales through the world\'s great oceans',       gn:'Ocean Journey',      portal:'radial-gradient(ellipse at 50% 30%,#0c70a8,#043858 45%,#011420)', glow:'rgba(10,160,220,.8)', ptcl:'#38bdf8' },
+  { e:'🚢', n:'Ocean Storm',         sub:'Battle the Waves',     ac:'#94a3b8', bg:'linear-gradient(145deg,#0f172a,#060b18)', t:'a ship crew battling a massive ocean storm and surviving at sea',          gn:'Ocean Storm',        portal:'radial-gradient(ellipse at 50% 30%,#182038,#0a1020 45%,#04080e)', glow:'rgba(60,100,160,.8)', ptcl:'#94a3b8' },
+  // MYSTERY & DETECTIVE
+  { e:'🔍', n:'Mystery Island',     sub:'Solve the Puzzle',     ac:'#fbbf24', bg:'linear-gradient(145deg,#b05a10,#3d1a04)', t:'hidden clues, suspicious strangers, and a mystery only you can solve',    gn:'Mystery Island',     portal:'radial-gradient(ellipse at 50% 30%,#d07820,#6a3008 45%,#1e0c02)', glow:'rgba(220,130,20,.8)', ptcl:'#fbbf24' },
+  { e:'🕵️', n:'Detective Agency',  sub:'Case Closed',          ac:'#d97706', bg:'linear-gradient(145deg,#78350f,#2e1200)', t:'a brave young detective solving crimes and catching sneaky criminals',      gn:'Detective Adventure',portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#481600 45%,#180600)', glow:'rgba(200,110,20,.8)', ptcl:'#d97706' },
+  { e:'👻', n:'Haunted House',       sub:'Spooky Spirits',       ac:'#c4b5fd', bg:'linear-gradient(145deg,#2e1065,#100830)', t:'exploring a haunted house filled with friendly and scary ghosts',          gn:'Haunted Adventure',  portal:'radial-gradient(ellipse at 50% 30%,#3c1480,#180840 45%,#080018)', glow:'rgba(120,60,200,.8)', ptcl:'#c4b5fd' },
+  { e:'🕶️', n:'Spy Mission',        sub:'Top Secret',           ac:'#4ade80', bg:'linear-gradient(145deg,#134e26,#041e0e)', t:'a young spy on a top-secret mission to save the world',                   gn:'Spy Adventure',      portal:'radial-gradient(ellipse at 50% 30%,#186030,#082e16 45%,#020e08)', glow:'rgba(30,160,80,.8)',  ptcl:'#4ade80' },
+  { e:'🗺️', n:'Lost City',          sub:'Ancient Secrets',      ac:'#d97706', bg:'linear-gradient(145deg,#92400e,#351400)', t:'discovering a lost ancient city hidden deep in the jungle',               gn:'Lost City',          portal:'radial-gradient(ellipse at 50% 30%,#b05010,#582400 45%,#1c0c00)', glow:'rgba(210,120,20,.8)', ptcl:'#d97706' },
+  { e:'💎', n:'Treasure Hunt',       sub:'Find the Gold',        ac:'#fcd34d', bg:'linear-gradient(145deg,#78350f,#2c1000)', t:'following ancient maps to find legendary buried treasure',                 gn:'Treasure Hunt',      portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#481800 45%,#180800)', glow:'rgba(220,160,30,.8)', ptcl:'#fcd34d' },
+  { e:'🌃', n:'Night Detective',    sub:'Shadows & Secrets',    ac:'#818cf8', bg:'linear-gradient(145deg,#1e1b4b,#0a0820)', t:'a night detective solving mysterious cases in a city full of secrets',      gn:'Night Mystery',      portal:'radial-gradient(ellipse at 50% 30%,#281e70,#100c38 45%,#060414)', glow:'rgba(90,70,200,.8)',  ptcl:'#818cf8' },
+  { e:'🎭', n:'Secret Identity',   sub:'Who Am I?',             ac:'#f472b6', bg:'linear-gradient(145deg,#831843,#2e0818)', t:'a mysterious adventure about discovering a hidden identity and truth',     gn:'Secret Identity',    portal:'radial-gradient(ellipse at 50% 30%,#a01a54,#500828 45%,#180210)', glow:'rgba(220,40,120,.8)', ptcl:'#f472b6' },
+  // HISTORICAL & CULTURAL
+  { e:'🏺', n:'Ancient Egypt',      sub:'Pharaohs & Pyramids',  ac:'#fbbf24', bg:'linear-gradient(145deg,#92400e,#301500)', t:'ancient Egypt with pharaohs, pyramids, mummies, and hidden tombs',        gn:'Ancient Egypt',      portal:'radial-gradient(ellipse at 50% 30%,#b05810,#582800 45%,#1c0e00)', glow:'rgba(220,160,20,.8)', ptcl:'#fbbf24' },
+  { e:'⚔️', n:'Medieval Knight',   sub:'Sword & Honour',       ac:'#d1d5db', bg:'linear-gradient(145deg,#374151,#111827)', t:'a medieval adventure with knights, castles, jousting, and dragons',        gn:'Medieval Quest',     portal:'radial-gradient(ellipse at 50% 30%,#4b5563,#1f2937 45%,#0a0f16)', glow:'rgba(150,160,180,.8)',ptcl:'#d1d5db' },
+  { e:'🥷', n:'Ninja Quest',         sub:'Stealth & Speed',      ac:'#e2e8f0', bg:'linear-gradient(145deg,#0f172a,#060912)', t:'a ninja adventure with stealth, martial arts, and ancient Japan',          gn:'Ninja Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#1a2030,#0c1018 45%,#04060c)', glow:'rgba(100,120,160,.8)',ptcl:'#e2e8f0' },
+  { e:'🛡️', n:'Viking Adventure',  sub:'Norse Legends',        ac:'#a1a1aa', bg:'linear-gradient(145deg,#27272a,#0a0a0c)', t:'Viking adventures across stormy seas with Norse gods and monsters',        gn:'Viking Quest',       portal:'radial-gradient(ellipse at 50% 30%,#3f3f46,#18181b 45%,#080808)', glow:'rgba(140,140,160,.8)',ptcl:'#a1a1aa' },
+  { e:'🏛️', n:'Ancient Greece',    sub:'Gods & Heroes',        ac:'#fde68a', bg:'linear-gradient(145deg,#92400e,#381800)', t:'ancient Greek heroes, gods of Olympus, and epic mythological quests',     gn:'Greek Mythology',    portal:'radial-gradient(ellipse at 50% 30%,#b05510,#582800 45%,#1c0e00)', glow:'rgba(220,170,30,.8)', ptcl:'#fde68a' },
+  { e:'🤠', n:'Wild West',           sub:'Cowboys & Outlaws',    ac:'#d97706', bg:'linear-gradient(145deg,#78350f,#2a1000)', t:'the Wild West with cowboys, outlaws, gold rushes, and frontier towns',    gn:'Wild West',          portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#481800 45%,#180800)', glow:'rgba(200,120,20,.8)', ptcl:'#d97706' },
+  { e:'🥋', n:'Samurai Honor',      sub:'Way of the Blade',     ac:'#fca5a5', bg:'linear-gradient(145deg,#7f1d1d,#2e0a0a)', t:'a samurai story of honor, skill, and duty in feudal Japan',               gn:'Samurai Quest',      portal:'radial-gradient(ellipse at 50% 30%,#9e2020,#4e0f0f 45%,#1a0606)', glow:'rgba(200,40,40,.8)',  ptcl:'#fca5a5' },
+  { e:'🗿', n:'Aztec Empire',        sub:'Lost Civilization',    ac:'#fbbf24', bg:'linear-gradient(145deg,#7c2d12,#300e04)', t:'exploring the great Aztec empire, its temples, and ancient secrets',       gn:'Aztec Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#9c3810,#4c1a06 45%,#180804)', glow:'rgba(210,110,20,.8)', ptcl:'#fbbf24' },
+  { e:'🌸', n:'Feudal Japan',        sub:'Honor & Blossom',      ac:'#fbcfe8', bg:'linear-gradient(145deg,#9d174d,#3a0818)', t:'honor, culture, and mystery in the world of ancient Japan',               gn:'Feudal Japan',       portal:'radial-gradient(ellipse at 50% 30%,#be1e5e,#5c0c28 45%,#200410)', glow:'rgba(220,30,110,.8)', ptcl:'#fbcfe8' },
+  // SUPERHERO & ACTION
+  { e:'🦸', n:'Superhero School',  sub:'Train & Save the Day', ac:'#facc15', bg:'linear-gradient(145deg,#1d4ed8,#0c1f6a)', t:'young superheroes training their powers and saving the world',              gn:'Superhero Academy',  portal:'radial-gradient(ellipse at 50% 30%,#2050e8,#0e2880 45%,#060e28)', glow:'rgba(40,110,240,.8)', ptcl:'#facc15' },
+  { e:'🦹', n:'Villain Reform',    sub:'Bad to Good',          ac:'#f472b6', bg:'linear-gradient(145deg,#4c0519,#1c0208)', t:'a former villain learning to be a hero and making amends',                gn:'Villain Story',      portal:'radial-gradient(ellipse at 50% 30%,#5e0620,#2a030e 45%,#0e0106)', glow:'rgba(180,30,90,.8)',  ptcl:'#f472b6' },
+  { e:'🏎️', n:'Race to Victory',  sub:'Speed & Skill',        ac:'#f97316', bg:'linear-gradient(145deg,#7c2d12,#2e0e04)', t:'an exciting racing adventure with daring moves and close finishes',       gn:'Racing Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#9c3814,#4c1c08 45%,#180804)', glow:'rgba(220,80,20,.8)',  ptcl:'#f97316' },
+  { e:'🎯', n:'Secret Agent',      sub:'Mission Impossible',   ac:'#22d3ee', bg:'linear-gradient(145deg,#0e4c6e,#041c2a)', t:'a secret agent on a thrilling mission to stop an evil organization',     gn:'Secret Agent',       portal:'radial-gradient(ellipse at 50% 30%,#106088,#063040 45%,#021018)', glow:'rgba(20,160,220,.8)', ptcl:'#22d3ee' },
+  { e:'🥊', n:'Champion Fighter',  sub:'Rise to the Top',      ac:'#fca5a5', bg:'linear-gradient(145deg,#7f1d1d,#300a0a)', t:'a young fighter training hard to become the world champion',              gn:'Fighting Champion',  portal:'radial-gradient(ellipse at 50% 30%,#9e2020,#4c1010 45%,#180808)', glow:'rgba(200,50,50,.8)',  ptcl:'#fca5a5' },
+  { e:'🧗', n:'Extreme Sports',    sub:'Push Your Limits',     ac:'#fdba74', bg:'linear-gradient(145deg,#7c2d12,#2c1004)', t:'extreme sports adventures pushing the limits of what\'s possible',       gn:'Extreme Adventure',  portal:'radial-gradient(ellipse at 50% 30%,#9c3810,#4a1c08 45%,#180804)', glow:'rgba(220,120,30,.8)', ptcl:'#fdba74' },
+  // IMAGINATIVE
+  { e:'🍬', n:'Candy Kingdom',      sub:'Sweet Adventure',      ac:'#f9a8d4', bg:'linear-gradient(145deg,#9d174d,#400818)', t:'a magical world made entirely of candy, sweets, and delicious treats',   gn:'Candy World',        portal:'radial-gradient(ellipse at 50% 30%,#be1e5e,#5c0c28 45%,#200410)', glow:'rgba(220,30,110,.8)', ptcl:'#f9a8d4' },
+  { e:'💭', n:'Dream World',        sub:'Sleep & Adventure',    ac:'#c4b5fd', bg:'linear-gradient(145deg,#4c1d95,#1e0860)', t:'an adventure inside a magical dream world with impossible things',        gn:'Dream Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#5c22b0,#280a70 45%,#0e0230)', glow:'rgba(140,70,230,.8)', ptcl:'#c4b5fd' },
+  { e:'🔬', n:'Shrunk Tiny',        sub:'Micro World',          ac:'#86efac', bg:'linear-gradient(145deg,#065f46,#022614)', t:'shrunk to the size of an ant and exploring a giant everyday world',       gn:'Tiny Adventure',     portal:'radial-gradient(ellipse at 50% 30%,#087858,#043a28 45%,#011410)', glow:'rgba(10,170,110,.8)', ptcl:'#86efac' },
+  { e:'🧸', n:'Toy World',          sub:'Playtime Quest',       ac:'#fb923c', bg:'linear-gradient(145deg,#c2410c,#4a1200)', t:'toys come to life and go on adventures in the world of humans',           gn:'Toy Adventure',      portal:'radial-gradient(ellipse at 50% 30%,#e04c10,#602000 45%,#200a00)', glow:'rgba(230,80,20,.8)',  ptcl:'#fb923c' },
+  { e:'🎪', n:'Haunted Carnival',  sub:'Thrills & Chills',     ac:'#f472b6', bg:'linear-gradient(145deg,#831843,#300812)', t:'a mysterious carnival where strange magic and spooky fun await',          gn:'Carnival Mystery',   portal:'radial-gradient(ellipse at 50% 30%,#a01850,#4e0820 45%,#18020c)', glow:'rgba(220,30,110,.8)', ptcl:'#f472b6' },
+  { e:'☁️', n:'Cloud Kingdom',     sub:'Sky High',             ac:'#bae6fd', bg:'linear-gradient(145deg,#0ea5e9,#044468)', t:'a floating cloud kingdom above the earth with sky creatures',             gn:'Sky Kingdom',        portal:'radial-gradient(ellipse at 50% 30%,#1ab8f0,#065880 45%,#022030)', glow:'rgba(20,180,240,.8)', ptcl:'#bae6fd' },
+  { e:'🌈', n:'Rainbow Realm',      sub:'Color & Magic',        ac:'#a78bfa', bg:'linear-gradient(145deg,#6d28d9,#2e0e80)', t:'a magical realm where colors have power and rainbows lead to adventure', gn:'Rainbow Quest',      portal:'radial-gradient(ellipse at 50% 30%,#8030e0,#3c1090 45%,#140440)', glow:'rgba(150,50,230,.8)', ptcl:'#a78bfa' },
+  { e:'🦄', n:'Unicorn Valley',    sub:'Magic & Friendship',   ac:'#f9a8d4', bg:'linear-gradient(145deg,#9d174d,#400818)', t:'a magical valley where unicorns and children share adventures',           gn:'Unicorn Adventure',  portal:'radial-gradient(ellipse at 50% 30%,#be1e5e,#5a0c28 45%,#1e0410)', glow:'rgba(220,30,110,.8)', ptcl:'#f9a8d4' },
+  { e:'🦋', n:'Butterfly Grove',   sub:'Metamorphosis Magic',  ac:'#f0abfc', bg:'linear-gradient(145deg,#701a75,#2d0530)', t:'magical butterflies, enchanted gardens, and transformation adventures',   gn:'Butterfly Magic',    portal:'radial-gradient(ellipse at 50% 30%,#8e2092,#420848 45%,#160220)', glow:'rgba(180,30,190,.8)', ptcl:'#f0abfc' },
+  { e:'🏝️', n:'Tropical Paradise',sub:'Sun & Fun',            ac:'#fde047', bg:'linear-gradient(145deg,#065f46,#022c18)', t:'a tropical island adventure with hidden beaches and local mysteries',     gn:'Island Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#087a50,#043828 45%,#011410)', glow:'rgba(10,170,100,.8)', ptcl:'#fde047' },
+  // ELEMENTS & FORCES
+  { e:'🔥', n:'Fire Kingdom',       sub:'Flame & Power',        ac:'#f97316', bg:'linear-gradient(145deg,#9a3412,#380e02)', t:'a world of fire where brave heroes battle volcanic forces',               gn:'Fire Adventure',     portal:'radial-gradient(ellipse at 50% 30%,#c04020,#601800 45%,#200800)', glow:'rgba(230,80,20,.8)',  ptcl:'#f97316' },
+  { e:'🌪️', n:'Storm Riders',      sub:'Thunder & Lightning',  ac:'#94a3b8', bg:'linear-gradient(145deg,#1e3a5f,#0a1828)', t:'riders who harness the power of storms and lightning',                   gn:'Storm Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#284878,#10243a 45%,#060e16)', glow:'rgba(80,120,190,.8)', ptcl:'#94a3b8' },
+  { e:'🌿', n:'Earth Guardian',    sub:'Nature Protector',     ac:'#86efac', bg:'linear-gradient(145deg,#14532d,#042014)', t:'guardians of the earth protecting nature from those who would destroy it',gn:'Earth Guardian',    portal:'radial-gradient(ellipse at 50% 30%,#1a6838,#083020 45%,#021008)', glow:'rgba(30,160,70,.8)',  ptcl:'#86efac' },
+  { e:'💨', n:'Sky Dancers',        sub:'Wind & Wonder',        ac:'#bae6fd', bg:'linear-gradient(145deg,#0e7490,#033040)', t:'riders of the wind exploring endless skies and cloud cities',             gn:'Sky Adventure',      portal:'radial-gradient(ellipse at 50% 30%,#1290b8,#064858 45%,#021820)', glow:'rgba(20,180,220,.8)', ptcl:'#bae6fd' },
+  { e:'🧊', n:'Ice Palace',         sub:'Frozen Royalty',       ac:'#e0f2fe', bg:'linear-gradient(145deg,#0c4a6e,#04182e)', t:'a frozen palace where ice magic and winter spirits hold ancient secrets',  gn:'Ice Kingdom',        portal:'radial-gradient(ellipse at 50% 30%,#1060a0,#063060 45%,#020e20)', glow:'rgba(20,160,240,.8)', ptcl:'#e0f2fe' },
+  // QUIRKY & FUN
+  { e:'🎵', n:'Music World',        sub:'Rhythm & Rhyme',       ac:'#818cf8', bg:'linear-gradient(145deg,#3730a3,#130e48)', t:'a world where music is magic and sounds can change everything',           gn:'Music Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#4840c8,#1e1660 45%,#0a0828)', glow:'rgba(100,80,220,.8)', ptcl:'#818cf8' },
+  { e:'🎨', n:'Art Kingdom',        sub:'Painted Worlds',       ac:'#f472b6', bg:'linear-gradient(145deg,#9d174d,#400818)', t:'a world inside a painting where art comes to life and color has power',   gn:'Art Adventure',      portal:'radial-gradient(ellipse at 50% 30%,#be1e5e,#580c28 45%,#1e0410)', glow:'rgba(220,30,100,.8)', ptcl:'#f472b6' },
+  { e:'🏀', n:'Sports Champion',   sub:'Game Day Glory',       ac:'#fb923c', bg:'linear-gradient(145deg,#c2410c,#481200)', t:'a young athlete rising through the ranks to become a sports champion',    gn:'Sports Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#de5010,#5c1800 45%,#1e0800)', glow:'rgba(230,90,20,.8)',  ptcl:'#fb923c' },
+  { e:'📚', n:'Book World',         sub:'Into the Story',       ac:'#fbbf24', bg:'linear-gradient(145deg,#78350f,#2a1000)', t:'falling into a magical library where story worlds come to life',          gn:'Book Adventure',     portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#481800 45%,#180800)', glow:'rgba(210,140,20,.8)', ptcl:'#fbbf24' },
+  { e:'🌙', n:'Moon Festival',      sub:'Lanterns & Legend',    ac:'#fde68a', bg:'linear-gradient(145deg,#78350f,#2e1400)', t:'a magical moon festival with legends, dragons, and glowing lanterns',     gn:'Festival Magic',     portal:'radial-gradient(ellipse at 50% 30%,#9a4810,#4a2008 45%,#180c04)', glow:'rgba(220,180,30,.8)', ptcl:'#fde68a' },
+  { e:'🎃', n:'Halloween Night',   sub:'Tricks & Treats',      ac:'#f97316', bg:'linear-gradient(145deg,#78350f,#2a0e00)', t:'a Halloween adventure where monsters, magic, and mystery mix',            gn:'Halloween Quest',    portal:'radial-gradient(ellipse at 50% 30%,#9c4010,#4a1800 45%,#180800)', glow:'rgba(220,100,10,.8)', ptcl:'#f97316' },
+  { e:'🐱', n:'Cat Kingdom',        sub:'Paws & Power',         ac:'#f9a8d4', bg:'linear-gradient(145deg,#9d174d,#400818)', t:'a magical kingdom ruled by cats where feline heroes go on adventures',   gn:'Cat Adventure',      portal:'radial-gradient(ellipse at 50% 30%,#be1e5e,#580c28 45%,#1e0410)', glow:'rgba(220,30,110,.8)', ptcl:'#f9a8d4' },
+  { e:'🌾', n:'Farm Life',          sub:'Country Adventure',    ac:'#a3e635', bg:'linear-gradient(145deg,#365314,#1a2d06)', t:'a farm adventure with talking animals and magical crops',                 gn:'Farm Adventure',     portal:'radial-gradient(ellipse at 50% 30%,#466a18,#20360a 45%,#0a1402)', glow:'rgba(120,200,20,.8)', ptcl:'#a3e635' },
+  { e:'🎸', n:'Rock Band Quest',   sub:'Music & Mayhem',       ac:'#818cf8', bg:'linear-gradient(145deg,#1e1b4b,#0a0825)', t:'a rock band going on tour and solving mysteries along the way',           gn:'Music Quest',        portal:'radial-gradient(ellipse at 50% 30%,#281e90,#100c48 45%,#060420)', glow:'rgba(100,70,220,.8)', ptcl:'#818cf8' },
+  { e:'🧩', n:'Puzzle Realm',       sub:'Think & Solve',        ac:'#67e8f9', bg:'linear-gradient(145deg,#0e7490,#042a38)', t:'a world where puzzles and riddles unlock magical powers and passages',    gn:'Puzzle Quest',       portal:'radial-gradient(ellipse at 50% 30%,#1290b8,#064858 45%,#021820)', glow:'rgba(20,180,220,.8)', ptcl:'#67e8f9' },
+  { e:'🌠', n:'Shooting Stars',    sub:'Wish Upon a Star',     ac:'#fde047', bg:'linear-gradient(145deg,#312e81,#120e40)', t:'following a shooting star through a magical adventure across the sky',    gn:'Star Adventure',     portal:'radial-gradient(ellipse at 50% 30%,#3d3a9a,#1a1858 45%,#080620)', glow:'rgba(100,90,220,.8)', ptcl:'#fde047' },
+  { e:'🌻', n:'Sunflower Valley',  sub:'Golden Days',          ac:'#fde047', bg:'linear-gradient(145deg,#713f12,#2c1500)', t:'a warm valley full of magical sunflowers and cheerful nature spirits',    gn:'Valley Quest',       portal:'radial-gradient(ellipse at 50% 30%,#8a5015,#401e08 45%,#180a02)', glow:'rgba(220,180,20,.8)', ptcl:'#fde047' },
+  { e:'🌍', n:'World Explorer',    sub:'Every Corner',         ac:'#34d399', bg:'linear-gradient(145deg,#065f46,#022c18)', t:'traveling the globe discovering new cultures and ancient wonders',        gn:'World Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#087a50,#043828 45%,#011410)', glow:'rgba(10,180,110,.8)', ptcl:'#34d399' },
+  { e:'🦓', n:'Savanna Run',        sub:'Wild and Fast',        ac:'#fbbf24', bg:'linear-gradient(145deg,#78350f,#2a1200)', t:'racing across the African savanna with zebras, lions, and wildebeest',   gn:'Savanna Adventure',  portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#481800 45%,#180800)', glow:'rgba(220,150,20,.8)', ptcl:'#fbbf24' },
+  { e:'🌺', n:'Flower Kingdom',    sub:'Petal Power',          ac:'#f9a8d4', bg:'linear-gradient(145deg,#9f1239,#3d0618)', t:'a kingdom of giant flowers where tiny heroes go on big adventures',       gn:'Flower Kingdom',     portal:'radial-gradient(ellipse at 50% 30%,#be1845,#5e0a22 45%,#20040e)', glow:'rgba(220,20,90,.8)',  ptcl:'#f9a8d4' },
+  { e:'🐸', n:'Swamp Secrets',     sub:'Murky & Magical',      ac:'#86efac', bg:'linear-gradient(145deg,#1a4a1e,#081c0a)', t:'a magical swamp with talking frogs, hidden spirits, and boggy mysteries', gn:'Swamp Magic',        portal:'radial-gradient(ellipse at 50% 30%,#1e5a24,#0c2c10 45%,#040e06)', glow:'rgba(30,140,50,.8)',  ptcl:'#86efac' },
+  { e:'🏜️', n:'Desert Mirage',   sub:'Sands of Mystery',     ac:'#fcd34d', bg:'linear-gradient(145deg,#92400e,#342008)', t:'a desert adventure with mirages, sandstorms, and hidden oases',           gn:'Desert Adventure',   portal:'radial-gradient(ellipse at 50% 30%,#b05010,#582808 45%,#1c1004)', glow:'rgba(220,160,20,.8)', ptcl:'#fcd34d' },
+  { e:'🦅', n:'Sky Kingdom',       sub:'Wings & Wind',         ac:'#7dd3fc', bg:'linear-gradient(145deg,#0369a1,#01243d)', t:'flying kingdoms in the sky where eagle-riders soar through the clouds',   gn:'Sky Kingdom',        portal:'radial-gradient(ellipse at 50% 30%,#0880c8,#044060 45%,#011820)', glow:'rgba(10,170,230,.8)', ptcl:'#7dd3fc' },
+  { e:'🦝', n:'City Critters',     sub:'Urban Animal Gang',    ac:'#94a3b8', bg:'linear-gradient(145deg,#1e293b,#080f1a)', t:'a gang of clever city animals pulling off adventures in a big city',      gn:'City Animals',       portal:'radial-gradient(ellipse at 50% 30%,#283850,#101c2a 45%,#04080e)', glow:'rgba(90,120,170,.8)', ptcl:'#94a3b8' },
+  { e:'🐉', n:'Sea Dragon',        sub:'Deep & Fierce',        ac:'#22d3ee', bg:'linear-gradient(145deg,#0e6ea0,#04243a)', t:'sea dragons protecting the ocean depths from ancient evil forces',         gn:'Sea Dragon',         portal:'radial-gradient(ellipse at 50% 30%,#1890cc,#084868 45%,#021420)', glow:'rgba(20,180,220,.8)', ptcl:'#22d3ee' },
+  { e:'🧊', n:'Frozen Tundra',     sub:'Survival Challenge',   ac:'#bae6fd', bg:'linear-gradient(145deg,#1e3a5f,#0a1828)', t:'surviving and exploring a vast frozen tundra full of icy mysteries',      gn:'Tundra Survival',    portal:'radial-gradient(ellipse at 50% 30%,#284878,#10243a 45%,#060e16)', glow:'rgba(80,140,200,.8)', ptcl:'#bae6fd' },
+  { e:'🌊', n:'Surf Champions',    sub:'Ride the Waves',       ac:'#38bdf8', bg:'linear-gradient(145deg,#075985,#021e38)', t:'surf champions tackling the biggest waves and ocean mysteries',            gn:'Surf Adventure',     portal:'radial-gradient(ellipse at 50% 30%,#0a70a8,#043858 45%,#011420)', glow:'rgba(10,160,220,.8)', ptcl:'#38bdf8' },
+  { e:'🏗️', n:'City Builders',    sub:'Build & Protect',      ac:'#fbbf24', bg:'linear-gradient(145deg,#374151,#111827)', t:'young engineers building a city and defending it from disasters',         gn:'City Building',      portal:'radial-gradient(ellipse at 50% 30%,#4b5563,#1f2937 45%,#0a0f16)', glow:'rgba(160,170,40,.8)', ptcl:'#fbbf24' },
+  { e:'🌑', n:'Midnight Quest',    sub:'Under the Moon',       ac:'#818cf8', bg:'linear-gradient(145deg,#1e1b4b,#0a0820)', t:'a nighttime adventure where moonlight reveals hidden magic',               gn:'Night Adventure',    portal:'radial-gradient(ellipse at 50% 30%,#281e70,#100c38 45%,#060414)', glow:'rgba(90,70,200,.8)',  ptcl:'#818cf8' },
+  { e:'🐬', n:'Dolphin Bay',       sub:'Ocean Friends',        ac:'#38bdf8', bg:'linear-gradient(145deg,#0c4a6e,#041e30)', t:'adventures with a pod of dolphins in a magical ocean bay',                gn:'Dolphin Adventure',  portal:'radial-gradient(ellipse at 50% 30%,#1060a0,#062848 45%,#020e1a)', glow:'rgba(20,150,220,.8)', ptcl:'#38bdf8' },
+  { e:'🦉', n:'Owl Forest',        sub:'Night Wisdom',         ac:'#fbbf24', bg:'linear-gradient(145deg,#292524,#0a0a06)', t:'a forest of wise owls guarding ancient secrets through the night',        gn:'Owl Forest',         portal:'radial-gradient(ellipse at 50% 30%,#3a3028,#1a1410 45%,#080806)', glow:'rgba(180,150,40,.8)', ptcl:'#fbbf24' },
+  { e:'🐲', n:'Dragon Keep',       sub:'Ancient Fortress',     ac:'#f97316', bg:'linear-gradient(145deg,#78350f,#2c1200)', t:'an ancient fortress where brave heroes battle to reclaim their home',      gn:'Fortress Quest',     portal:'radial-gradient(ellipse at 50% 30%,#9a4010,#481c00 45%,#180a00)', glow:'rgba(210,120,20,.8)', ptcl:'#f97316' },
 ];
 
 const GENRE_BADGES = {
@@ -1835,7 +2136,7 @@ const GENRE_BADGES = {
 
 const BG = {
   welcome: 'linear-gradient(180deg,#d4ead8 0%,#b8d4c0 40%,#8fb89a 100%)',
-  type:    '#faf6ee',
+  type:    '#08060f',
   story:   'linear-gradient(180deg,#1a2e1a 0%,#0e1e0e 100%)',
   win:     'linear-gradient(160deg,#0a2a0e,#1a5a22,#4aaa44 120%)',
   fail:    'linear-gradient(160deg,#2a1008,#7a2c10,#b45020 120%)',
@@ -1878,7 +2179,7 @@ const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAI
 
 (function boot() {
   buildLeaves();
-  buildGrids();
+  buildWorldGrid();
   initVoices();
   document.getElementById('custom-inp').addEventListener('keydown', e => { if (e.key==='Enter') startCustom(); });
   document.getElementById('auth-email').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('auth-password').focus(); });
@@ -1940,24 +2241,148 @@ function buildLeaves() {
   });
 }
 
-function buildGrids() {
-  MAIN_TYPES.forEach(t => document.getElementById('main-grid').appendChild(mkCard(t)));
-  MORE_TYPES.forEach(t => document.getElementById('more-grid').appendChild(mkCard(t)));
+// ── WORLD GRID (shuffled cycling, 6 per session) ──
+function buildWorldGrid() {
+  const ORDER_KEY = 'b_type_order';
+  const IDX_KEY   = 'b_type_idx';
+  const PER_VIEW  = 6;
+  const total     = STORY_TYPES.length;
+
+  let order = JSON.parse(localStorage.getItem(ORDER_KEY) || 'null');
+  let idx   = parseInt(localStorage.getItem(IDX_KEY) || '0', 10);
+
+  if (!order || order.length !== total) {
+    order = shuffle(Array.from({length: total}, (_, i) => i));
+    idx   = 0;
+  }
+  if (idx >= total) {
+    order = shuffle(Array.from({length: total}, (_, i) => i));
+    idx   = 0;
+  }
+
+  const slice = order.slice(idx, idx + PER_VIEW);
+  if (slice.length < PER_VIEW) {
+    const extra = shuffle(Array.from({length: total}, (_, i) => i)).slice(0, PER_VIEW - slice.length);
+    slice.push(...extra);
+  }
+
+  localStorage.setItem(ORDER_KEY, JSON.stringify(order));
+  localStorage.setItem(IDX_KEY, String(idx + PER_VIEW));
+
+  const grid = document.getElementById('world-grid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  slice.forEach((typeIdx, pos) => {
+    const type = STORY_TYPES[typeIdx];
+    if (!type) return;
+    const tile = document.createElement('div');
+    tile.className = 'world-tile';
+    tile.style.cssText = 'background:' + type.bg + ';animation-delay:' + (pos * 0.07) + 's';
+    tile.innerHTML =
+      '<span class="tile-emoji">' + type.e + '</span>' +
+      '<div class="tile-name">'  + type.n + '</div>' +
+      '<div class="tile-tag">'   + type.sub + '</div>';
+    tile.onclick = (evt) => openPortal(type, evt);
+    grid.appendChild(tile);
+  });
+
+  startParticles();
 }
 
-function mkCard(type) {
-  const d = document.createElement('div');
-  d.className = 'type-card';
-  d.style.background = type.bg;
-  d.innerHTML =
-    '<div class="card-accent-bar" style="background:'+type.ac+'"></div>'+
-    '<div class="card-inner">'+
-      '<span class="te">'+type.e+'</span>'+
-      '<span class="tn">'+type.n+'</span>'+
-      '<span class="tsub">'+type.sub+'</span>'+
-    '</div>';
-  d.onclick = () => pickType(type);
-  return d;
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+// ── PORTAL ──
+let _portalType = null;
+let _particleAF = null;
+
+function openPortal(type, evt) {
+  _portalType = type;
+  const portal = document.getElementById('st-portal');
+  const bg     = document.getElementById('portal-iris-bg');
+  const circle = document.getElementById('portal-iris-circle');
+
+  document.getElementById('portal-emoji').textContent = type.e;
+  document.getElementById('portal-name').textContent  = type.n;
+  document.getElementById('portal-tag').textContent   = type.sub;
+  document.getElementById('portal-cta').onclick = () => { closePortal(); pickType(type); };
+
+  if (bg)     bg.style.background     = type.portal || type.bg;
+  if (circle) circle.style.boxShadow  = '0 0 60px 20px ' + (type.glow || 'rgba(150,60,255,.8)');
+
+  portal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePortal() {
+  const portal = document.getElementById('st-portal');
+  portal.classList.remove('open');
+  document.body.style.overflow = '';
+  _portalType = null;
+}
+
+// ── PARTICLE CANVAS ──
+function startParticles() {
+  if (_particleAF) { cancelAnimationFrame(_particleAF); _particleAF = null; }
+  const canvas = document.getElementById('st-particles');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  let W, H;
+
+  const particles = [];
+  const MAX_P = 60;
+
+  function resize() {
+    W = canvas.width  = canvas.offsetWidth;
+    H = canvas.height = canvas.offsetHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  function spawnParticle() {
+    const colors = ['#c084fc','#818cf8','#f0abfc','#67e8f9','#a78bfa'];
+    particles.push({
+      x:   Math.random() * W,
+      y:   H + 10,
+      r:   1 + Math.random() * 2.5,
+      vx:  (Math.random() - 0.5) * 0.5,
+      vy:  -(0.4 + Math.random() * 0.8),
+      alpha: 0,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      life:  0,
+      maxLife: 160 + Math.random() * 120,
+    });
+  }
+
+  let frame = 0;
+  function loop() {
+    _particleAF = requestAnimationFrame(loop);
+    ctx.clearRect(0, 0, W, H);
+    frame++;
+    if (frame % 3 === 0 && particles.length < MAX_P) spawnParticle();
+
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+      p.x += p.vx; p.y += p.vy; p.life++;
+      p.alpha = p.life < 30 ? p.life / 30 : p.life > p.maxLife - 30 ? (p.maxLife - p.life) / 30 : 0.7;
+      if (p.life >= p.maxLife || p.y < -10) { particles.splice(i, 1); continue; }
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle   = p.color;
+      ctx.shadowColor = p.color;
+      ctx.shadowBlur  = 6;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+    }
+  }
+  loop();
 }
 
 // ── AUTH ──
@@ -2856,12 +3281,6 @@ function pickAge(group) {
 
 function goPickWorld() { cancelAudio(); showScreen('screen-type'); }
 
-function toggleMore() {
-  const sec  = document.getElementById('more-section');
-  const open = sec.style.display !== 'none';
-  sec.style.display = open ? 'none' : 'block';
-  document.getElementById('more-label').textContent = open ? '＋ More adventures' : '— Less';
-}
 
 function pickType(type) {
   unlockAudio();
