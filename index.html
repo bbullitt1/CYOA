@@ -421,6 +421,64 @@
     }
     #st-portal.open .portal-back { opacity: 1; }
 
+    /* ── More worlds ── */
+    .st-more-btn {
+      display: block; width: 100%;
+      margin: 14px 0 0;
+      padding: 13px 0;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      border-radius: 16px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 800;
+      color: rgba(255,255,255,0.55);
+      letter-spacing: 0.03em;
+      cursor: pointer; touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, color 0.2s;
+    }
+    .st-more-btn:active { background: rgba(255,255,255,0.12); }
+    .more-worlds-section { margin-top: 10px; }
+
+    /* ── Custom input ── */
+    .st-custom-wrap {
+      margin-top: 20px;
+      padding: 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+    }
+    .st-custom-label {
+      font-family: 'Nunito', sans-serif;
+      font-size: 12px; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin: 0 0 10px;
+    }
+    .st-custom-row { display: flex; gap: 8px; align-items: center; }
+    .st-custom-inp {
+      flex: 1; min-width: 0;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px; font-weight: 700;
+      color: white;
+    }
+    .st-custom-inp::placeholder { color: rgba(255,255,255,0.28); }
+    .st-custom-inp:focus { outline: none; border-color: rgba(192,132,252,0.6); background: rgba(192,132,252,0.08); }
+    .st-custom-go {
+      flex-shrink: 0;
+      width: 44px; height: 44px; border-radius: 12px;
+      background: linear-gradient(135deg, #c084fc, #818cf8);
+      border: none; color: white;
+      font-size: 20px; font-weight: 900;
+      cursor: pointer; touch-action: manipulation;
+      display: flex; align-items: center; justify-content: center;
+      transition: transform 0.15s;
+    }
+    .st-custom-go:active { transform: scale(0.92); }
+
     .s2-header {
       display: none; /* legacy, hidden */
       width: 100%;
@@ -1888,8 +1946,22 @@
     </div>
     <div class="st-grid-scroll">
       <div id="world-grid" class="world-grid"></div>
+
+      <!-- More worlds toggle -->
+      <button class="st-more-btn" id="st-more-btn" onclick="toggleMoreWorlds()">＋ More worlds</button>
+      <div id="more-worlds-section" class="more-worlds-section" style="display:none">
+        <div id="more-world-grid" class="world-grid"></div>
+      </div>
+
+      <!-- Custom / free text -->
+      <div class="st-custom-wrap">
+        <p class="st-custom-label">Or invent your own world</p>
+        <div class="st-custom-row">
+          <input id="custom-inp" class="st-custom-inp" placeholder="e.g. Pirate treasure hunt…" autocorrect="off" autocapitalize="sentences" spellcheck="false" />
+          <button class="st-custom-go" onclick="startCustom()">→</button>
+        </div>
+      </div>
     </div>
-    <input id="custom-inp" style="display:none" autocorrect="off" autocapitalize="none" spellcheck="false" />
   </div>
 
   <!-- ══ PORTAL OVERLAY ══ -->
@@ -2286,7 +2358,53 @@ function buildWorldGrid() {
     grid.appendChild(tile);
   });
 
+  // Reset more-worlds state for this session
+  _moreWorldsOpen = false;
+  _moreSliceIndexes = [];
+  const moreSection = document.getElementById('more-worlds-section');
+  const moreBtn     = document.getElementById('st-more-btn');
+  if (moreSection) moreSection.style.display = 'none';
+  if (moreBtn)     moreBtn.textContent = '＋ More worlds';
+
   startParticles();
+}
+
+// ── MORE WORLDS (show rest of the current shuffle cycle) ──
+let _moreWorldsOpen = false;
+let _moreSliceIndexes = [];
+
+function toggleMoreWorlds() {
+  const section = document.getElementById('more-worlds-section');
+  const btn     = document.getElementById('st-more-btn');
+  _moreWorldsOpen = !_moreWorldsOpen;
+
+  if (_moreWorldsOpen) {
+    if (_moreSliceIndexes.length === 0) {
+      // Pick a diverse sample of types not currently shown in the main grid
+      const all = Array.from({length: STORY_TYPES.length}, (_, i) => i);
+      _moreSliceIndexes = shuffle(all).slice(0, 12);
+    }
+    const grid = document.getElementById('more-world-grid');
+    grid.innerHTML = '';
+    _moreSliceIndexes.forEach((typeIdx, pos) => {
+      const type = STORY_TYPES[typeIdx];
+      if (!type) return;
+      const tile = document.createElement('div');
+      tile.className = 'world-tile';
+      tile.style.cssText = 'background:' + type.bg + ';animation-delay:' + (pos * 0.05) + 's';
+      tile.innerHTML =
+        '<span class="tile-emoji">' + type.e + '</span>' +
+        '<div class="tile-name">'  + type.n + '</div>' +
+        '<div class="tile-tag">'   + type.sub + '</div>';
+      tile.onclick = (evt) => openPortal(type, evt);
+      grid.appendChild(tile);
+    });
+    section.style.display = '';
+    btn.textContent = '— Fewer worlds';
+  } else {
+    section.style.display = 'none';
+    btn.textContent = '＋ More worlds';
+  }
 }
 
 function shuffle(arr) {
