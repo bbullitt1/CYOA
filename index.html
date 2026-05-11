@@ -2260,7 +2260,7 @@ async function showLibrary() {
         const overBtn = document.createElement('button');
         overBtn.className = 'story-card-btn';
         overBtn.textContent = '🔄 Start Over';
-        overBtn.onclick = () => openStory(s.id);
+        overBtn.onclick = () => startOverById(s.id);
         btnsDiv.appendChild(continueBtn);
         btnsDiv.appendChild(overBtn);
       } else {
@@ -2444,19 +2444,66 @@ function resumeStory(story) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
   updateProgress();
-  setNarration(lastSeg.narration || '');
-  setChapter(lastSeg.chapter || '');
   clearError();
-  showInteraction();
-  const choiceSuffix = choices.length >= 2 ? ' Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.' : '';
-  speakText('Welcome back! Here\'s where you left off.' + choiceSuffix);
+  hideInteraction();
+
+  // Re-narrate all segments from the beginning, then present choices
+  let idx = 0;
+  function doNext() {
+    if (idx >= segments.length) {
+      showInteraction();
+      if (choices.length >= 2) speakText('Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+      return;
+    }
+    const seg = segments[idx++];
+    setChapter(seg.chapter || '');
+    setNarration(seg.narration || '');
+    speakText(seg.narration || '', doNext);
+  }
+  doNext();
 }
 
-async function resumeStoryById(storyId) {
+function startOverStory(story) {
+  if (!story) return;
+  const { segments, messages, genre_name, genre_emoji: emoji, story_genre, age_group: ag } = story;
+  genreName  = genre_name;
+  genreEmoji = emoji || '';
+  storyGenre = story_genre;
+  storyTheme = story_genre;
+  ageGroup   = ag || 'older';
+  savedStory = story;
+  unlockAudio();
+  currentStoryId = null;
+
+  const firstSeg = segments[0];
+  storyHistory = messages.slice(0, 2);
+  nodeCount    = 1;
+  choiceLog    = [];
+  choices = (firstSeg.choices && firstSeg.choices.length >= 2) ? firstSeg.choices : ['Keep going', 'Try something else'];
+  initialStoryState = { narration: firstSeg.narration || '', chapter: firstSeg.chapter || '', choices: choices.slice(), history: storyHistory.slice() };
+
+  document.getElementById('genre-badge').textContent = (emoji || '') + ' ' + genre_name;
+  document.body.style.background = BG.story;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-story').classList.add('active');
+  updateProgress();
+  setChapter(firstSeg.chapter || '');
+  setNarration(firstSeg.narration || '');
+  clearError();
+  hideInteraction();
+
+  // Narrate the opening scene, then show the original first choices
+  speakText(firstSeg.narration || '', () => {
+    showInteraction();
+    if (choices.length >= 2) speakText('Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+  });
+}
+
+async function startOverById(storyId) {
   try {
     const resp = await fetch('/api/stories/' + storyId, { headers: { 'Authorization': 'Bearer ' + authToken } });
     const data = await resp.json();
-    if (data.story) resumeStory(data.story);
+    if (data.story) startOverStory(data.story);
   } catch(e) {}
 }
 
