@@ -793,6 +793,20 @@
       visibility: hidden;
     }
     .ss-show-text.visible { visibility: visible; }
+    .ss-replay-btn {
+      display: none;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 100px; padding: 9px 20px;
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      color: rgba(255,255,255,0.7); cursor: pointer;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, opacity 0.3s;
+      animation: cl-rise 0.35s ease both;
+    }
+    .ss-replay-btn.visible { display: block; }
+    .ss-replay-btn:active { background: rgba(255,255,255,0.15); }
+
     .ss-now-playing {
       font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
       color: rgba(255,255,255,0.2);
@@ -2007,6 +2021,7 @@
           <button class="ss-ctrl-btn" id="pause-btn" onclick="audioPauseToggle()">⏸ Pause</button>
           <button class="ss-show-text" id="show-text-btn" onclick="toggleNarrationText()">Show text</button>
         </div>
+        <button class="ss-replay-btn" id="replay-btn" onclick="replayAudio()">🔊 Replay audio</button>
         <div class="ss-now-playing" id="narrator-state">Listening…</div>
       </div>
 
@@ -3805,11 +3820,31 @@ function rewindTo(logIdx) {
 }
 
 // ── UI HELPERS ──
+let _currentNarration = '';
+
 function setNarration(t) {
+  _currentNarration = t || '';
   const el = document.getElementById('narration-text');
   const btn = document.getElementById('show-text-btn');
+  const rep = document.getElementById('replay-btn');
   el.textContent = t;
   if (btn) btn.classList.toggle('visible', !!t);
+  if (rep) rep.classList.toggle('visible', !!t);
+}
+
+function replayAudio() {
+  if (!_currentNarration) return;
+  unlockAudio();
+  cancelAudio();
+  // Resume AudioContext in case it was suspended
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+  const afterNarration = () => {
+    if (choices.length >= 2) {
+      showInteraction();
+      speakText('Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+    }
+  };
+  speakText(_currentNarration, afterNarration);
 }
 function toggleNarrationText() {
   document.getElementById('text-overlay').classList.toggle('visible');
