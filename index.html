@@ -695,16 +695,69 @@
     .ss-orb-aura.orb-breathe { animation: ss-idle-aura 5s ease-in-out infinite; }
     @keyframes ss-idle-aura { 0%,100%{transform:scale(0.85);opacity:0.4} 50%{transform:scale(1.1);opacity:0.7} }
 
-    /* Loading */
+    /* Loading / choice moment */
     #loading {
       display: none; flex-direction: column; align-items: center;
-      gap: 12px; text-align: center;
-      color: rgba(255,255,255,.5); font-size: .9rem; font-weight: 700;
-      position: absolute; z-index: 15;
+      gap: 0; text-align: center; justify-content: center;
+      position: absolute; inset: 0; z-index: 15; padding: 0 36px;
     }
     #loading.on { display: flex; }
-    .branch-grow-icon { font-size: 44px; animation: branchSway 1.9s ease-in-out infinite; }
-    @keyframes branchSway { 0%,100%{transform:rotate(-9deg) scale(.93)} 50%{transform:rotate(9deg) scale(1.07)} }
+
+    .cl-rings {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      pointer-events: none;
+    }
+    .cl-ring {
+      position: absolute; border-radius: 50%;
+      border: 1.5px solid var(--cl-color, rgba(124,45,232,.5));
+      opacity: 0;
+      animation: cl-expand 2.6s ease-out infinite;
+    }
+    .cl-ring:nth-child(1){ animation-delay: 0s;   }
+    .cl-ring:nth-child(2){ animation-delay: 0.85s; }
+    .cl-ring:nth-child(3){ animation-delay: 1.7s;  }
+    @keyframes cl-expand {
+      0%  { width: 80px;  height: 80px;  opacity: 0.7; }
+      100%{ width: 340px; height: 340px; opacity: 0;   }
+    }
+
+    .cl-emoji {
+      font-size: 68px; position: relative; z-index: 2;
+      filter: drop-shadow(0 6px 22px var(--cl-glow, rgba(140,60,255,.5)));
+      animation: cl-float 3.2s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+    @keyframes cl-float {
+      0%,100%{ transform: translateY(0)    scale(1);    }
+      50%    { transform: translateY(-14px) scale(1.07); }
+    }
+
+    .cl-badge {
+      width: 50px; height: 50px; border-radius: 50%;
+      background: var(--cl-color, #7c2de8);
+      box-shadow: 0 0 32px var(--cl-glow, rgba(124,45,232,.6));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Baloo 2', cursive; font-size: 24px; font-weight: 900;
+      color: white; position: relative; z-index: 2; margin-bottom: 16px;
+      animation: cl-pop 0.5s cubic-bezier(0.34,1.6,0.64,1) both;
+    }
+    @keyframes cl-pop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+    .cl-choice-text {
+      font-family: 'Baloo 2', cursive; font-size: 22px; font-weight: 800;
+      color: white; line-height: 1.25; letter-spacing: -0.02em;
+      max-width: 300px; position: relative; z-index: 2;
+      animation: cl-rise 0.45s ease 0.12s both;
+      margin-bottom: 18px;
+    }
+    .cl-label {
+      font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800;
+      letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.28); position: relative; z-index: 2;
+      animation: cl-rise 0.45s ease 0.26s both;
+    }
+    @keyframes cl-rise { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
 
     /* Bottom panel */
     .ss-bottom-panel {
@@ -1926,8 +1979,15 @@
 
     <div class="ss-orb-zone">
       <div id="loading">
-        <div class="branch-grow-icon">🌿</div>
-        <div>Generating branch…</div>
+        <div class="cl-rings">
+          <div class="cl-ring"></div>
+          <div class="cl-ring"></div>
+          <div class="cl-ring"></div>
+        </div>
+        <div class="cl-emoji" id="cl-emoji">🌿</div>
+        <div class="cl-badge" id="cl-badge" style="display:none">①</div>
+        <div class="cl-choice-text" id="cl-choice-text" style="display:none"></div>
+        <div class="cl-label" id="cl-label">Starting your adventure…</div>
       </div>
       <div class="ss-orb-wrap" id="ss-orb-wrap">
         <div class="ss-orb-aura orb-breathe" id="ss-orb-aura"></div>
@@ -2187,9 +2247,11 @@ let nodeCount     = 0;
 let choices       = [];
 let choiceLog     = [];
 let activeRec     = null;
-let initialStoryState = null;
-let currentStoryId    = null;
-let savedStory        = null;
+let initialStoryState  = null;
+let currentStoryId     = null;
+let savedStory         = null;
+let _pendingChoiceIdx  = -1;
+let _pendingChoiceText = '';
 
 // Auth & profile state
 let authToken     = localStorage.getItem('branched_token') || '';
@@ -3701,6 +3763,8 @@ function makeChoice(idx) {
   const prevHistory   = storyHistory.slice();
 
   const choiceText = choices[idx];
+  _pendingChoiceIdx  = idx;
+  _pendingChoiceText = choiceText;
   const historyArr = choiceLog.map(e => e.choiceText);
   choiceLog.push({
     stepNum: nodeCount, choiceText,
@@ -3751,7 +3815,48 @@ function toggleNarrationText() {
   document.getElementById('text-overlay').classList.toggle('visible');
 }
 function setChapter(t)  { document.getElementById('chapter-title').textContent = t; }
-function setLoading(on) { document.getElementById('loading').classList.toggle('on', on); }
+function setLoading(on) {
+  const el = document.getElementById('loading');
+  el.classList.toggle('on', on);
+  if (!on) { _pendingChoiceIdx = -1; _pendingChoiceText = ''; return; }
+
+  const CHOICE_COLORS = [
+    { color: '#7c2de8', glow: 'rgba(124,45,232,.55)' },
+    { color: '#0e8c7a', glow: 'rgba(14,140,122,.55)'  },
+    { color: '#c07010', glow: 'rgba(192,112,16,.55)'  },
+  ];
+
+  const emojiEl  = document.getElementById('cl-emoji');
+  const badgeEl  = document.getElementById('cl-badge');
+  const textEl   = document.getElementById('cl-choice-text');
+  const labelEl  = document.getElementById('cl-label');
+
+  if (emojiEl) emojiEl.textContent = genreEmoji || '🌿';
+
+  if (_pendingChoiceIdx >= 0 && _pendingChoiceText) {
+    const c = CHOICE_COLORS[Math.min(_pendingChoiceIdx, 2)];
+    el.style.setProperty('--cl-color', c.color);
+    el.style.setProperty('--cl-glow',  c.glow);
+
+    const labels = ['①', '②', '③'];
+    if (badgeEl) {
+      badgeEl.textContent = labels[_pendingChoiceIdx] || '①';
+      badgeEl.style.display = '';
+      // Re-trigger pop animation
+      badgeEl.style.animation = 'none';
+      void badgeEl.offsetWidth;
+      badgeEl.style.animation = '';
+    }
+    if (textEl) { textEl.textContent = _pendingChoiceText; textEl.style.display = ''; }
+    if (labelEl) labelEl.textContent = 'Your story is branching…';
+  } else {
+    el.style.setProperty('--cl-color', '#7c2de8');
+    el.style.setProperty('--cl-glow',  'rgba(124,45,232,.55)');
+    if (badgeEl) badgeEl.style.display = 'none';
+    if (textEl)  textEl.style.display  = 'none';
+    if (labelEl) labelEl.textContent   = 'Starting your adventure…';
+  }
+}
 function showError(msg)  { document.getElementById('error-area').innerHTML = '<div class="err-box">' + msg + '</div>'; }
 function clearError()    { document.getElementById('error-area').innerHTML = ''; }
 
