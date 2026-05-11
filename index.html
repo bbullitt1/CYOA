@@ -2249,6 +2249,11 @@ let ttsAbortController = null;
 const ttsCache = new Map();
 const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
+let _moreWorldsOpen   = false;
+let _moreSliceIndexes = [];
+let _portalType       = null;
+let _particleAF       = null;
+
 (function boot() {
   buildLeaves();
   buildWorldGrid();
@@ -2369,9 +2374,7 @@ function buildWorldGrid() {
   startParticles();
 }
 
-// ── MORE WORLDS (show rest of the current shuffle cycle) ──
-let _moreWorldsOpen = false;
-let _moreSliceIndexes = [];
+// ── MORE WORLDS ──
 
 function toggleMoreWorlds() {
   const section = document.getElementById('more-worlds-section');
@@ -2416,8 +2419,6 @@ function shuffle(arr) {
 }
 
 // ── PORTAL ──
-let _portalType = null;
-let _particleAF = null;
 
 function openPortal(type, evt) {
   _portalType = type;
