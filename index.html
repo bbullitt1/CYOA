@@ -747,14 +747,17 @@
 
     /* Voice choice state */
     #voice-zone {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 0 22px 40px;
-      display: flex; flex-direction: column; align-items: center; gap: 0;
-      opacity: 0; pointer-events: none;
-      transform: translateY(16px);
-      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34,1.2,0.64,1);
+      width: 100%;
+      display: none; flex-direction: column; align-items: center; gap: 0;
     }
-    #voice-zone.on { opacity: 1; pointer-events: all; transform: translateY(0); }
+    #voice-zone.on {
+      display: flex;
+      animation: ss-slide-in 0.4s cubic-bezier(0.34,1.2,0.64,1) both;
+    }
+    @keyframes ss-slide-in {
+      from { opacity:0; transform:translateY(14px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
     .ss-choice-label {
       font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
       color: rgba(255,255,255,0.35); margin-bottom: 16px;
@@ -803,12 +806,14 @@
 
     /* Tap choice state */
     #btn-zone {
-      position: absolute; bottom: 0; left: 0; right: 0;
-      padding: 0 22px 40px;
-      opacity: 0; pointer-events: none; transform: translateY(16px);
-      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34,1.2,0.64,1);
+      width: 100%;
+      display: none;
     }
-    #btn-zone.on { opacity: 1; pointer-events: all; transform: translateY(0); }
+    #btn-zone.on {
+      display: block;
+      animation: ss-slide-in 0.4s cubic-bezier(0.34,1.2,0.64,1) both;
+    }
+    .ss-state-listening.hidden { display: none; }
     .ss-tap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
     .ss-tap-card {
       border-radius: 20px; padding: 18px 14px; cursor: pointer;
@@ -2459,11 +2464,15 @@ function startParticles() {
 }
 
 // ── STORY ORB ──
-let _ssOrbSize = 0;
-let _ssOrbAF   = null;
-let _ssOrbT    = 0;
-let _ssOrbHue  = 265;
-let _ssOrbPtcl = '#c084fc';
+let _ssOrbSize      = 0;
+let _ssOrbAF        = null;
+let _ssOrbT         = 0;
+let _ssOrbHue       = 265;
+let _ssOrbPtcl      = '#c084fc';
+let _ssOrbSpeaking  = false;
+let _ssAnalyser     = null;
+let _ssAnalyserData = null;
+let _ssAnalyserReady = false;
 let _ssOrbParticles = [];
 let _ssAudioScale = 1.0;
 let _ssTargetScale = 1.0;
@@ -2555,8 +2564,25 @@ function _drawStoryOrb() {
   ctx.clearRect(0, 0, S, S);
   _ssOrbT += 0.006;
 
-  // Smooth audio scale
-  _ssAudioScale += (_ssTargetScale - _ssAudioScale) * 0.12;
+  // Sample analyser when speaking, else idle at 1.0
+  if (_ssOrbSpeaking && _ssAnalyserReady && _ssAnalyser) {
+    _ssAnalyser.getByteFrequencyData(_ssAnalyserData);
+    const binCount = _ssAnalyserData.length;
+    // Focus on vocal frequencies ~80–1200 Hz
+    const nyquist = audioCtx.sampleRate / 2;
+    const binHz   = nyquist / binCount;
+    const lo = Math.max(0, Math.floor(80 / binHz));
+    const hi = Math.min(binCount - 1, Math.ceil(1200 / binHz));
+    let sum = 0;
+    for (let b = lo; b <= hi; b++) sum += _ssAnalyserData[b];
+    const avg  = sum / (hi - lo + 1);
+    const norm = Math.min(avg / 90, 1);   // 0–1
+    _ssTargetScale = 1.0 + norm * 0.20;   // 1.0 – 1.20
+  } else if (!_ssOrbSpeaking) {
+    _ssTargetScale = 1.0;
+  }
+  // Smooth toward target
+  _ssAudioScale += (_ssTargetScale - _ssAudioScale) * 0.14;
   const sc = _ssAudioScale;
   const core = document.getElementById('ss-orb-core');
   const aura = document.getElementById('ss-orb-aura');
@@ -2609,32 +2635,37 @@ function _drawStoryOrb() {
   _ssOrbAF = requestAnimationFrame(_drawStoryOrb);
 }
 
-// Animate orb when TTS is playing — pulse scale
-function setOrbSpeaking(on) {
-  if (on) {
-    _ssTargetScale = 1.0;
-    // Remove CSS breathing when JS drives it
-    document.getElementById('ss-orb-core')?.classList.remove('orb-breathe');
-    document.getElementById('ss-orb-aura')?.classList.remove('orb-breathe');
-    _pulseOrb();
-  } else {
-    _ssTargetScale = 1.0;
-    document.getElementById('ss-orb-core')?.classList.add('orb-breathe');
-    document.getElementById('ss-orb-aura')?.classList.add('orb-breathe');
-  }
+// Set up Web Audio analyser on the shared audioEl (called once)
+function _setupOrbAnalyser() {
+  if (_ssAnalyserReady) return;
+  try {
+    const el = getAudioEl();
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
+    _ssAnalyser = audioCtx.createAnalyser();
+    _ssAnalyser.fftSize = 256;
+    _ssAnalyser.smoothingTimeConstant = 0.55;
+    _ssAnalyserData = new Uint8Array(_ssAnalyser.frequencyBinCount);
+    const src = audioCtx.createMediaElementSource(el);
+    src.connect(_ssAnalyser);
+    _ssAnalyser.connect(audioCtx.destination);
+    _ssAnalyserReady = true;
+  } catch(e) {}
 }
 
-let _orbPulseTimer = null;
-function _pulseOrb() {
-  if (_orbPulseTimer) clearTimeout(_orbPulseTimer);
-  const pattern = [1.08,1.02,1.11,1.04,1.09,1.01,1.12,1.05,1.08,1.00];
-  let idx = 0;
-  function step() {
-    if (document.getElementById('ss-orb-core')?.classList.contains('orb-breathe')) return; // stopped
-    _ssTargetScale = pattern[idx % pattern.length]; idx++;
-    _orbPulseTimer = setTimeout(step, 80 + Math.random()*120);
+function setOrbSpeaking(on) {
+  _ssOrbSpeaking = on;
+  const core = document.getElementById('ss-orb-core');
+  const aura = document.getElementById('ss-orb-aura');
+  if (on) {
+    _setupOrbAnalyser();
+    core?.classList.remove('orb-breathe');
+    aura?.classList.remove('orb-breathe');
+  } else {
+    _ssTargetScale = 1.0;
+    core?.classList.add('orb-breathe');
+    aura?.classList.add('orb-breathe');
   }
-  step();
 }
 
 // ── AUTH ──
@@ -3760,6 +3791,7 @@ function showInteraction() {
       grid.style.gridTemplateColumns = '1fr 1fr';
     }
   }
+  document.querySelector('.ss-state-listening')?.classList.add('hidden');
   if (hasSR) {
     document.getElementById('voice-zone').classList.add('on');
     document.getElementById('btn-zone').classList.remove('on');
@@ -3772,6 +3804,7 @@ function showInteraction() {
 function hideInteraction() {
   document.getElementById('voice-zone').classList.remove('on');
   document.getElementById('btn-zone').classList.remove('on');
+  document.querySelector('.ss-state-listening')?.classList.remove('hidden');
   setMicState('idle');
 }
 
