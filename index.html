@@ -3435,20 +3435,27 @@ async function fetchTTSChunk(text, signal) {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
   }
+  let _ttsTimeout;
+  const _timeoutPromise = new Promise(res => { _ttsTimeout = setTimeout(() => res({ fallback: true, reason: 'timeout' }), 8000); });
   try {
-    const resp = await fetch('/speak', {
+    const _fetchPromise = fetch('/speak', {
       method: 'POST', signal,
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ text, voice: googleVoice }),
+    }).then(async resp => {
+      const data = await resp.json();
+      if (data.fallback || !data.audio) return { fallback: true, reason: data.reason };
+      ttsCache.set(cacheKey, data.audio);
+      const bin = atob(data.audio);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
     });
-    const data = await resp.json();
-    if (data.fallback || !data.audio) return { fallback: true, reason: data.reason };
-    ttsCache.set(cacheKey, data.audio);
-    const bin = atob(data.audio);
-    const bytes = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
+    const result = await Promise.race([_fetchPromise, _timeoutPromise]);
+    clearTimeout(_ttsTimeout);
+    return result;
   } catch (err) {
+    clearTimeout(_ttsTimeout);
     if (err.name === 'AbortError') return { aborted: true };
     return { fallback: true, reason: err.message };
   }
@@ -3495,7 +3502,7 @@ async function speakText(text, onDone) {
     if (myToken !== speakToken) return;
     const result = await nextFetch;
     if (myToken !== speakToken) { if (result.blobUrl) URL.revokeObjectURL(result.blobUrl); return; }
-    if (result.aborted) return;
+    if (result.aborted) { setAudioBars(false); setOrbSpeaking(false); onDone && onDone(); return; }
 
     if (result.fallback) {
       console.warn('TTS fallback:', result.reason);
@@ -3551,7 +3558,7 @@ function speakFallback(text, onDone) {
     const chunk = all[i];
     const u = new SpeechSynthesisUtterance(chunk);
     u.voice = voice; u.rate = 0.86; u.pitch = 1.05; u.volume = 1;
-    const t = setTimeout(() => { i++; next(); }, Math.max(chunk.length * 120, 4000));
+    const t = setTimeout(() => { i++; next(); }, 5000);
     u.onend  = () => { clearTimeout(t); i++; next(); };
     u.onerror = e => { clearTimeout(t); console.warn('TTS chunk error:', e.error); i++; next(); };
     speechSynthesis.speak(u);
@@ -3810,7 +3817,7 @@ async function fetchNode(onError) {
   if (result.isEnding) {
     const outcomeStr = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
     persistStory(outcomeStr, stripSSML(narration), chapter, []);
-    const safetyMs = Math.max(120000, narration.length * 120 + 30000);
+    const safetyMs = 30000;
     const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
     speakText(narration, () => {
       clearTimeout(endTimer);
@@ -3835,9 +3842,14 @@ async function fetchNode(onError) {
       };
     }
     persistStory('in_progress', stripSSML(narration), chapter, choices.slice());
-    // Narrate only — show choices after audio finishes with a brief beat
+    // Show choices after audio finishes + beat; safety timeout ensures they always appear
+    let _interacted = false;
+    const _safetyTimer = setTimeout(() => {
+      if (!_interacted) { _interacted = true; showInteraction(); }
+    }, 12000);
     speakText(stripSSML(narration), () => {
-      setTimeout(showInteraction, 1500);
+      clearTimeout(_safetyTimer);
+      if (!_interacted) { _interacted = true; setTimeout(showInteraction, 1500); }
     });
   }
 }
