@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, Pressable, StyleSheet, ScrollView,
-  Modal, Alert,
+  Modal,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,24 +22,24 @@ export default function StoryScreen() {
   const router = useRouter();
   const store  = useStoryStore();
 
-  const [phase,        setPhase]        = useState<StoryPhase>('loading');
-  const [narration,    setNarration]    = useState('');
-  const [chapter,      setChapter]      = useState('');
-  const [choices,      setChoices]      = useState<string[]>([]);
-  const [ending,       setEnding]       = useState<{ isFailure: boolean; isMoralLesson: boolean } | null>(null);
-  const [errorMsg,     setErrorMsg]     = useState('');
-  const [useVoice,     setUseVoice]     = useState(true);
-  const [showText,     setShowText]     = useState(false);
-  const [pendingChoice, setPendingChoice] = useState<{ idx: number; text: string } | null>(null);
+  const [phase,         setPhase]        = useState<StoryPhase>('loading');
+  const [narration,     setNarration]    = useState('');
+  const [choices,       setChoices]      = useState<string[]>([]);
+  const [ending,        setEnding]       = useState<{ isFailure: boolean; isMoralLesson: boolean } | null>(null);
+  const [errorMsg,      setErrorMsg]     = useState('');
+  const [useVoice,      setUseVoice]     = useState(true);
+  const [showText,      setShowText]     = useState(false);
+  const [pendingChoice, setPendingChoice]= useState<{ idx: number; text: string } | null>(null);
+  const [isSpeaking,    setIsSpeaking]   = useState(false);
 
-  const [isSpeaking,  setIsSpeaking]   = useState(false);
+  const beatTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const audio = useStoryAudio((speaking) => setIsSpeaking(speaking));
 
   const onVoiceResult = useCallback((idx: number) => {
     engine.makeChoice(idx);
     setPendingChoice({ idx, text: choices[idx] });
-  }, [choices]);
+  }, [choices]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const voice = useVoiceRecognition(onVoiceResult);
 
@@ -48,21 +48,10 @@ export default function StoryScreen() {
       setPhase(p);
       if (p !== 'narrating' && p !== 'loading') setPendingChoice(null);
     },
-    (t) => {
-      setNarration(t);
-      store.setCurrentNarration(t);
-    },
-    (t) => {
-      setChapter(t);
-      store.setCurrentChapter(t);
-    },
-    (c) => {
-      setChoices(c);
-      store.setChoices(c);
-    },
-    (e) => {
-      setEnding(e);
-    },
+    (t) => { setNarration(t); store.setCurrentNarration(t); },
+    (t) => { store.setCurrentChapter(t); },  // track chapter for store only (not displayed)
+    (c) => { setChoices(c); store.setChoices(c); },
+    (e) => { setEnding(e); },
     setErrorMsg,
   );
 
@@ -71,30 +60,32 @@ export default function StoryScreen() {
     engine.startStory();
     return () => {
       audio.stopAll();
+      if (beatTimerRef.current) clearTimeout(beatTimerRef.current);
     };
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // When narration arrives, speak it then show choices / ending
+  // When narration arrives, speak it — show choices/ending only after audio finishes + beat
   useEffect(() => {
     if (phase !== 'narrating' || !narration) return;
-
     const plainText = stripSSML(narration);
     if (!plainText) return;
 
     const afterSpeaking = () => {
-      if (ending) {
-        // Navigate to ending screen
-        router.push('/(main)/ending');
-      } else if (choices.length >= 2) {
-        setPhase('choosing');
-      }
+      // 1.5-second beat before showing choices / transitioning to ending
+      beatTimerRef.current = setTimeout(() => {
+        if (ending) {
+          router.push('/(main)/ending');
+        } else if (choices.length >= 2) {
+          setPhase('choosing');
+        }
+      }, 1500);
     };
 
     audio.playNarration(narration, afterSpeaking);
-  }, [phase, narration]);
+  }, [phase, narration]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // When ending navigates, stop audio
   const handleMakeChoice = useCallback((idx: number) => {
+    if (beatTimerRef.current) { clearTimeout(beatTimerRef.current); beatTimerRef.current = null; }
     setPendingChoice({ idx, text: choices[idx] });
     audio.stopAll();
     engine.makeChoice(idx);
@@ -114,15 +105,15 @@ export default function StoryScreen() {
   return (
     <SafeAreaView style={styles.bg} edges={['top', 'bottom']}>
 
-      {/* Top bar */}
+      {/* Top bar — world title only, no chapter names */}
       <View style={styles.topBar}>
         <Pressable onPress={() => { audio.stopAll(); router.back(); }} style={styles.backBtn}>
           <Text style={styles.backText}>← Back</Text>
         </Pressable>
 
-        <View style={styles.chapterPill}>
-          <Text style={styles.chapterEmoji}>{selectedType?.e ?? '🌿'}</Text>
-          <Text style={styles.chapterTitle} numberOfLines={1}>{chapter || selectedType?.n}</Text>
+        <View style={styles.titlePill}>
+          <Text style={styles.titleEmoji}>{selectedType?.e ?? '🌿'}</Text>
+          <Text style={styles.titleText} numberOfLines={1}>{selectedType?.n ?? ''}</Text>
         </View>
 
         <ProgressDots current={store.nodeCount} />
@@ -131,7 +122,6 @@ export default function StoryScreen() {
       {/* Main content area */}
       <View style={styles.main}>
 
-        {/* Loading / branching state */}
         {phase === 'loading' && (
           <View style={styles.centered}>
             <LoadingOrb
@@ -142,14 +132,12 @@ export default function StoryScreen() {
           </View>
         )}
 
-        {/* Story orb — visible during narrating & choosing */}
         {(phase === 'narrating' || phase === 'choosing') && (
           <View style={styles.orbZone}>
             <StoryOrb isSpeaking={isSpeaking} color={accentColor} size={200} />
           </View>
         )}
 
-        {/* Error */}
         {phase === 'error' && (
           <View style={styles.centered}>
             <Text style={styles.errorText}>{errorMsg || 'Something went wrong.'}</Text>
@@ -164,28 +152,22 @@ export default function StoryScreen() {
       {phase !== 'loading' && (
         <View style={styles.bottomPanel}>
 
-          {/* Playback controls — always shown when narration available */}
+          {/* Spotify-style audio scrubber — always shown when narration available */}
           {narration !== '' && (
             <PlaybackControls
               isSpeaking={isSpeaking}
               isPaused={audio.isPaused}
+              duration={audio.duration}
+              position={audio.position}
               onSeekBack={audio.seekBack10s}
               onPause={audio.pauseToggle}
               onReplay={audio.replayLast}
+              onSeekTo={audio.seekTo}
               showReplay={!!narration}
             />
           )}
 
-          {/* Status */}
-          <Text style={styles.statusText}>
-            {phase === 'narrating' && isSpeaking  ? 'Listening to story…'
-           : phase === 'narrating' && !isSpeaking ? 'Getting ready…'
-           : phase === 'choosing'  && useVoice    ? 'Tap the mic and choose'
-           : phase === 'choosing'                 ? 'Choose your path'
-           : ''}
-          </Text>
-
-          {/* Voice zone */}
+          {/* Voice zone — only after audio concludes (choosing phase) */}
           {phase === 'choosing' && useVoice && (
             <VoiceButton
               isListening={voice.isListening}
@@ -194,7 +176,7 @@ export default function StoryScreen() {
             />
           )}
 
-          {/* Tap zone */}
+          {/* Tap zone — only after audio concludes (choosing phase) */}
           {phase === 'choosing' && !useVoice && (
             <View style={styles.tapZone}>
               <ChoiceCards choices={choices} onChoice={handleMakeChoice} />
@@ -204,7 +186,7 @@ export default function StoryScreen() {
             </View>
           )}
 
-          {/* Show text button */}
+          {/* Show text */}
           {narration !== '' && (
             <Pressable onPress={() => setShowText(true)} style={styles.showTextBtn}>
               <Text style={styles.showTextBtnText}>Show text</Text>
@@ -230,13 +212,13 @@ export default function StoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  bg:          { flex: 1, backgroundColor: Colors.bgStory },
+  bg:      { flex: 1, backgroundColor: Colors.bgStory },
   topBar: {
-    flexDirection:   'row',
-    alignItems:      'center',
+    flexDirection:     'row',
+    alignItems:        'center',
     paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    gap:             Spacing.sm,
+    paddingVertical:   Spacing.sm,
+    gap:               Spacing.sm,
   },
   backBtn: {
     paddingVertical:   6,
@@ -247,18 +229,18 @@ const styles = StyleSheet.create({
     color:      Colors.textSoft,
     fontFamily: FontFamily.body,
   },
-  chapterPill: {
-    flex:           1,
-    flexDirection:  'row',
-    alignItems:     'center',
-    gap:            6,
+  titlePill: {
+    flex:            1,
+    flexDirection:   'row',
+    alignItems:      'center',
+    gap:             6,
     backgroundColor: Colors.surface,
-    borderRadius:   Radius.full,
+    borderRadius:    Radius.full,
     paddingVertical: 6,
     paddingHorizontal: Spacing.md,
   },
-  chapterEmoji: { fontSize: 18 },
-  chapterTitle: {
+  titleEmoji: { fontSize: 18 },
+  titleText: {
     flex:       1,
     fontSize:   14,
     fontFamily: FontFamily.bodyBold,
@@ -286,29 +268,18 @@ const styles = StyleSheet.create({
     gap:               Spacing.md,
     alignItems:        'center',
   },
-  statusText: {
-    fontSize:      11,
-    letterSpacing: 1.5,
-    color:         Colors.textMuted,
-    fontFamily:    FontFamily.bodyBold,
-    textTransform: 'uppercase',
-  },
   tapZone: {
-    width: '100%',
-    gap:   Spacing.sm,
+    width:      '100%',
+    gap:        Spacing.sm,
     alignItems: 'center',
   },
-  useVoiceBtn: {
-    paddingVertical: 8,
-  },
+  useVoiceBtn: { paddingVertical: 8 },
   useVoiceText: {
     fontSize:   14,
     color:      Colors.accent,
     fontFamily: FontFamily.body,
   },
-  showTextBtn: {
-    paddingVertical: 4,
-  },
+  showTextBtn:     { paddingVertical: 4 },
   showTextBtnText: {
     fontSize:   13,
     color:      Colors.textMuted,
@@ -321,9 +292,9 @@ const styles = StyleSheet.create({
     textAlign:  'center',
   },
   retryBtn: {
-    backgroundColor: Colors.accentDim,
-    borderRadius:    Radius.md,
-    paddingVertical: Spacing.sm,
+    backgroundColor:   Colors.accentDim,
+    borderRadius:      Radius.md,
+    paddingVertical:   Spacing.sm,
     paddingHorizontal: Spacing.lg,
   },
   retryText: {
@@ -338,7 +309,7 @@ const styles = StyleSheet.create({
     justifyContent:  'center',
   },
   overlayContent: {
-    flexGrow: 1,
+    flexGrow:       1,
     justifyContent: 'center',
   },
   narrationText: {
@@ -347,10 +318,7 @@ const styles = StyleSheet.create({
     color:      Colors.text,
     fontFamily: FontFamily.body,
   },
-  closeBtn: {
-    marginTop:       Spacing.xl,
-    alignItems:      'center',
-  },
+  closeBtn:     { marginTop: Spacing.xl, alignItems: 'center' },
   closeBtnText: {
     fontSize:   16,
     color:      Colors.accent,

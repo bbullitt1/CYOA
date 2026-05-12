@@ -20,6 +20,7 @@ interface StoryState {
   currentNarration:string;
   currentChapter:  string;
   currentStoryId:  string | null;
+  endingOutcome:   'victory' | 'failure' | 'lesson' | null;
 
   setSelectedType:     (t: StoryType | null) => void;
   setStoryHistory:     (h: Message[]) => void;
@@ -31,6 +32,7 @@ interface StoryState {
   setCurrentNarration: (s: string) => void;
   setCurrentChapter:   (s: string) => void;
   setCurrentStoryId:   (id: string | null) => void;
+  setEndingOutcome:    (o: 'victory' | 'failure' | 'lesson' | null) => void;
   resetStory:          () => void;
 }
 
@@ -42,6 +44,7 @@ const STORY_DEFAULTS = {
   currentNarration: '',
   currentChapter:   '',
   currentStoryId:   null as string | null,
+  endingOutcome:    null as ('victory' | 'failure' | 'lesson' | null),
 };
 
 export const useStoryStore = create<StoryState>((set) => ({
@@ -58,5 +61,6 @@ export const useStoryStore = create<StoryState>((set) => ({
   setCurrentNarration: (s)  => set({ currentNarration: s }),
   setCurrentChapter:   (s)  => set({ currentChapter: s }),
   setCurrentStoryId:   (id) => set({ currentStoryId: id }),
+  setEndingOutcome:    (o)  => set({ endingOutcome: o }),
   resetStory:          ()   => set(STORY_DEFAULTS),
 }));

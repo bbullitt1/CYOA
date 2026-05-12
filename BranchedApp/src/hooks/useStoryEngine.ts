@@ -75,6 +75,7 @@ export function useStoryEngine(
 
     if (safeIsEnding) {
       const outcome = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
+      store.setEndingOutcome(outcome);
       setPhase('narrating');
       setEnding({ isFailure, isMoralLesson });
 

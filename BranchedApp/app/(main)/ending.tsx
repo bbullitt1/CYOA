@@ -12,15 +12,9 @@ import { Colors, FontFamily, Radius, Spacing } from '../../src/constants/theme';
 // We read from the store directly since this is always reached via navigation
 export default function EndingScreen() {
   const router = useRouter();
-  const { selectedType, choiceLog, nodeCount } = useStoryStore();
-
-  // Determine ending type from the last choiceLog entry context
-  // The story.tsx pushes ending info to storyStore before navigating here.
-  // We store ending type in the store's currentChapter field as a sentinel:
-  // "ENDING:victory" / "ENDING:failure" / "ENDING:lesson"
-  const { currentChapter } = useStoryStore();
-  const isFailure     = currentChapter.includes('ENDING:failure');
-  const isMoralLesson = currentChapter.includes('ENDING:lesson');
+  const { selectedType, choiceLog, nodeCount, endingOutcome } = useStoryStore();
+  const isFailure     = endingOutcome === 'failure';
+  const isMoralLesson = endingOutcome === 'lesson';
   const outcome       = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
 
   const badges = selectedType ? (GENRE_BADGES[selectedType.gn] ?? GENRE_BADGES['Fantasy Quest']) : [];
@@ -95,7 +89,7 @@ export default function EndingScreen() {
         <View style={styles.actions}>
           <Pressable onPress={handlePlayAgain} style={styles.primaryBtn}>
             <Text style={styles.primaryBtnText}>
-              {outcome === 'victory' ? '🌟 New adventure' : '🔄 Try a new story'}
+              {outcome === 'victory' ? '🌟 Start a new adventure' : '🔄 Try a new story'}
             </Text>
           </Pressable>
 

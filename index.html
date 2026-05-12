@@ -650,14 +650,22 @@
       white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
       margin-bottom: 0;
     }
-    .ss-progress { display: flex; gap: 5px; flex-shrink: 0; }
+    .ss-progress { display: flex; gap: 7px; flex-shrink: 0; align-items: center; }
     .prog-dot {
-      width: 5px; height: 5px; border-radius: 50%;
+      width: 8px; height: 8px; border-radius: 50%;
       background: rgba(255,255,255,0.18); transition: all 0.4s;
     }
-    .prog-dot.done { background: var(--sc3); opacity: 0.7; }
-    .prog-dot.active { background: white; transform: scale(1.4); animation: dotPop .4s ease; }
-    @keyframes dotPop { 0%{transform:scale(.4)} 70%{transform:scale(1.8)} 100%{transform:scale(1.4)} }
+    .prog-dot.done { background: var(--sc3); opacity: 0.65; }
+    .prog-dot.active {
+      width: 13px; height: 13px; background: white;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.15);
+      animation: dotPop .4s ease, dotGlow 1.8s ease-in-out .4s infinite;
+    }
+    @keyframes dotPop  { 0%{transform:scale(.3)} 70%{transform:scale(1.5)} 100%{transform:scale(1)} }
+    @keyframes dotGlow {
+      0%,100%{ box-shadow: 0 0 0 3px rgba(255,255,255,0.15), 0 0 8px var(--sc3); }
+      50%    { box-shadow: 0 0 0 5px rgba(255,255,255,0.25), 0 0 18px var(--sc3); }
+    }
 
     /* Orb zone */
     .ss-orb-zone {
@@ -771,11 +779,36 @@
       width: 100%;
     }
     .ss-playback-row {
-      display: flex; align-items: center; gap: 8px;
-      opacity: 0.28; transition: opacity 0.4s;
+      display: flex; flex-direction: column; align-items: center; gap: 8px;
+      width: 100%; opacity: 0.25; transition: opacity 0.4s;
     }
-    .ss-playback-row.on { opacity: 0.85; }
-    .ss-playback-row:hover { opacity: 0.95; }
+    .ss-playback-row.on { opacity: 1; }
+    /* Spotify-style scrubber */
+    .ss-scrubber-wrap {
+      width: 100%; padding: 8px 0; cursor: pointer; position: relative;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+    }
+    .ss-scrubber-track {
+      position: relative; height: 3px;
+      background: rgba(255,255,255,0.15); border-radius: 2px; overflow: visible;
+    }
+    .ss-scrubber-fill {
+      position: absolute; top: 0; left: 0; height: 100%; width: 0%;
+      background: var(--sc3, rgba(192,132,252,1)); border-radius: 2px;
+      pointer-events: none;
+    }
+    .ss-scrubber-dot {
+      position: absolute; top: 50%; left: 0%;
+      transform: translate(-50%, -50%);
+      width: 13px; height: 13px; border-radius: 50%;
+      background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.45);
+      pointer-events: none; transition: transform 0.15s ease;
+    }
+    .ss-scrubber-wrap:hover .ss-scrubber-dot { transform: translate(-50%,-50%) scale(1.35); }
+    /* Controls row below scrubber */
+    .ss-ctrl-row {
+      display: flex; align-items: center; justify-content: center; gap: 14px;
+    }
     .ss-ctrl-btn {
       background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 100px; padding: 7px 14px;
@@ -784,10 +817,16 @@
       touch-action: manipulation;
     }
     .ss-ctrl-btn:active { background: rgba(255,255,255,0.14); }
+    .ss-ctrl-playpause {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; padding: 0;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+    }
     .ss-show-text {
       background: none; border: none;
       font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700;
-      color: rgba(255,255,255,0.35); cursor: pointer;
+      color: rgba(255,255,255,0.3); cursor: pointer;
       letter-spacing: 0.08em; text-transform: uppercase;
       padding: 6px 10px; transition: color 0.2s;
       visibility: hidden;
@@ -797,20 +836,14 @@
       display: none;
       background: rgba(255,255,255,0.07);
       border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 100px; padding: 9px 20px;
-      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
-      color: rgba(255,255,255,0.7); cursor: pointer;
+      border-radius: 100px; padding: 7px 16px;
+      font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
+      color: rgba(255,255,255,0.6); cursor: pointer;
       touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-      transition: background 0.2s, opacity 0.3s;
-      animation: cl-rise 0.35s ease both;
+      transition: background 0.2s;
     }
     .ss-replay-btn.visible { display: block; }
     .ss-replay-btn:active { background: rgba(255,255,255,0.15); }
-
-    .ss-now-playing {
-      font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
-      color: rgba(255,255,255,0.2);
-    }
 
     /* Voice choice state */
     #voice-zone {
@@ -2017,16 +2050,22 @@
     <div class="ss-bottom-panel">
       <div class="ss-state-listening">
         <div class="ss-playback-row" id="audio-controls">
-          <button class="ss-ctrl-btn" onclick="audioGoBack()">⏪ 10s</button>
-          <button class="ss-ctrl-btn" id="pause-btn" onclick="audioPauseToggle()">⏸ Pause</button>
-          <button class="ss-show-text" id="show-text-btn" onclick="toggleNarrationText()">Show text</button>
+          <div class="ss-scrubber-wrap" id="audio-scrubber" onclick="audioScrubberSeek(event)">
+            <div class="ss-scrubber-track">
+              <div class="ss-scrubber-fill" id="scrubber-fill"></div>
+              <div class="ss-scrubber-dot" id="scrubber-dot"></div>
+            </div>
+          </div>
+          <div class="ss-ctrl-row">
+            <button class="ss-ctrl-btn" onclick="audioGoBack()">⏪ 10s</button>
+            <button class="ss-ctrl-btn ss-ctrl-playpause" id="pause-btn" onclick="audioPauseToggle()">⏸</button>
+            <button class="ss-replay-btn" id="replay-btn" onclick="replayAudio()">↺ Replay</button>
+          </div>
         </div>
-        <button class="ss-replay-btn" id="replay-btn" onclick="replayAudio()">🔊 Replay audio</button>
-        <div class="ss-now-playing" id="narrator-state">Listening…</div>
+        <button class="ss-show-text" id="show-text-btn" onclick="toggleNarrationText()">Show text</button>
       </div>
 
       <div id="voice-zone">
-        <div class="ss-choice-label">What do you choose?</div>
         <button class="ss-voice-btn" id="ss-voice-btn" onclick="onMicTap()">
           <div class="ss-wave">
             <div class="ss-wave-bar"></div><div class="ss-wave-bar"></div>
@@ -2568,9 +2607,11 @@ function setStoryWorld(type) {
       amb.style.background = 'radial-gradient(ellipse 100% 60% at 50% 100%,#1a0840 0%,#06040e 65%)';
     }
   }
-  // Chapter emoji
-  const emojiEl = document.getElementById('ss-chapter-emoji');
+  // World name + emoji in top bar
+  const emojiEl   = document.getElementById('ss-chapter-emoji');
+  const titleEl   = document.getElementById('chapter-title');
   if (emojiEl) emojiEl.textContent = type.e || '🧙';
+  if (titleEl) titleEl.textContent = type.n || '';
   // Orb colors — derive hue from particle color hex
   _ssOrbPtcl = type.ptcl || type.ac || '#c084fc';
   _ssOrbHue  = hexToHue(_ssOrbPtcl) || 265;
@@ -3420,19 +3461,33 @@ function playChunk(blobUrl, myToken) {
     el.muted = false; el.loop = false; el.volume = 1;
     if (el._blobUrl) { URL.revokeObjectURL(el._blobUrl); }
     el._blobUrl = blobUrl; el.src = blobUrl;
+
+    let started = false;
     const done = () => {
       URL.revokeObjectURL(blobUrl); el._blobUrl = null;
-      el.onended = null; el.onerror = null; resolve();
+      el.onended = null; el.onerror = null; el.oncanplaythrough = null;
+      resolve();
     };
     el.onended = done;
     el.onerror = () => { console.warn('Audio error:', el.error && el.error.code); done(); };
-    // Resume AudioContext first — iOS suspends it during idle periods, causing near-silent playback
-    const resumeAndPlay = () => el.play().catch(e => { console.warn('play() rejected:', e.name); done(); });
-    if (audioCtx && audioCtx.state === 'suspended') {
-      audioCtx.resume().then(resumeAndPlay).catch(resumeAndPlay);
-    } else {
-      resumeAndPlay();
-    }
+
+    const resumeAndPlay = () => {
+      if (started) return; started = true;
+      el.oncanplaythrough = null;
+      const doPlay = () => el.play().catch(e => { console.warn('play() rejected:', e.name); done(); });
+      // Resume AudioContext first — iOS suspends it during idle periods
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().then(doPlay).catch(doPlay);
+      } else {
+        doPlay();
+      }
+    };
+
+    // Wait for enough data before playing to avoid mid-word cut-ins
+    el.oncanplaythrough = resumeAndPlay;
+    el.load();
+    // Fallback: some browsers may not fire canplaythrough for blob URLs
+    setTimeout(resumeAndPlay, 400);
   });
 }
 
@@ -3521,36 +3576,65 @@ function speakFallback(text, onDone) {
 let audioPaused = false;
 
 function setAudioBars(on) {
-  document.getElementById('audio-mic')?.classList.toggle('on', on);
   const ac = document.getElementById('audio-controls');
   if (ac) ac.classList.toggle('on', on);
-  const ns = document.getElementById('narrator-state');
   if (on) {
-    if (ns) ns.textContent = 'Listening to story…';
+    startScrubber();
   } else {
+    stopScrubber();
     audioPaused = false;
-    document.getElementById('audio-mic')?.classList.remove('paused');
     const pb = document.getElementById('pause-btn');
-    if (pb) pb.textContent = '⏸ Pause';
-    if (ns) ns.textContent = 'Tap the mic and choose';
+    if (pb) pb.textContent = '⏸';
   }
+}
+
+let _scrubAF = null;
+
+function startScrubber() {
+  if (_scrubAF) cancelAnimationFrame(_scrubAF);
+  function tick() {
+    const el   = audioEl;
+    const fill = document.getElementById('scrubber-fill');
+    const dot  = document.getElementById('scrubber-dot');
+    if (el && fill && dot && el.duration > 0 && isFinite(el.duration)) {
+      const pct = Math.min(100, Math.max(0, (el.currentTime / el.duration) * 100));
+      fill.style.width = pct + '%';
+      dot.style.left   = pct + '%';
+    }
+    _scrubAF = requestAnimationFrame(tick);
+  }
+  tick();
+}
+
+function stopScrubber() {
+  if (_scrubAF) { cancelAnimationFrame(_scrubAF); _scrubAF = null; }
+  const fill = document.getElementById('scrubber-fill');
+  const dot  = document.getElementById('scrubber-dot');
+  if (fill) fill.style.width = '0%';
+  if (dot)  dot.style.left   = '0%';
+}
+
+function audioScrubberSeek(e) {
+  if (!audioEl || !audioEl.duration || !isFinite(audioEl.duration)) return;
+  const track = document.getElementById('audio-scrubber');
+  if (!track) return;
+  const rect = track.getBoundingClientRect();
+  const pct  = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+  audioEl.currentTime = pct * audioEl.duration;
 }
 
 function audioPauseToggle() {
   const el = audioEl;
   if (!el) return;
   const pb = document.getElementById('pause-btn');
-  const mic = document.getElementById('audio-mic');
   if (audioPaused) {
     audioPaused = false;
     el.play().catch(() => {});
-    mic?.classList.remove('paused');
-    if (pb) pb.textContent = '⏸ Pause';
+    if (pb) pb.textContent = '⏸';
   } else {
     audioPaused = true;
     el.pause();
-    mic?.classList.add('paused');
-    if (pb) pb.textContent = '▶ Resume';
+    if (pb) pb.textContent = '▶';
   }
 }
 
@@ -3561,9 +3645,8 @@ function audioGoBack() {
   if (audioPaused) {
     audioPaused = false;
     el.play().catch(() => {});
-    document.getElementById('audio-mic')?.classList.remove('paused');
     const pb = document.getElementById('pause-btn');
-    if (pb) pb.textContent = '⏸ Pause';
+    if (pb) pb.textContent = '⏸';
   }
 }
 
@@ -3745,12 +3828,15 @@ async function fetchNode(onError) {
     const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
     speakText(narration, () => {
       clearTimeout(endTimer);
-      showEnding(isFailure, isMoralLesson);
-      if (!isMoralLesson) {
-        speakText(isFailure
-          ? 'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
-          : 'You did it! Nice choices, Adventurer. Start a new Story Branch or go back to the same story and make some different choices.');
-      }
+      // Beat — let the moment breathe before revealing the ending
+      setTimeout(() => {
+        showEnding(isFailure, isMoralLesson);
+        if (!isMoralLesson) {
+          speakText(isFailure
+            ? 'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
+            : 'You did it! Nice choices, Adventurer. Start a new Story Branch or go back to the same story and make some different choices.');
+        }
+      }, 1500);
     });
   } else {
     const raw = result.choices;
@@ -3762,12 +3848,11 @@ async function fetchNode(onError) {
         history: storyHistory.slice(),
       };
     }
-    showInteraction();
     persistStory('in_progress', stripSSML(narration), chapter, choices.slice());
-    const choiceSuffix = choices.length === 3
-      ? ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
-      : ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
-    speakText(stripSSML(narration) + choiceSuffix);
+    // Narrate only — show choices after audio finishes with a brief beat
+    speakText(stripSSML(narration), () => {
+      setTimeout(showInteraction, 1500);
+    });
   }
 }
 
@@ -3840,20 +3925,20 @@ function replayAudio() {
   if (!_currentNarration) return;
   unlockAudio();
   cancelAudio();
-  // Resume AudioContext in case it was suspended
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-  const afterNarration = () => {
-    if (choices.length >= 2) {
-      showInteraction();
-      speakText('Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
-    }
-  };
-  speakText(_currentNarration, afterNarration);
+  hideInteraction();
+  speakText(_currentNarration, () => {
+    if (choices.length >= 2) setTimeout(showInteraction, 1500);
+  });
 }
 function toggleNarrationText() {
   document.getElementById('text-overlay').classList.toggle('visible');
 }
-function setChapter(t)  { document.getElementById('chapter-title').textContent = t; }
+function setChapter(t)  {
+  // Show the world/genre name instead of chapter names
+  const el = document.getElementById('chapter-title');
+  if (el) el.textContent = genreName || t;
+}
 function setLoading(on) {
   const el = document.getElementById('loading');
   el.classList.toggle('on', on);
@@ -4023,7 +4108,7 @@ function showEnding(isFailure, isMoralLesson) {
     confetti.textContent = '🍃 🌟 🍀 🌟 🍃';
     title.textContent = 'You Did It, Hero!';
     sub.textContent = 'What an incredible adventure. You were brave, clever, and completely brilliant!';
-    btn.textContent = '🌿 New Adventure!'; btn.className = 'btn-end-primary win';
+    btn.textContent = '🌿 Start a new adventure'; btn.className = 'btn-end-primary win';
     const badges = GENRE_BADGES[storyGenre] || ['🌟 Story Hero', '🏆 Adventure Master', '✨ Quest Complete'];
     const row = document.getElementById('badge-row'); row.innerHTML = '';
     badges.forEach(b => {
