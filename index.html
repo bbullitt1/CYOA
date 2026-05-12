@@ -3461,33 +3461,19 @@ function playChunk(blobUrl, myToken) {
     el.muted = false; el.loop = false; el.volume = 1;
     if (el._blobUrl) { URL.revokeObjectURL(el._blobUrl); }
     el._blobUrl = blobUrl; el.src = blobUrl;
-
-    let started = false;
     const done = () => {
       URL.revokeObjectURL(blobUrl); el._blobUrl = null;
-      el.onended = null; el.onerror = null; el.oncanplaythrough = null;
-      resolve();
+      el.onended = null; el.onerror = null; resolve();
     };
     el.onended = done;
     el.onerror = () => { console.warn('Audio error:', el.error && el.error.code); done(); };
-
-    const resumeAndPlay = () => {
-      if (started) return; started = true;
-      el.oncanplaythrough = null;
-      const doPlay = () => el.play().catch(e => { console.warn('play() rejected:', e.name); done(); });
-      // Resume AudioContext first — iOS suspends it during idle periods
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume().then(doPlay).catch(doPlay);
-      } else {
-        doPlay();
-      }
-    };
-
-    // Wait for enough data before playing to avoid mid-word cut-ins
-    el.oncanplaythrough = resumeAndPlay;
-    el.load();
-    // Fallback: some browsers may not fire canplaythrough for blob URLs
-    setTimeout(resumeAndPlay, 400);
+    // Resume AudioContext first — iOS suspends it during idle periods, causing near-silent playback
+    const resumeAndPlay = () => el.play().catch(e => { console.warn('play() rejected:', e.name); done(); });
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().then(resumeAndPlay).catch(resumeAndPlay);
+    } else {
+      resumeAndPlay();
+    }
   });
 }
 

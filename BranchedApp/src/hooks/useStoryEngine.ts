@@ -102,6 +102,7 @@ export function useStoryEngine(
         }).catch(() => {});
       }
     } else {
+      setChoices(choices);
       store.setChoices(choices);
       setPhase('narrating');
     }
