@@ -3524,11 +3524,15 @@ function setAudioBars(on) {
   document.getElementById('audio-mic')?.classList.toggle('on', on);
   const ac = document.getElementById('audio-controls');
   if (ac) ac.classList.toggle('on', on);
-  if (!on) {
+  const ns = document.getElementById('narrator-state');
+  if (on) {
+    if (ns) ns.textContent = 'Listening to story…';
+  } else {
     audioPaused = false;
     document.getElementById('audio-mic')?.classList.remove('paused');
     const pb = document.getElementById('pause-btn');
     if (pb) pb.textContent = '⏸ Pause';
+    if (ns) ns.textContent = 'Tap the mic and choose';
   }
 }
 
@@ -3853,6 +3857,7 @@ function setChapter(t)  { document.getElementById('chapter-title').textContent =
 function setLoading(on) {
   const el = document.getElementById('loading');
   el.classList.toggle('on', on);
+  document.querySelector('.ss-state-listening')?.classList.toggle('hidden', on);
   if (!on) { _pendingChoiceIdx = -1; _pendingChoiceText = ''; return; }
 
   const CHOICE_COLORS = [
@@ -3939,7 +3944,6 @@ function showInteraction() {
       grid.style.gridTemplateColumns = '1fr 1fr';
     }
   }
-  document.querySelector('.ss-state-listening')?.classList.add('hidden');
   if (hasSR) {
     document.getElementById('voice-zone').classList.add('on');
     document.getElementById('btn-zone').classList.remove('on');
@@ -3952,7 +3956,6 @@ function showInteraction() {
 function hideInteraction() {
   document.getElementById('voice-zone').classList.remove('on');
   document.getElementById('btn-zone').classList.remove('on');
-  document.querySelector('.ss-state-listening')?.classList.remove('hidden');
   setMicState('idle');
 }
 
