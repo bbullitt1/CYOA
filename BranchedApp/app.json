@@ -1,0 +1,47 @@
+{
+  "expo": {
+    "name": "Branched",
+    "slug": "branched",
+    "version": "1.0.0",
+    "scheme": "branched",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "ios": {
+      "bundleIdentifier": "com.branchedstory.app",
+      "supportsTablet": false,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Branched uses your microphone so you can say your story choices out loud.",
+        "NSSpeechRecognitionUsageDescription": "Branched listens for your story choices to make the adventure hands-free.",
+        "UIBackgroundModes": ["audio"]
+      }
+    },
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#06040e"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Branched uses your microphone so you can say your story choices out loud.",
+          "speechRecognitionPermission": "Branched listens for your story choices to make the adventure hands-free."
+        }
+      ],
+      [
+        "expo-av",
+        {
+          "microphonePermission": false
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
