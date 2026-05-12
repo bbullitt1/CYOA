@@ -652,18 +652,12 @@
     }
     .ss-progress { display: flex; gap: 5px; flex-shrink: 0; }
     .prog-dot {
-      width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-      background: rgba(255,255,255,0.18); transition: background 0.4s, width 0.4s, height 0.4s;
+      width: 5px; height: 5px; border-radius: 50%;
+      background: rgba(255,255,255,0.18); transition: all 0.4s;
     }
     .prog-dot.done { background: var(--sc3); opacity: 0.7; }
-    .prog-dot.active {
-      width: 13px; height: 13px; background: white;
-      animation: dotGlow 1.4s ease-in-out infinite;
-    }
-    @keyframes dotGlow {
-      0%,100% { box-shadow: 0 0 4px 2px rgba(255,255,255,0.35), 0 0 8px 3px var(--sc3); }
-      50%      { box-shadow: 0 0 8px 4px rgba(255,255,255,0.6),  0 0 18px 7px var(--sc3); }
-    }
+    .prog-dot.active { background: white; transform: scale(1.4); animation: dotPop .4s ease; }
+    @keyframes dotPop { 0%{transform:scale(.4)} 70%{transform:scale(1.8)} 100%{transform:scale(1.4)} }
 
     /* Orb zone */
     .ss-orb-zone {
@@ -777,36 +771,11 @@
       width: 100%;
     }
     .ss-playback-row {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      width: 100%; opacity: 0.28; transition: opacity 0.4s;
+      display: flex; align-items: center; gap: 8px;
+      opacity: 0.28; transition: opacity 0.4s;
     }
-    .ss-playback-row.on { opacity: 1; }
-    /* Spotify-style scrubber */
-    .ss-scrubber-wrap {
-      width: 100%; padding: 8px 0; cursor: pointer; position: relative;
-      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-    }
-    .ss-scrubber-track {
-      position: relative; height: 3px;
-      background: rgba(255,255,255,0.15); border-radius: 2px; overflow: visible;
-    }
-    .ss-scrubber-fill {
-      position: absolute; top: 0; left: 0; height: 100%; width: 0%;
-      background: var(--sc3, rgba(192,132,252,1)); border-radius: 2px;
-      pointer-events: none;
-    }
-    .ss-scrubber-dot {
-      position: absolute; top: 50%; left: 0%;
-      transform: translate(-50%, -50%);
-      width: 13px; height: 13px; border-radius: 50%;
-      background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.45);
-      pointer-events: none; transition: transform 0.15s ease;
-    }
-    .ss-scrubber-wrap:hover .ss-scrubber-dot { transform: translate(-50%,-50%) scale(1.35); }
-    /* Controls row below scrubber */
-    .ss-ctrl-row {
-      display: flex; align-items: center; justify-content: center; gap: 14px;
-    }
+    .ss-playback-row.on { opacity: 0.85; }
+    .ss-playback-row:hover { opacity: 0.95; }
     .ss-ctrl-btn {
       background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 100px; padding: 7px 14px;
@@ -815,22 +784,6 @@
       touch-action: manipulation;
     }
     .ss-ctrl-btn:active { background: rgba(255,255,255,0.14); }
-    .ss-ctrl-playpause {
-      width: 42px; height: 42px; border-radius: 50%; padding: 0;
-      display: flex; align-items: center; justify-content: center; font-size: 17px;
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-    }
-    .ss-replay-btn {
-      visibility: hidden;
-      background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 100px; padding: 7px 14px;
-      font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700;
-      color: rgba(255,255,255,0.8); cursor: pointer; display: flex; align-items: center; gap: 5px;
-      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
-      transition: background 0.2s;
-    }
-    .ss-replay-btn.visible { visibility: visible; }
-    .ss-replay-btn:active { background: rgba(255,255,255,0.15); }
     .ss-show-text {
       background: none; border: none;
       font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700;
@@ -840,7 +793,24 @@
       visibility: hidden;
     }
     .ss-show-text.visible { visibility: visible; }
-    .ss-now-playing { display: none; }
+    .ss-replay-btn {
+      display: none;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 100px; padding: 9px 20px;
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 800;
+      color: rgba(255,255,255,0.7); cursor: pointer;
+      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      transition: background 0.2s, opacity 0.3s;
+      animation: cl-rise 0.35s ease both;
+    }
+    .ss-replay-btn.visible { display: block; }
+    .ss-replay-btn:active { background: rgba(255,255,255,0.15); }
+
+    .ss-now-playing {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.2);
+    }
 
     /* Voice choice state */
     #voice-zone {
@@ -854,6 +824,10 @@
     @keyframes ss-slide-in {
       from { opacity:0; transform:translateY(14px); }
       to   { opacity:1; transform:translateY(0); }
+    }
+    .ss-choice-label {
+      font-size: 11px; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase;
+      color: rgba(255,255,255,0.35); margin-bottom: 16px;
     }
     .ss-voice-btn {
       width: 100%; background: rgba(124,45,232,0.12);
@@ -2043,22 +2017,16 @@
     <div class="ss-bottom-panel">
       <div class="ss-state-listening">
         <div class="ss-playback-row" id="audio-controls">
-          <div class="ss-scrubber-wrap" id="audio-scrubber" onclick="audioScrubberSeek(event)">
-            <div class="ss-scrubber-track">
-              <div class="ss-scrubber-fill" id="scrubber-fill"></div>
-              <div class="ss-scrubber-dot" id="scrubber-dot"></div>
-            </div>
-          </div>
-          <div class="ss-ctrl-row">
-            <button class="ss-ctrl-btn" onclick="audioGoBack()">⏪ 10s</button>
-            <button class="ss-ctrl-btn ss-ctrl-playpause" id="pause-btn" onclick="audioPauseToggle()">⏸</button>
-            <button class="ss-replay-btn" id="replay-btn" onclick="replayAudio()">↺ Replay</button>
-          </div>
+          <button class="ss-ctrl-btn" onclick="audioGoBack()">⏪ 10s</button>
+          <button class="ss-ctrl-btn" id="pause-btn" onclick="audioPauseToggle()">⏸ Pause</button>
+          <button class="ss-show-text" id="show-text-btn" onclick="toggleNarrationText()">Show text</button>
         </div>
-        <button class="ss-show-text" id="show-text-btn" onclick="toggleNarrationText()">Show text</button>
+        <button class="ss-replay-btn" id="replay-btn" onclick="replayAudio()">🔊 Replay audio</button>
+        <div class="ss-now-playing" id="narrator-state">Listening…</div>
       </div>
 
       <div id="voice-zone">
+        <div class="ss-choice-label">What do you choose?</div>
         <button class="ss-voice-btn" id="ss-voice-btn" onclick="onMicTap()">
           <div class="ss-wave">
             <div class="ss-wave-bar"></div><div class="ss-wave-bar"></div>
@@ -2600,11 +2568,9 @@ function setStoryWorld(type) {
       amb.style.background = 'radial-gradient(ellipse 100% 60% at 50% 100%,#1a0840 0%,#06040e 65%)';
     }
   }
-  // World emoji + title in the pill — chapter names from Claude are silently discarded
+  // Chapter emoji
   const emojiEl = document.getElementById('ss-chapter-emoji');
   if (emojiEl) emojiEl.textContent = type.e || '🧙';
-  const titleEl = document.getElementById('chapter-title');
-  if (titleEl) titleEl.textContent = type.n || genreName || '';
   // Orb colors — derive hue from particle color hex
   _ssOrbPtcl = type.ptcl || type.ac || '#c084fc';
   _ssOrbHue  = hexToHue(_ssOrbPtcl) || 265;
@@ -3558,50 +3524,16 @@ function setAudioBars(on) {
   document.getElementById('audio-mic')?.classList.toggle('on', on);
   const ac = document.getElementById('audio-controls');
   if (ac) ac.classList.toggle('on', on);
+  const ns = document.getElementById('narrator-state');
   if (on) {
-    startScrubber();
+    if (ns) ns.textContent = 'Listening to story…';
   } else {
-    stopScrubber();
     audioPaused = false;
     document.getElementById('audio-mic')?.classList.remove('paused');
     const pb = document.getElementById('pause-btn');
-    if (pb) pb.textContent = '⏸';
+    if (pb) pb.textContent = '⏸ Pause';
+    if (ns) ns.textContent = 'Tap the mic and choose';
   }
-}
-
-let _scrubAF = null;
-
-function startScrubber() {
-  if (_scrubAF) cancelAnimationFrame(_scrubAF);
-  function tick() {
-    const el = audioEl;
-    const fill = document.getElementById('scrubber-fill');
-    const dot  = document.getElementById('scrubber-dot');
-    if (el && fill && dot && el.duration > 0 && isFinite(el.duration)) {
-      const pct = Math.min(100, Math.max(0, (el.currentTime / el.duration) * 100));
-      fill.style.width = pct + '%';
-      dot.style.left   = pct + '%';
-    }
-    _scrubAF = requestAnimationFrame(tick);
-  }
-  tick();
-}
-
-function stopScrubber() {
-  if (_scrubAF) { cancelAnimationFrame(_scrubAF); _scrubAF = null; }
-  const fill = document.getElementById('scrubber-fill');
-  const dot  = document.getElementById('scrubber-dot');
-  if (fill) fill.style.width = '0%';
-  if (dot)  dot.style.left   = '0%';
-}
-
-function audioScrubberSeek(e) {
-  if (!audioEl || !audioEl.duration || !isFinite(audioEl.duration)) return;
-  const wrap = document.getElementById('audio-scrubber');
-  if (!wrap) return;
-  const rect = wrap.getBoundingClientRect();
-  const pct  = Math.min(1, Math.max(0, (e.clientX - rect.left) / rect.width));
-  audioEl.currentTime = pct * audioEl.duration;
 }
 
 function audioPauseToggle() {
@@ -3613,12 +3545,12 @@ function audioPauseToggle() {
     audioPaused = false;
     el.play().catch(() => {});
     mic?.classList.remove('paused');
-    if (pb) pb.textContent = '⏸';
+    if (pb) pb.textContent = '⏸ Pause';
   } else {
     audioPaused = true;
     el.pause();
     mic?.classList.add('paused');
-    if (pb) pb.textContent = '▶';
+    if (pb) pb.textContent = '▶ Resume';
   }
 }
 
@@ -3631,7 +3563,7 @@ function audioGoBack() {
     el.play().catch(() => {});
     document.getElementById('audio-mic')?.classList.remove('paused');
     const pb = document.getElementById('pause-btn');
-    if (pb) pb.textContent = '⏸';
+    if (pb) pb.textContent = '⏸ Pause';
   }
 }
 
@@ -3809,17 +3741,16 @@ async function fetchNode(onError) {
   if (result.isEnding) {
     const outcomeStr = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
     persistStory(outcomeStr, stripSSML(narration), chapter, []);
-    const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, 30000);
+    const safetyMs = Math.max(120000, narration.length * 120 + 30000);
+    const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
     speakText(narration, () => {
       clearTimeout(endTimer);
-      setTimeout(() => {
-        showEnding(isFailure, isMoralLesson);
-        if (!isMoralLesson) {
-          speakText(isFailure
-            ? 'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
-            : 'You did it! Nice choices, Adventurer. Start a new Story Branch or go back to the same story and make some different choices.');
-        }
-      }, 1500);
+      showEnding(isFailure, isMoralLesson);
+      if (!isMoralLesson) {
+        speakText(isFailure
+          ? 'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
+          : 'You did it! Nice choices, Adventurer. Start a new Story Branch or go back to the same story and make some different choices.');
+      }
     });
   } else {
     const raw = result.choices;
@@ -3831,16 +3762,12 @@ async function fetchNode(onError) {
         history: storyHistory.slice(),
       };
     }
+    showInteraction();
     persistStory('in_progress', stripSSML(narration), chapter, choices.slice());
-    // Show choices after narration ends + 1.5s beat; safety timeout ensures they always appear
-    let _interacted = false;
-    const _safetyTimer = setTimeout(() => {
-      if (!_interacted) { _interacted = true; showInteraction(); }
-    }, 12000);
-    speakText(stripSSML(narration), () => {
-      clearTimeout(_safetyTimer);
-      if (!_interacted) { _interacted = true; setTimeout(showInteraction, 1500); }
-    });
+    const choiceSuffix = choices.length === 3
+      ? ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
+      : ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
+    speakText(stripSSML(narration) + choiceSuffix);
   }
 }
 
@@ -3915,15 +3842,18 @@ function replayAudio() {
   cancelAudio();
   // Resume AudioContext in case it was suspended
   if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-  hideInteraction();
-  speakText(_currentNarration, () => {
-    if (choices.length >= 2) setTimeout(showInteraction, 1500);
-  });
+  const afterNarration = () => {
+    if (choices.length >= 2) {
+      showInteraction();
+      speakText('Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+    }
+  };
+  speakText(_currentNarration, afterNarration);
 }
 function toggleNarrationText() {
   document.getElementById('text-overlay').classList.toggle('visible');
 }
-function setChapter(t)  { /* chapter title silently discarded — pill always shows world name */ }
+function setChapter(t)  { document.getElementById('chapter-title').textContent = t; }
 function setLoading(on) {
   const el = document.getElementById('loading');
   el.classList.toggle('on', on);
@@ -4093,7 +4023,7 @@ function showEnding(isFailure, isMoralLesson) {
     confetti.textContent = '🍃 🌟 🍀 🌟 🍃';
     title.textContent = 'You Did It, Hero!';
     sub.textContent = 'What an incredible adventure. You were brave, clever, and completely brilliant!';
-    btn.textContent = '🌿 Start a new adventure'; btn.className = 'btn-end-primary win';
+    btn.textContent = '🌿 New Adventure!'; btn.className = 'btn-end-primary win';
     const badges = GENRE_BADGES[storyGenre] || ['🌟 Story Hero', '🏆 Adventure Master', '✨ Quest Complete'];
     const row = document.getElementById('badge-row'); row.innerHTML = '';
     badges.forEach(b => {
