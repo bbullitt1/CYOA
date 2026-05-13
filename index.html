@@ -824,6 +824,21 @@
       left: calc(50% - 5px);
     }
     .ss-playpause.is-paused::after { display: none; }
+    /* Restart state: dark circle with white restart arrow */
+    .ss-playpause.is-restart {
+      background: #111;
+    }
+    .ss-playpause.is-restart::before {
+      content: '↺';
+      width: 28px; height: 28px; background: none;
+      border: none; border-radius: 0;
+      font-size: 24px; line-height: 28px; text-align: center;
+      color: white;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-family: system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+    }
+    .ss-playpause.is-restart::after { display: none; }
     .ss-ctrl-btn {
       background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 100px; padding: 7px 14px;
@@ -3563,6 +3578,7 @@ function speakFallback(text, onDone) {
 let audioPaused = false;
 
 function setAudioBars(on) {
+  if (_readingChoices) return; // scrubber/controls are frozen during choices narration
   document.getElementById('audio-mic')?.classList.toggle('on', on);
   const ac = document.getElementById('audio-controls');
   if (ac) ac.classList.toggle('on', on);
@@ -3578,23 +3594,42 @@ function setAudioBars(on) {
 }
 
 let _scrubAF = null;
-let _scrubStartTime = 0;
+let _scrubStartTime = 0; // 0 = waiting for first play event
 let _scrubEstMs = 0;
 let _scrubPausedAt = 0; // timestamp when paused (0 = not paused)
+let _scrubMaxPct = 0;   // never let the dot go backwards
+let _readingChoices = false; // true while reading choices aloud — blocks setAudioBars
+let _scrubPlayListener = null; // stored so stopScrubber can remove it
 
 function startScrubber() {
   if (_scrubAF) cancelAnimationFrame(_scrubAF);
-  const words = (_currentNarration || '').split(/\s+/).filter(Boolean).length;
-  _scrubEstMs     = Math.max(5000, (words / 2.5) * 1000);
-  _scrubStartTime = Date.now();
+  // Char-based estimate: ~13 chars/sec for this TTS voice (conservative)
+  const chars = (_currentNarration || '').length;
+  _scrubEstMs     = Math.max(6000, (chars / 13) * 1000);
+  _scrubStartTime = 0; // will be set on first play event
   _scrubPausedAt  = 0;
+  _scrubMaxPct    = 0;
+
+  // Kick off timing on the first actual audio play event (not the silent keepalive loop)
+  const el = getAudioEl();
+  if (_scrubPlayListener) { el.removeEventListener('play', _scrubPlayListener); _scrubPlayListener = null; }
+  _scrubPlayListener = () => {
+    if (_scrubStartTime === 0 && !el.loop) {
+      _scrubStartTime = Date.now();
+    }
+    el.removeEventListener('play', _scrubPlayListener);
+    _scrubPlayListener = null;
+  };
+  el.addEventListener('play', _scrubPlayListener);
+
   function tick() {
     const fill = document.getElementById('scrubber-fill');
     const dot  = document.getElementById('scrubber-dot');
-    if (fill && dot) {
-      // Freeze elapsed time at the moment of pause
+    if (fill && dot && _scrubStartTime > 0) {
       const elapsed = (_scrubPausedAt ? _scrubPausedAt : Date.now()) - _scrubStartTime;
-      const pct = Math.min(97, (elapsed / _scrubEstMs) * 100);
+      const rawPct  = Math.min(97, (elapsed / _scrubEstMs) * 100);
+      const pct     = Math.max(_scrubMaxPct, rawPct); // never move backwards
+      _scrubMaxPct  = pct;
       fill.style.width = pct + '%';
       dot.style.left   = pct + '%';
     }
@@ -3605,6 +3640,10 @@ function startScrubber() {
 
 function stopScrubber() {
   if (_scrubAF) { cancelAnimationFrame(_scrubAF); _scrubAF = null; }
+  if (_scrubPlayListener) {
+    getAudioEl().removeEventListener('play', _scrubPlayListener);
+    _scrubPlayListener = null;
+  }
   const fill = document.getElementById('scrubber-fill');
   const dot  = document.getElementById('scrubber-dot');
   if (fill) fill.style.width = '0%';
@@ -3612,9 +3651,10 @@ function stopScrubber() {
 }
 
 function audioPauseToggle() {
+  const pb = document.getElementById('pause-btn');
+  if (pb?.classList.contains('is-restart')) { restartNarration(); return; }
   const el = audioEl;
   if (!el) return;
-  const pb = document.getElementById('pause-btn');
   if (audioPaused) {
     // Resume: shift _scrubStartTime forward by how long we were paused
     if (_scrubPausedAt) { _scrubStartTime += Date.now() - _scrubPausedAt; _scrubPausedAt = 0; }
@@ -3641,6 +3681,37 @@ function audioGoBack() {
     document.getElementById('audio-mic')?.classList.remove('paused');
     document.getElementById('pause-btn')?.classList.remove('is-paused');
   }
+}
+
+function showRestartBtn() {
+  if (_scrubAF) { cancelAnimationFrame(_scrubAF); _scrubAF = null; }
+  const fill = document.getElementById('scrubber-fill');
+  const dot  = document.getElementById('scrubber-dot');
+  if (fill) fill.style.width = '100%';
+  if (dot)  dot.style.left   = '100%';
+  const ac = document.getElementById('audio-controls');
+  if (ac) ac.classList.add('on');
+  const pb = document.getElementById('pause-btn');
+  if (pb) { pb.classList.remove('is-paused'); pb.classList.add('is-restart'); }
+}
+
+function restartNarration() {
+  const pb = document.getElementById('pause-btn');
+  if (pb) { pb.classList.remove('is-restart'); pb.classList.remove('is-paused'); }
+  _readingChoices = false;
+  audioPaused = false;
+  _scrubPausedAt = 0;
+  stopScrubber();
+  speakText(stripSSML(_currentNarration || ''), () => {
+    const choiceRead = choices.length === 3
+      ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
+      : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
+    _readingChoices = true;
+    speakText(choiceRead, () => {
+      _readingChoices = false;
+      showRestartBtn();
+    });
+  });
 }
 
 // ── SPEECH RECOGNITION ──
@@ -3845,11 +3916,15 @@ async function fetchNode(onError) {
     speakText(stripSSML(narration), () => {
       clearTimeout(_safety);
       if (!_shown) { _shown = true; showInteraction(); }
-      // Read choices aloud after narration
+      // Read choices aloud after narration; block scrubber reset during this
       const choiceRead = choices.length === 3
         ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
         : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
-      speakText(choiceRead);
+      _readingChoices = true;
+      speakText(choiceRead, () => {
+        _readingChoices = false;
+        showRestartBtn();
+      });
     });
   }
 }
