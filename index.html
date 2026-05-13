@@ -777,9 +777,11 @@
     .ss-playback-row.on { opacity: 1; }
     /* Scrubber track */
     .ss-scrubber-wrap {
-      width: 100%; padding: 10px 0; cursor: pointer;
-      touch-action: manipulation; -webkit-tap-highlight-color: transparent;
+      width: 100%; padding: 10px 0; cursor: grab;
+      touch-action: none; -webkit-tap-highlight-color: transparent;
+      user-select: none; -webkit-user-select: none;
     }
+    .ss-scrubber-wrap:active { cursor: grabbing; }
     .ss-scrubber-track {
       position: relative; height: 3px;
       background: rgba(255,255,255,0.15); border-radius: 2px; overflow: visible;
@@ -2406,6 +2408,8 @@ window.addEventListener('pageshow', function(e) {
   }
 });
 
+initScrubberInteraction();
+
 
 function buildLeaves() {
   const c = document.getElementById('leaf-particles');
@@ -3610,6 +3614,8 @@ let _scrubMaxPct = 0;   // never let the dot go backwards
 let _readingChoices = false; // true while reading choices aloud — blocks setAudioBars
 let _scrubPlayListener = null; // stored so stopScrubber can remove it
 let _pauseAtTime = -1;         // el.currentTime snapshot at pause; restored on resume
+let _scrubSeekToMs = -1;       // if >=0, next play event offsets scrubStart by this
+let _scrubIsDragging = false;  // suppresses tick updates during scrub drag
 
 function startScrubber() {
   if (_scrubAF) cancelAnimationFrame(_scrubAF);
@@ -3625,7 +3631,13 @@ function startScrubber() {
   if (_scrubPlayListener) { el.removeEventListener('play', _scrubPlayListener); _scrubPlayListener = null; }
   _scrubPlayListener = () => {
     if (_scrubStartTime === 0 && !el.loop) {
-      _scrubStartTime = Date.now();
+      if (_scrubSeekToMs >= 0) {
+        _scrubStartTime = Date.now() - _scrubSeekToMs;
+        _scrubMaxPct    = (_scrubSeekToMs / _scrubEstMs) * 100;
+        _scrubSeekToMs  = -1;
+      } else {
+        _scrubStartTime = Date.now();
+      }
     }
     el.removeEventListener('play', _scrubPlayListener);
     _scrubPlayListener = null;
@@ -3633,15 +3645,17 @@ function startScrubber() {
   el.addEventListener('play', _scrubPlayListener);
 
   function tick() {
-    const fill = document.getElementById('scrubber-fill');
-    const dot  = document.getElementById('scrubber-dot');
-    if (fill && dot && _scrubStartTime > 0) {
-      const elapsed = (_scrubPausedAt ? _scrubPausedAt : Date.now()) - _scrubStartTime;
-      const rawPct  = Math.min(97, (elapsed / _scrubEstMs) * 100);
-      const pct     = Math.max(_scrubMaxPct, rawPct); // never move backwards
-      _scrubMaxPct  = pct;
-      fill.style.width = pct + '%';
-      dot.style.left   = pct + '%';
+    if (!_scrubIsDragging) {
+      const fill = document.getElementById('scrubber-fill');
+      const dot  = document.getElementById('scrubber-dot');
+      if (fill && dot && _scrubStartTime > 0) {
+        const elapsed = (_scrubPausedAt ? _scrubPausedAt : Date.now()) - _scrubStartTime;
+        const rawPct  = Math.min(97, (elapsed / _scrubEstMs) * 100);
+        const pct     = Math.max(_scrubMaxPct, rawPct); // never move backwards
+        _scrubMaxPct  = pct;
+        fill.style.width = pct + '%';
+        dot.style.left   = pct + '%';
+      }
     }
     _scrubAF = requestAnimationFrame(tick);
   }
@@ -3658,6 +3672,101 @@ function stopScrubber() {
   const dot  = document.getElementById('scrubber-dot');
   if (fill) fill.style.width = '0%';
   if (dot)  dot.style.left   = '0%';
+}
+
+function seekToPercent(pct) {
+  const el = audioEl;
+  pct = Math.max(0, Math.min(100, pct));
+  // Clear restart state if showing
+  document.getElementById('pause-btn')?.classList.remove('is-restart');
+
+  if (_scrubEstMs > 0 && _scrubStartTime > 0 && el) {
+    const targetMs   = (pct / 100) * _scrubEstMs;
+    const nowRef     = _scrubPausedAt || Date.now();
+    const elapsedMs  = nowRef - _scrubStartTime;
+    const deltaMs    = targetMs - elapsedMs;
+    const newTime    = el.currentTime + deltaMs / 1000;
+
+    if (el.duration > 0 && newTime >= 0 && newTime < el.duration) {
+      // Target falls within the current audio chunk — seek directly
+      el.currentTime = newTime;
+      _pauseAtTime   = newTime;
+      _scrubMaxPct   = 0; // allow tick to recompute from new position
+      if (_scrubPausedAt) {
+        // Stay paused but reanchor the freeze point
+        _scrubPausedAt = Date.now();
+        _scrubStartTime = _scrubPausedAt - targetMs;
+      } else {
+        _scrubStartTime = Date.now() - targetMs;
+      }
+      return;
+    }
+  }
+
+  // Cross-chunk seek: cancel audio and re-speak from approx text position
+  const full = stripSSML(_currentNarration || '');
+  if (!full || !_scrubEstMs) return;
+  const charOffset = Math.max(0, Math.floor((pct / 100) * full.length));
+  // Snap to the start of the next word so we don't begin mid-word
+  const wordSnap = full.slice(charOffset).search(/\S/);
+  const seekText = full.slice(charOffset + Math.max(0, wordSnap)).trim();
+  if (!seekText) return;
+
+  _readingChoices = false;
+  audioPaused     = false;
+  _scrubPausedAt  = 0;
+  _pauseAtTime    = -1;
+  document.getElementById('pause-btn')?.classList.remove('is-paused');
+  cancelAudio();
+  _scrubSeekToMs = (pct / 100) * _scrubEstMs;
+
+  speakText(seekText, () => {
+    const choiceRead = choices.length === 3
+      ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
+      : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
+    _readingChoices = true;
+    speakText(choiceRead, () => { _readingChoices = false; showRestartBtn(); });
+  });
+}
+
+function initScrubberInteraction() {
+  const wrap = document.querySelector('.ss-scrubber-wrap');
+  if (!wrap) return;
+
+  function pctFromX(clientX) {
+    const rect = wrap.querySelector('.ss-scrubber-track').getBoundingClientRect();
+    return Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+  }
+  function setVisual(pct) {
+    const fill = document.getElementById('scrubber-fill');
+    const dot  = document.getElementById('scrubber-dot');
+    if (fill) fill.style.width = pct + '%';
+    if (dot)  dot.style.left   = pct + '%';
+  }
+  function onStart(clientX) {
+    if (_scrubStartTime === 0) return; // audio hasn't started yet
+    _scrubIsDragging = true;
+    document.body.style.cursor = 'grabbing';
+    setVisual(pctFromX(clientX));
+  }
+  function onMove(clientX) {
+    if (!_scrubIsDragging) return;
+    setVisual(pctFromX(clientX));
+  }
+  function onEnd(clientX) {
+    if (!_scrubIsDragging) return;
+    _scrubIsDragging = false;
+    document.body.style.cursor = '';
+    seekToPercent(pctFromX(clientX));
+  }
+
+  wrap.addEventListener('mousedown',  e => { onStart(e.clientX); e.preventDefault(); });
+  document.addEventListener('mousemove', e => onMove(e.clientX));
+  document.addEventListener('mouseup',   e => { if (_scrubIsDragging) onEnd(e.clientX); });
+
+  wrap.addEventListener('touchstart', e => { onStart(e.touches[0].clientX); e.preventDefault(); }, { passive: false });
+  wrap.addEventListener('touchmove',  e => { onMove(e.touches[0].clientX);  e.preventDefault(); }, { passive: false });
+  wrap.addEventListener('touchend',   e => onEnd(e.changedTouches[0].clientX));
 }
 
 function audioPauseToggle() {
