@@ -4038,18 +4038,29 @@ async function fetchNode(onError) {
       };
     }
     persistStory('in_progress', stripSSML(narration), chapter, choices.slice());
-    // Show choices only after narration ends; safety timeout ensures they always appear
+    // Safety timeout scales with narration length so it never fires during narration
     let _shown = false;
-    const _safety = setTimeout(() => { if (!_shown) { _shown = true; showInteraction(); } }, 12000);
+    const _safetyMs = Math.max(30000, (stripSSML(narration).length / 13) * 1000 + 10000);
+    const _safety = setTimeout(() => { if (!_shown) { _shown = true; showInteraction(); } }, _safetyMs);
     speakText(stripSSML(narration), () => {
       clearTimeout(_safety);
-      if (!_shown) { _shown = true; showInteraction(); }
       // Read choices aloud after narration; block scrubber reset during this
       const choiceRead = choices.length === 3
         ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
         : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
       _readingChoices = true;
+      // Show interaction the moment choices audio actually starts playing, not before
+      const el = getAudioEl();
+      const onChoicesPlay = () => {
+        if (!el.loop) {
+          if (!_shown) { _shown = true; showInteraction(); }
+          el.removeEventListener('play', onChoicesPlay);
+        }
+      };
+      el.addEventListener('play', onChoicesPlay);
       speakText(choiceRead, () => {
+        el.removeEventListener('play', onChoicesPlay);
+        if (!_shown) { _shown = true; showInteraction(); }
         _readingChoices = false;
         showRestartBtn();
       });
