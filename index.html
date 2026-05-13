@@ -3991,6 +3991,8 @@ function startStory() {
 }
 
 async function fetchNode(onError) {
+  const pb = document.getElementById('pause-btn');
+  if (pb) { pb.classList.remove('is-restart'); pb.classList.remove('is-paused'); }
   setLoading(true); setNarration(''); setChapter(''); hideInteraction(); clearError();
   let result, raw;
   try { ({ parsed: result, raw } = await callClaude(storyHistory)); }
