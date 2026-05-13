@@ -3659,9 +3659,16 @@ function audioPauseToggle() {
     // Resume: shift _scrubStartTime forward by how long we were paused
     if (_scrubPausedAt) { _scrubStartTime += Date.now() - _scrubPausedAt; _scrubPausedAt = 0; }
     audioPaused = false;
-    el.play().catch(() => {});
     document.getElementById('audio-mic')?.classList.remove('paused');
     pb?.classList.remove('is-paused');
+    // Resume AudioContext first — iOS suspends it during idle, causing silent playback
+    // while currentTime still advances (produces the "jumped ahead" bug)
+    const doResume = () => el.play().catch(() => {});
+    if (audioCtx && audioCtx.state === 'suspended') {
+      audioCtx.resume().then(doResume).catch(doResume);
+    } else {
+      doResume();
+    }
   } else {
     _scrubPausedAt = Date.now();
     audioPaused = true;
