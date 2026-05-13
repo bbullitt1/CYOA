@@ -671,7 +671,8 @@
     }
     .ss-orb-aura {
       position: absolute; border-radius: 50%;
-      background: var(--scglow); filter: blur(40px); pointer-events: none;
+      background: radial-gradient(circle, var(--scglow) 0%, transparent 70%);
+      pointer-events: none;
       transition: transform 0.1s ease-out, opacity 0.1s ease-out;
     }
     .ss-orb-ring {
