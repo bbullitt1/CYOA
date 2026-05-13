@@ -797,17 +797,33 @@
       pointer-events: none; transition: transform 0.15s;
     }
     .ss-scrubber-wrap:hover .ss-scrubber-dot { transform: translate(-50%,-50%) scale(1.3); }
-    /* Single play/pause button — Spotify style: solid white circle, dark icon */
+    /* Single play/pause button — Spotify style: solid white circle, CSS-drawn icon */
     .ss-playpause {
       width: 56px; height: 56px; border-radius: 50%;
-      background: white; border: none;
-      color: #111; font-size: 22px; cursor: pointer;
+      background: white; border: none; cursor: pointer; position: relative;
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 4px 14px rgba(0,0,0,0.45);
       touch-action: manipulation; transition: transform 0.15s, box-shadow 0.15s;
       flex-shrink: 0;
     }
     .ss-playpause:active { transform: scale(0.93); box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
+    /* Playing → show two pause bars */
+    .ss-playpause::before, .ss-playpause::after {
+      content: ''; position: absolute;
+      width: 4px; height: 20px; top: 50%; transform: translateY(-50%);
+      background: #111; border-radius: 2px;
+    }
+    .ss-playpause::before { left: calc(50% - 7px); }
+    .ss-playpause::after  { left: calc(50% + 3px); }
+    /* Paused → show play triangle */
+    .ss-playpause.is-paused::before {
+      width: 0; height: 0; background: none; border-radius: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-left: 17px solid #111;
+      left: calc(50% - 5px);
+    }
+    .ss-playpause.is-paused::after { display: none; }
     .ss-ctrl-btn {
       background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.1);
       border-radius: 100px; padding: 7px 14px;
@@ -2047,10 +2063,9 @@
               <div class="ss-scrubber-dot"  id="scrubber-dot"></div>
             </div>
           </div>
-          <button class="ss-playpause" id="pause-btn" onclick="audioPauseToggle()">⏸</button>
+          <button class="ss-playpause" id="pause-btn" onclick="audioPauseToggle()"></button>
         </div>
         <button class="ss-show-text" id="show-text-btn" onclick="toggleNarrationText()">Show text</button>
-        <button class="ss-replay-btn" id="replay-btn" onclick="replayAudio()">🔊 Replay audio</button>
       </div>
 
       <div id="voice-zone">
@@ -3556,27 +3571,29 @@ function setAudioBars(on) {
   } else {
     stopScrubber();
     audioPaused = false;
+    _scrubPausedAt = 0;
     document.getElementById('audio-mic')?.classList.remove('paused');
-    const pb = document.getElementById('pause-btn');
-    if (pb) pb.textContent = '⏸';
+    document.getElementById('pause-btn')?.classList.remove('is-paused');
   }
 }
 
 let _scrubAF = null;
 let _scrubStartTime = 0;
 let _scrubEstMs = 0;
+let _scrubPausedAt = 0; // timestamp when paused (0 = not paused)
 
 function startScrubber() {
   if (_scrubAF) cancelAnimationFrame(_scrubAF);
-  // Estimate total narration duration from word count (~150 wpm = 2.5 words/sec)
   const words = (_currentNarration || '').split(/\s+/).filter(Boolean).length;
-  _scrubEstMs    = Math.max(5000, (words / 2.5) * 1000);
+  _scrubEstMs     = Math.max(5000, (words / 2.5) * 1000);
   _scrubStartTime = Date.now();
+  _scrubPausedAt  = 0;
   function tick() {
     const fill = document.getElementById('scrubber-fill');
     const dot  = document.getElementById('scrubber-dot');
     if (fill && dot) {
-      const elapsed = Date.now() - _scrubStartTime;
+      // Freeze elapsed time at the moment of pause
+      const elapsed = (_scrubPausedAt ? _scrubPausedAt : Date.now()) - _scrubStartTime;
       const pct = Math.min(97, (elapsed / _scrubEstMs) * 100);
       fill.style.width = pct + '%';
       dot.style.left   = pct + '%';
@@ -3598,17 +3615,19 @@ function audioPauseToggle() {
   const el = audioEl;
   if (!el) return;
   const pb = document.getElementById('pause-btn');
-  const mic = document.getElementById('audio-mic');
   if (audioPaused) {
+    // Resume: shift _scrubStartTime forward by how long we were paused
+    if (_scrubPausedAt) { _scrubStartTime += Date.now() - _scrubPausedAt; _scrubPausedAt = 0; }
     audioPaused = false;
     el.play().catch(() => {});
-    mic?.classList.remove('paused');
-    if (pb) pb.textContent = '⏸';
+    document.getElementById('audio-mic')?.classList.remove('paused');
+    pb?.classList.remove('is-paused');
   } else {
+    _scrubPausedAt = Date.now();
     audioPaused = true;
     el.pause();
-    mic?.classList.add('paused');
-    if (pb) pb.textContent = '▶';
+    document.getElementById('audio-mic')?.classList.add('paused');
+    pb?.classList.add('is-paused');
   }
 }
 
@@ -3620,8 +3639,7 @@ function audioGoBack() {
     audioPaused = false;
     el.play().catch(() => {});
     document.getElementById('audio-mic')?.classList.remove('paused');
-    const pb = document.getElementById('pause-btn');
-    if (pb) pb.textContent = '⏸';
+    document.getElementById('pause-btn')?.classList.remove('is-paused');
   }
 }
 
@@ -3895,10 +3913,8 @@ function setNarration(t) {
   _currentNarration = t || '';
   const el = document.getElementById('narration-text');
   const btn = document.getElementById('show-text-btn');
-  const rep = document.getElementById('replay-btn');
   el.textContent = t;
   if (btn) btn.classList.toggle('visible', !!t);
-  if (rep) rep.classList.toggle('visible', !!t);
 }
 
 function replayAudio() {
