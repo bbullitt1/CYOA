@@ -2340,7 +2340,16 @@ let pendingSpeak = null;
 let speakToken         = 0;
 let ttsAbortController = null;
 const ttsCache = new Map();
-const SILENT_WAV = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+// Silent MP3 (MPEG-1 L3, 32kbps, 44100Hz, mono) — keeps the iOS audio decoder
+// warmed up in MP3 format between story segments. Using WAV here caused a ~500ms
+// decoder reinit on every WAV→MP3 transition, cutting the first word of each segment.
+const SILENT_MP3 = (() => {
+  const f = new Uint8Array(104); // one silent MPEG-1 L3 frame = 104 bytes
+  f[0]=0xFF; f[1]=0xFB; f[2]=0x10; f[3]=0xC0; // header: MPEG1 L3 32kbps 44100Hz mono
+  f[9]=0x02; f[17]=0x40; // global_gain=1 for each of the two MPEG-1 granules
+  let s = ''; for (let i = 0; i < 104; i++) s += String.fromCharCode(f[i]);
+  return 'data:audio/mpeg;base64,' + btoa(s);
+})();
 
 let _moreWorldsOpen   = false;
 let _moreSliceIndexes = [];
@@ -3360,7 +3369,7 @@ function unlockAudio() {
   const el = getAudioEl();
   if (el._blobUrl) { URL.revokeObjectURL(el._blobUrl); el._blobUrl = null; }
   el.onended = null; el.onerror = null;
-  el.loop = true; el.muted = false; el.volume = 1; el.src = SILENT_WAV;
+  el.loop = true; el.muted = false; el.volume = 1; el.src = SILENT_MP3;
   el.play().catch(() => {});
   try {
     if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3527,7 +3536,7 @@ async function speakText(text, onDone) {
   }
 
   const el = getAudioEl();
-  el.muted = false; el.loop = true; el.volume = 1; el.src = SILENT_WAV; el.play().catch(() => {});
+  el.muted = false; el.loop = true; el.volume = 1; el.src = SILENT_MP3; el.play().catch(() => {});
   setAudioBars(false);
   setOrbSpeaking(false);
   onDone && onDone();
@@ -3600,6 +3609,7 @@ let _scrubPausedAt = 0; // timestamp when paused (0 = not paused)
 let _scrubMaxPct = 0;   // never let the dot go backwards
 let _readingChoices = false; // true while reading choices aloud — blocks setAudioBars
 let _scrubPlayListener = null; // stored so stopScrubber can remove it
+let _pauseAtTime = -1;         // el.currentTime snapshot at pause; restored on resume
 
 function startScrubber() {
   if (_scrubAF) cancelAnimationFrame(_scrubAF);
@@ -3661,8 +3671,8 @@ function audioPauseToggle() {
     audioPaused = false;
     document.getElementById('audio-mic')?.classList.remove('paused');
     pb?.classList.remove('is-paused');
-    // Resume AudioContext first — iOS suspends it during idle, causing silent playback
-    // while currentTime still advances (produces the "jumped ahead" bug)
+    // Snap back to the exact pause position (iOS buffer drain advances currentTime after pause)
+    if (_pauseAtTime >= 0) { el.currentTime = _pauseAtTime; _pauseAtTime = -1; }
     const doResume = () => el.play().catch(() => {});
     if (audioCtx && audioCtx.state === 'suspended') {
       audioCtx.resume().then(doResume).catch(doResume);
@@ -3670,6 +3680,7 @@ function audioPauseToggle() {
       doResume();
     }
   } else {
+    _pauseAtTime = el.currentTime; // snapshot before iOS hardware buffer drains it forward
     _scrubPausedAt = Date.now();
     audioPaused = true;
     el.pause();
