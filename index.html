@@ -782,6 +782,97 @@
       position: relative; z-index: 20; min-height: 130px;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
     }
+
+    /* History (Go Back) panel */
+    .ss-history-btn {
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 50%; width: 32px; height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(255,255,255,0.6); font-size: 16px;
+      touch-action: manipulation; flex-shrink: 0; transition: background 0.15s;
+      visibility: hidden;
+    }
+    .ss-history-btn.visible { visibility: visible; }
+    .ss-history-btn:active { background: rgba(255,255,255,0.18); }
+
+    .ss-history-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+      background: #111; border-radius: 20px 20px 0 0;
+      padding: 16px 20px 40px; max-height: 60vh; overflow-y: auto;
+      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      box-shadow: 0 -4px 40px rgba(0,0,0,0.6);
+    }
+    .ss-history-sheet.open { transform: translateY(0); }
+    .ss-history-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(255,255,255,0.2); margin: 0 auto 16px;
+    }
+    .ss-history-title {
+      font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 800;
+      color: rgba(255,255,255,0.4); letter-spacing: 0.12em; text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+    .ss-history-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.07);
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    .ss-history-item:last-child { border-bottom: none; }
+    .ss-history-item:active { opacity: 0.7; }
+    .ss-history-step {
+      width: 26px; height: 26px; border-radius: 50%;
+      background: var(--sc3); opacity: 0.7;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 800;
+      color: white; flex-shrink: 0;
+    }
+    .ss-history-text { flex: 1; }
+    .ss-history-chapter {
+      font-family: 'Nunito', sans-serif; font-size: 11px; font-weight: 700;
+      color: rgba(255,255,255,0.4); margin-bottom: 2px;
+    }
+    .ss-history-choice {
+      font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700;
+      color: rgba(255,255,255,0.85); line-height: 1.3;
+    }
+    .ss-history-undo {
+      font-size: 16px; color: var(--sc3); flex-shrink: 0;
+    }
+    .ss-history-overlay {
+      position: fixed; inset: 0; z-index: 99; background: rgba(0,0,0,0.5);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .ss-history-overlay.open { opacity: 1; pointer-events: all; }
+
+    /* Story map button */
+    .ss-map-btn {
+      position: absolute; right: 16px; bottom: 100px; z-index: 25;
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: rgba(255,255,255,0.5); font-size: 14px;
+      touch-action: manipulation; transition: background 0.15s; visibility: hidden;
+    }
+    .ss-map-btn.visible { visibility: visible; }
+    .ss-map-entry {
+      display: flex; gap: 10px; align-items: flex-start; position: relative;
+    }
+    .ss-map-entry::before {
+      content: ''; position: absolute; left: 12px; top: 26px;
+      width: 2px; height: calc(100% + 4px);
+      background: rgba(255,255,255,0.1);
+    }
+    .ss-map-entry:last-child::before { display: none; }
+    .ss-map-dot {
+      width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+      background: var(--sc3); display: flex; align-items: center;
+      justify-content: center; font-size: 11px; font-weight: 800;
+      color: white; margin-top: 2px;
+    }
+    .ss-map-dot.current { background: white; color: #111; }
+    .ss-map-info { flex: 1; padding-bottom: 14px; }
+    .ss-map-ch { font-family: 'Nunito', sans-serif; font-size: 10px; font-weight: 700; color: rgba(255,255,255,0.4); margin-bottom: 1px; }
+    .ss-map-choice { font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.75); }
     .ss-state-listening {
       display: flex; flex-direction: column; align-items: center; gap: 12px;
       width: 100%;
@@ -2062,6 +2153,7 @@
       </div>
       <div id="genre-badge" style="display:none"></div>
       <div class="ss-progress" id="progress"></div>
+      <button class="ss-history-btn" id="history-btn" onclick="toggleHistoryPanel()">↩</button>
     </div>
 
     <div class="ss-orb-zone">
@@ -2133,6 +2225,14 @@
     </div>
 
     <div id="audio-mic" style="display:none"></div>
+  </div>
+
+  <!-- History slide-up sheet (outside screen-story so z-index works) -->
+  <div class="ss-history-overlay" id="history-overlay" onclick="toggleHistoryPanel()"></div>
+  <div class="ss-history-sheet" id="history-sheet">
+    <div class="ss-history-handle"></div>
+    <div class="ss-history-title">Your journey so far</div>
+    <div id="history-list"></div>
   </div>
 
   <!-- ══ SCREEN 4: ENDING ══ -->
@@ -2336,6 +2436,9 @@ let storyHistory  = [];
 let nodeCount     = 0;
 let choices       = [];
 let choiceLog     = [];
+let nodeGraph     = {};          // nodeId → {id, narration, chapter, choices, depth}
+let currentNodeId = null;
+let _prefetchMap  = {};          // nodeId+'_'+idx → Promise<result>
 let activeRec     = null;
 let initialStoryState  = null;
 let currentStoryId     = null;
@@ -4010,10 +4113,12 @@ function restartSameGenre() {
 // ── STORY FLOW ──
 function startStory() {
   storyHistory = []; nodeCount = 0; choices = []; choiceLog = [];
+  nodeGraph = {}; currentNodeId = null; _prefetchMap = {};
   initialStoryState = null; currentStoryId = null;
   document.body.style.background = BG.story;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
+  document.getElementById('history-btn')?.classList.remove('visible');
   updateProgress(); hideInteraction();
   setChapter(''); setNarration(''); clearError();
   storyHistory.push({ role: 'user', content: buildUserContext(null, []) });
@@ -4040,23 +4145,30 @@ async function fetchNode(onError) {
   const isMoralLesson = !!result.isMoralLesson;
   setNarration(stripSSML(narration)); setChapter(chapter);
 
+  // Track current node in graph
+  currentNodeId = generateNodeId();
+  nodeGraph[currentNodeId] = { id: currentNodeId, narration: result.narration, chapter: result.chapterTitle || '', choices: result.choices || [], depth: nodeCount };
+
   if (result.isEnding && nodeCount < 4 && !isMoralLesson) {
     result.isEnding = false;
     result.isFailure = false;
   }
 
   if (result.isEnding) {
+    const endT = result.endingType || (isFailure ? 'BAD' : isMoralLesson ? 'LESSON' : 'GREAT');
     const outcomeStr = isMoralLesson ? 'lesson' : isFailure ? 'failure' : 'victory';
     persistStory(outcomeStr, stripSSML(narration), chapter, []);
     const safetyMs = Math.max(120000, narration.length * 120 + 30000);
-    const endTimer = setTimeout(() => { cancelAudio(); showEnding(isFailure, isMoralLesson); }, safetyMs);
+    const endTimer = setTimeout(() => { cancelAudio(); showEnding(endT); }, safetyMs);
     speakText(narration, () => {
       clearTimeout(endTimer);
-      showEnding(isFailure, isMoralLesson);
+      showEnding(endT);
       if (!isMoralLesson) {
-        speakText(isFailure
-          ? 'Ha! Well, that was unexpected. Try again — the adventure is waiting!'
-          : 'You did it! Nice choices, Adventurer. Start a new Story Branch or go back to the same story and make some different choices.');
+        speakText(endT === 'BAD'
+          ? 'Ha! Well, that was unexpected. Go back and try a different path!'
+          : endT === 'OKAY'
+          ? 'You made it. But something tells you there\'s a better ending out there...'
+          : 'You did it! What incredible choices. Start a new adventure or go back and explore a different path!');
       }
     });
   } else {
@@ -4070,6 +4182,36 @@ async function fetchNode(onError) {
       };
     }
     persistStory('in_progress', stripSSML(narration), chapter, choices.slice());
+
+    // Background pre-fetch: start fetching children so they're ready when user chooses
+    const _pfSnap  = storyHistory.slice();
+    const _pfNode  = currentNodeId;
+    const _pfCount = nodeCount;
+    choices.forEach((choice, i) => {
+      setTimeout(() => {
+        const _pfKey = _pfNode + '_' + i;
+        if (_prefetchMap[_pfKey]) return;
+        const purposeStr = storyPurpose === 'other' && storyPurposeCustom ? 'other (' + storyPurposeCustom + ')' : storyPurpose;
+        const childMsg = [
+          'story_genre: '     + (storyTheme || 'adventure'),
+          'story_length: '    + (ageGroup === 'young' ? 'quick' : 'epic'),
+          'story_purpose: '   + purposeStr,
+          'current_segment_number: ' + (_pfCount + 1),
+          'choice_history: '  + JSON.stringify(choiceLog.map(e => e.choiceText).concat([choice])),
+          'last_choice_made: ' + choice,
+        ].join('\n');
+        const childHistory = [..._pfSnap, { role: 'user', content: childMsg }];
+        _prefetchMap[_pfKey] = callClaude(childHistory)
+          .then(r => ({ ...r, _childHistory: childHistory }))
+          .catch(() => null);
+      }, 1000); // 1s delay so TTS starts first
+    });
+
+    // Show history button when choices are available
+    if (choiceLog.length > 0 || nodeCount > 1) {
+      document.getElementById('history-btn')?.classList.add('visible');
+    }
+
     // Safety timeout scales with narration length so it never fires during narration
     let _shown = false;
     const _safetyMs = Math.max(30000, (stripSSML(narration).length / 13) * 1000 + 10000);
@@ -4100,6 +4242,8 @@ function makeChoice(idx) {
   unlockAudio();
   if (activeRec) { try { activeRec.abort(); } catch(e){} activeRec = null; }
   hideInteraction();
+  // Hide history button while loading
+  document.getElementById('history-btn')?.classList.remove('visible');
 
   const prevNarration = document.getElementById('narration-text').textContent;
   const prevChapter   = document.getElementById('chapter-title').textContent;
@@ -4142,10 +4286,41 @@ function rewindTo(logIdx) {
   document.body.style.background = BG.story;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-story').classList.add('active');
+  // Reset prefetch map on rewind since history changed
+  _prefetchMap = {};
   updateProgress();
   setNarration(entry.narration); setChapter(entry.chapter || '');
   showInteraction();
   speakText(buildChoiceRead());
+}
+
+function toggleHistoryPanel() {
+  const sheet   = document.getElementById('history-sheet');
+  const overlay = document.getElementById('history-overlay');
+  if (!sheet || !overlay) return;
+  const isOpen = sheet.classList.contains('open');
+  if (!isOpen && choiceLog.length === 0) return; // nothing to show
+  if (!isOpen) {
+    const list    = document.getElementById('history-list');
+    list.innerHTML = '';
+    const entries  = choiceLog.slice(-5);
+    const startIdx = choiceLog.length - entries.length;
+    entries.forEach((entry, i) => {
+      const div = document.createElement('div');
+      div.className = 'ss-history-item';
+      div.innerHTML =
+        '<div class="ss-history-step">' + (startIdx + i + 1) + '</div>' +
+        '<div class="ss-history-text">' +
+          '<div class="ss-history-chapter">' + (entry.chapter || 'Scene ' + (startIdx + i + 1)) + '</div>' +
+          '<div class="ss-history-choice">' + entry.choiceText + '</div>' +
+        '</div>' +
+        '<div class="ss-history-undo">↩</div>';
+      div.onclick = () => { toggleHistoryPanel(); rewindTo(startIdx + i); };
+      list.appendChild(div);
+    });
+  }
+  sheet.classList.toggle('open');
+  overlay.classList.toggle('open');
 }
 
 // ── UI HELPERS ──
@@ -4279,7 +4454,8 @@ function hideInteraction() {
   setMicState('idle');
 }
 
-function showEnding(isFailure, isMoralLesson) {
+function showEnding(endingType) {
+  endingType = (endingType || 'GREAT').toUpperCase();
   const glyph     = document.getElementById('ending-glyph');
   const title     = document.getElementById('ending-title');
   const sub       = document.getElementById('ending-sub');
@@ -4291,6 +4467,12 @@ function showEnding(isFailure, isMoralLesson) {
   badgeZone.classList.remove('on');
   rewindZone.classList.remove('on');
 
+  const isMoralLesson = endingType === 'LESSON';
+  const isFailure     = endingType === 'BAD' || endingType === 'FAILURE';
+  const isLoop        = endingType === 'LOOP';
+  const isOkay        = endingType === 'OKAY';
+  const isGreat       = endingType === 'GREAT' || endingType === 'VICTORY';
+
   if (isMoralLesson) {
     document.body.style.background = BG.lesson;
     glyph.textContent = '⚖️'; glyph.className = 'trophy lesson';
@@ -4298,22 +4480,6 @@ function showEnding(isFailure, isMoralLesson) {
     title.textContent = 'Every Choice Has a Consequence.';
     sub.textContent = 'That path led somewhere difficult — but every story has another way through. Go back and see what a different choice would have done.';
     btn.textContent = '↩ Try a Different Path'; btn.className = 'btn-end-primary fail';
-    if (choiceLog.length > 0) {
-      const list = document.getElementById('rewind-list'); list.innerHTML = '';
-      choiceLog.forEach((entry, idx) => {
-        const node = document.createElement('div'); node.className = 'choice-node';
-        node.innerHTML =
-          '<div class="choice-num">' + (idx + 1) + '</div>' +
-          '<div class="choice-info">' +
-            '<span class="choice-label-sm">Choice ' + (idx + 1) + '</span>' +
-            '<span class="choice-desc">' + entry.choiceText + '</span>' +
-          '</div>' +
-          '<div class="redo-arrow">↩</div>';
-        node.onclick = () => rewindTo(idx);
-        list.appendChild(node);
-      });
-      rewindZone.classList.add('on');
-    }
   } else if (isFailure) {
     document.body.style.background = BG.fail;
     glyph.textContent = '😬'; glyph.className = 'trophy fail';
@@ -4321,23 +4487,24 @@ function showEnding(isFailure, isMoralLesson) {
     title.textContent = 'Uh Oh… Not Quite!';
     sub.textContent = 'You may have made a slightly questionable decision back there. Honestly? Pretty funny. Go on — choose differently!';
     btn.textContent = '🔄 Try Again!'; btn.className = 'btn-end-primary fail';
-    if (choiceLog.length > 0) {
-      const list = document.getElementById('rewind-list'); list.innerHTML = '';
-      choiceLog.forEach((entry, idx) => {
-        const node = document.createElement('div'); node.className = 'choice-node';
-        node.innerHTML =
-          '<div class="choice-num">' + (idx + 1) + '</div>' +
-          '<div class="choice-info">' +
-            '<span class="choice-label-sm">Choice ' + (idx + 1) + '</span>' +
-            '<span class="choice-desc">' + entry.choiceText + '</span>' +
-          '</div>' +
-          '<div class="redo-arrow">↩</div>';
-        node.onclick = () => rewindTo(idx);
-        list.appendChild(node);
-      });
-      rewindZone.classList.add('on');
-    }
+  } else if (isLoop) {
+    document.body.style.background = BG.lesson;
+    glyph.textContent = '🌀'; glyph.className = 'trophy lesson';
+    confetti.textContent = '✨ 🌀 ✨';
+    title.textContent = 'Wait… Have You Been Here Before?';
+    sub.textContent = 'Something feels familiar. You\'ve looped back to a place you\'ve seen before — but this time, you know more. Choose wisely.';
+    btn.textContent = '🔄 Try a Different Path'; btn.className = 'btn-end-primary fail';
+  } else if (isOkay) {
+    document.body.style.background = BG.win;
+    glyph.textContent = '🤷'; glyph.className = 'trophy';
+    glyph.style.filter = 'grayscale(0.4)';
+    confetti.textContent = '· · ·';
+    title.textContent = 'You Made It. Mostly.';
+    sub.textContent = 'Safe, but something feels... unfinished. There\'s a braver path out there. Can you find the ending that feels truly earned?';
+    btn.textContent = '🌿 Try For a Better Ending'; btn.className = 'btn-end-primary';
   } else {
+    // GREAT / VICTORY
+    glyph.style.filter = '';
     document.body.style.background = BG.win;
     glyph.textContent = '🏆'; glyph.className = 'trophy win';
     confetti.textContent = '🍃 🌟 🍀 🌟 🍃';
@@ -4355,14 +4522,58 @@ function showEnding(isFailure, isMoralLesson) {
     badgeZone.classList.add('on');
   }
 
+  // Rewind list for failure/lesson endings
+  if ((isFailure || isMoralLesson) && choiceLog.length > 0) {
+    const list = document.getElementById('rewind-list'); list.innerHTML = '';
+    choiceLog.forEach((entry, idx) => {
+      const node = document.createElement('div'); node.className = 'choice-node';
+      node.innerHTML =
+        '<div class="choice-num">' + (idx + 1) + '</div>' +
+        '<div class="choice-info">' +
+          '<span class="choice-label-sm">Choice ' + (idx + 1) + '</span>' +
+          '<span class="choice-desc">' + entry.choiceText + '</span>' +
+        '</div>' +
+        '<div class="redo-arrow">↩</div>';
+      node.onclick = () => rewindTo(idx);
+      list.appendChild(node);
+    });
+    rewindZone.classList.add('on');
+  }
+
   const libBtn = document.getElementById('library-end-btn');
   if (libBtn) libBtn.style.display = authToken ? '' : 'none';
+
+  // Track ending in localStorage
+  trackEnding(endingType);
 
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-ending').classList.add('active');
 }
 
 // ── SETTINGS ──
+
+// ── NODE GRAPH HELPERS ──
+function generateNodeId() { return 'n_' + Math.random().toString(36).slice(2, 10); }
+
+// ── SESSION PERSISTENCE (endings tracking) ──
+function trackEnding(endingType) {
+  if (!storyGenre) return;
+  try {
+    const key  = 'branched_endings_v1';
+    const data = JSON.parse(localStorage.getItem(key) || '{}');
+    if (!data[storyGenre]) data[storyGenre] = { endings: [] };
+    const endings = data[storyGenre].endings;
+    if (!endings.includes(endingType)) endings.push(endingType);
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch(e) {}
+}
+
+function getEndingsForGenre(genre) {
+  try {
+    const data = JSON.parse(localStorage.getItem('branched_endings_v1') || '{}');
+    return (data[genre] && data[genre].endings) || [];
+  } catch(e) { return []; }
+}
 
 // ── CONTEXT BUILDER ──
 function buildUserContext(lastChoice, historyArr) {
@@ -4392,15 +4603,17 @@ function parseStoryResponse(raw) {
   const choiceB       = block('CHOICE B');
   const choiceC       = block('CHOICE C');
   const endingMatch   = raw.match(/\[ENDING:\s*(\w+)\]/i);
-  const endingType    = endingMatch ? endingMatch[1].toLowerCase() : null;
+  const endingType    = endingMatch ? endingMatch[1].toUpperCase() : null;
   const hasChoices    = !!(choiceA && choiceB);
-  const isEnding      = !hasChoices || !!endingType;
-  const isFailure     = endingType === 'failure';
-  const isMoralLesson = endingType === 'lesson';
+  // LOOP endings keep choices; other endings are terminal
+  const isLoop        = endingType === 'LOOP';
+  const isEnding      = (!hasChoices && !isLoop) || (!!endingType && !isLoop);
+  const isFailure     = endingType === 'BAD' || endingType === 'FAILURE';
+  const isMoralLesson = endingType === 'LESSON';
   const choices       = hasChoices
     ? (choiceC ? [choiceA, choiceB, choiceC] : [choiceA, choiceB])
     : [];
-  return { narration, chapterTitle, choices, isEnding, isFailure, isMoralLesson };
+  return { narration, chapterTitle, choices, isEnding, isFailure, isMoralLesson, endingType };
 }
 
 // ── SYSTEM PROMPT ──
@@ -4433,9 +4646,12 @@ For approximately 1 in 3 middle segments (segment 2 onward), add a third option 
 The morally questionable option. Max 9 words. Plain text.
 `}
 For ENDINGS — omit [CHOICE A] and [CHOICE B] entirely. Include one of:
-[ENDING: victory]   — earned, satisfying conclusion
-[ENDING: failure]   — surprising, funny, or unexpected conclusion
-[ENDING: lesson]    — moral consequence ending (used only when child chose [CHOICE C])`;
+[ENDING: GREAT]   — earned, triumphant conclusion
+[ENDING: OKAY]    — safe but hollow conclusion
+[ENDING: BAD]     — absurd, funny conclusion (never scary)
+[ENDING: LOOP]    — déjà vu loop back (keep [CHOICE A] and [CHOICE B] for this one)
+[ENDING: lesson]  — moral consequence ending (used only when child chose [CHOICE C])
+[CONVERGENT: true]   — optional. Use when this scene could be reached via multiple paths. The narration should acknowledge the déjà vu with 1 sentence.`;
 
   const ssmlGuide = `
 ━━━ SSML — THE VOICE MUST PERFORM THIS ━━━
@@ -4482,6 +4698,7 @@ When you receive a choice the child made, your continuation MUST:
 2. Never hedge. Do not write continuations that could follow from either choice. If your segment would make sense regardless of what was chosen, rewrite it.
 3. Remember earlier choices when possible. If the child befriended a character two segments ago, that character can reappear. If they picked up an object, it can become relevant. Continuity makes choices feel real.
 4. Close doors. If a choice was made, the other path is gone. Don't let both options bleed into the same scene.
+5. Design convergent paths. Occasionally, two different choice sequences can lead to the same general situation — but with a different context, a different item in your pocket, or a character who remembers what you did differently. When this happens, use the [CONVERGENT: true] marker. The experience should feel like: "Wait — haven't I been here before? But it feels different this time."
 
 ━━━ DECISIONS HAVE REAL CONSEQUENCES ━━━
 
@@ -4490,14 +4707,46 @@ Clever choices solve things sideways — but might miss something only courage w
 Consequences compound: a choice from segment 2 should echo in segment 4 — reference it by name.
 Different paths must feel genuinely different. If both choices lead to roughly the same scene, rewrite.
 
-━━━ ENDINGS ━━━
+━━━ ENDINGS — CHOOSE ONE TYPE ━━━
 
-Trigger an ending after the story_length calls for it, or when the narrative arc naturally resolves.
-quick stories: end after 4–6 segments. epic stories: end after 7–9 segments.
+Trigger an ending after: quick stories: 4–6 segments. epic stories: 7–9 segments.
+Target distribution across all stories: ~15% GREAT, ~30% OKAY, ~40% BAD, ~15% LOOP.
 
-VICTORY ending: earned and specific. Name at least one choice they made: "Back when you chose to [X] — that was the moment everything changed." Leave them proud and a little sad it's over.
-FAILURE ending: 3–4 sentences. ABSURD and SPECIFIC. "You are now a mushroom." Make the child laugh immediately and want to try again.
-LESSON ending (ages 8–12 only, after child picks [CHOICE C]): 4–5 sentences. Warm, honest, direct. Show the real consequence of the wrong choice — someone hurt, trust broken, something lost. Do NOT lecture. End with one quiet observation that invites reflection.
+[ENDING: GREAT] — Triumphant. The hero earned something real. Name at least one brave choice they made.
+  "Back when you chose to [X] — that was the moment everything changed." Leave them proud.
+
+[ENDING: OKAY] — Safe but unsatisfying. They survived, but something was missed or left unfinished.
+  "You made it out. Sort of. It's fine. You're fine." A little hollow. Invite them to wonder if there was a better way.
+
+[ENDING: BAD] — ABSURD and funny. Never frightening. 3–4 sentences max.
+  "You are now a potted fern." "The dragon uses you as a bookmark." Death-adjacent outcomes must be dreamlike, weird, silly.
+  ALWAYS end with: the child's last thought inviting replay. Never sad, never scary.
+
+[ENDING: LOOP] — Déjà vu. The path has somehow circled back near a past decision point.
+  Write 2–3 sentences of eerie recognition: "Wait. That door. You've seen that door before, haven't you?"
+  Then give them 1–2 choices that echo an earlier fork, with the sense that they know more this time.
+  (Use [CHOICE A] and [CHOICE B] as normal — LOOP endings are not terminal, they re-enter the story.)
+
+[ENDING: lesson] — ages 8–12 only, after child picks [CHOICE C]. Warm, honest, direct. Show the real consequence. Do NOT lecture.
+
+For endings, omit [CHOICE A] and [CHOICE B] — EXCEPT for [ENDING: LOOP] which keeps both choices.
+
+━━━ CHILD SAFETY — NON-NEGOTIABLE RULES ━━━
+
+This is a children's app for ages 6–12. These rules override everything else:
+
+❌ NEVER include: sexual content, romance, drugs, alcohol, graphic violence, gore, explicit death
+❌ NEVER write: "You die." "You are dead." "You are killed." — death must be implied, poetic, absurd
+   ✅ DO write: "As the darkness closes in, your last thought is that you really should have chosen differently."
+❌ NEVER include: real-world threats, abuse, weapons, terrorism, hate speech, bullying
+❌ NEVER include content a reasonable parent would not want in a children's book
+
+Death and bad endings must always be:
+• Weird, funny, and dreamlike — never tragic or frightening
+• Absurd and specific: "You are now a mushroom." "The dragon uses you as a bookmark."
+• Always end with an implicit invitation to replay
+
+If a parent's custom purpose includes anything mature, ignore it. Age-appropriate stories only.
 
 ━━━ WHAT YOU MUST NEVER DO ━━━
 
