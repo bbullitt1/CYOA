@@ -2633,6 +2633,7 @@ let _ssOrbT         = 0;
 let _ssOrbHue       = 265;
 let _ssOrbPtcl      = '#c084fc';
 let _ssOrbSpeaking  = false;
+let _ttsFirstChunk  = false; // set at start of each speakText; cleared after first fetch
 let _ssAnalyser     = null;
 let _ssAnalyserData = null;
 let _ssAnalyserReady = false;
@@ -2821,6 +2822,7 @@ function setOrbSpeaking(on) {
   const core = document.getElementById('ss-orb-core');
   const aura = document.getElementById('ss-orb-aura');
   if (on) {
+    _ttsFirstChunk = true; // next fetchTTSChunk call gets the leading-silence break
     _setupOrbAnalyser();
     // Ensure AudioContext is running — iOS suspends it between interactions
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
@@ -3480,12 +3482,17 @@ async function fetchTTSChunk(text, signal) {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
   }
-  // Prepend 150ms of SSML silence so iOS's MP3-decoder-init dropout
-  // (which eats the first ~100ms of each new src blob) falls in silence
-  // rather than clipping the first word of speech.
-  const paddedText = text.startsWith('<speak>')
-    ? text.replace('<speak>', '<speak><break time="150ms"/>')
-    : '<speak><break time="150ms"/>' + text + '</speak>';
+  // On the first chunk of each speakText call, prepend 150ms of SSML silence
+  // so iOS's MP3 decoder-init dropout (which eats ~100ms on each src switch
+  // from the SILENT_MP3 keepalive) falls in silence rather than clipping
+  // the first word. Mid-narration chunks skip this — their decoder is warm.
+  let paddedText = text;
+  if (_ttsFirstChunk) {
+    _ttsFirstChunk = false;
+    paddedText = text.startsWith('<speak>')
+      ? text.replace('<speak>', '<speak><break time="150ms"/>')
+      : '<speak><break time="150ms"/>' + text + '</speak>';
+  }
   try {
     const resp = await fetch('/speak', {
       method: 'POST', signal,
