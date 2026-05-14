@@ -2247,13 +2247,12 @@
     </div>
 
     <div id="rewind-zone">
-      <div class="rewind-title"><span>⏪</span> Go Back &amp; Change a Choice</div>
+      <div class="rewind-title"><span>↩</span> Try again from any point:</div>
       <div class="choice-history" id="rewind-list"></div>
     </div>
 
     <div class="end-btns">
       <button class="btn-end-primary" id="ending-btn" onclick="goPickWorld()"></button>
-      <button class="btn-end-secondary" onclick="restartSameGenre()">🔄 Play Again (Different Choices)</button>
       <button class="btn-end-secondary" id="library-end-btn" style="display:none" onclick="showLibrary()">📚 See My Stories</button>
     </div>
   </div>
@@ -3585,16 +3584,22 @@ async function fetchTTSChunk(text, signal) {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
   }
+  // Strip " chars that TTS reads aloud as "quote" — only in text nodes, not tag attributes
+  const _isSSML = text.trimStart().startsWith('<speak>');
+  const sanitized = _isSSML
+    ? text.replace(/>([^<]*)</g, (_, t) => '>' + t.replace(/["“”]/g, '') + '<')
+    : text.replace(/["“”]/g, '');
+
   // On the first chunk of each speakText call, prepend 150ms of SSML silence
   // so iOS's MP3 decoder-init dropout (which eats ~100ms on each src switch
   // from the SILENT_MP3 keepalive) falls in silence rather than clipping
   // the first word. Mid-narration chunks skip this — their decoder is warm.
-  let paddedText = text;
+  let paddedText = sanitized;
   if (_ttsFirstChunk) {
     _ttsFirstChunk = false;
-    paddedText = text.startsWith('<speak>')
-      ? text.replace('<speak>', '<speak><break time="150ms"/>')
-      : '<speak><break time="150ms"/>' + text + '</speak>';
+    paddedText = sanitized.startsWith('<speak>')
+      ? sanitized.replace('<speak>', '<speak><break time="150ms"/>')
+      : '<speak><break time="150ms"/>' + sanitized + '</speak>';
   }
   try {
     const resp = await fetch('/speak', {
@@ -4524,15 +4529,28 @@ function showEnding(endingType) {
     badgeZone.classList.add('on');
   }
 
-  // Rewind list for failure/lesson endings
-  if ((isFailure || isMoralLesson) && choiceLog.length > 0) {
+  // Rewind list — always shown when there's any journey history
+  if (choiceLog.length > 0) {
     const list = document.getElementById('rewind-list'); list.innerHTML = '';
+    // "From the very beginning" shortcut at the top
+    if (initialStoryState) {
+      const top = document.createElement('div'); top.className = 'choice-node choice-node-start';
+      top.innerHTML =
+        '<div class="choice-num">⏮</div>' +
+        '<div class="choice-info">' +
+          '<span class="choice-label-sm">From the very start</span>' +
+          '<span class="choice-desc">Replay this adventure from the beginning</span>' +
+        '</div>' +
+        '<div class="redo-arrow">↩</div>';
+      top.onclick = () => restartSameGenre();
+      list.appendChild(top);
+    }
     choiceLog.forEach((entry, idx) => {
       const node = document.createElement('div'); node.className = 'choice-node';
       node.innerHTML =
         '<div class="choice-num">' + (idx + 1) + '</div>' +
         '<div class="choice-info">' +
-          '<span class="choice-label-sm">Choice ' + (idx + 1) + '</span>' +
+          '<span class="choice-label-sm">' + (entry.chapter || 'Scene ' + (idx + 1)) + '</span>' +
           '<span class="choice-desc">' + entry.choiceText + '</span>' +
         '</div>' +
         '<div class="redo-arrow">↩</div>';
