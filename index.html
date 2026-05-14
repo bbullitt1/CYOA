@@ -4162,14 +4162,16 @@ async function fetchNode(onError) {
     const endTimer = setTimeout(() => { cancelAudio(); showEnding(endT); }, safetyMs);
     speakText(narration, () => {
       clearTimeout(endTimer);
-      showEnding(endT);
-      if (!isMoralLesson) {
-        speakText(endT === 'BAD'
-          ? 'Ha! Well, that was unexpected. Go back and try a different path!'
-          : endT === 'OKAY'
-          ? 'You made it. But something tells you there\'s a better ending out there...'
-          : 'You did it! What incredible choices. Start a new adventure or go back and explore a different path!');
-      }
+      speakText('<speak><break time="700ms"/>The End.<break time="500ms"/></speak>', () => {
+        showEnding(endT);
+        if (!isMoralLesson) {
+          speakText(endT === 'BAD'
+            ? 'Ha! Well, that was unexpected. Go back and try a different path!'
+            : endT === 'OKAY'
+            ? 'You made it. But something tells you there\'s a better ending out there...'
+            : 'You did it! What incredible choices. Start a new adventure or go back and explore a different path!');
+        }
+      });
     });
   } else {
     const raw = result.choices;
