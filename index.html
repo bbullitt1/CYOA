@@ -3480,11 +3480,17 @@ async function fetchTTSChunk(text, signal) {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
   }
+  // Prepend 150ms of SSML silence so iOS's MP3-decoder-init dropout
+  // (which eats the first ~100ms of each new src blob) falls in silence
+  // rather than clipping the first word of speech.
+  const paddedText = text.startsWith('<speak>')
+    ? text.replace('<speak>', '<speak><break time="150ms"/>')
+    : '<speak><break time="150ms"/>' + text + '</speak>';
   try {
     const resp = await fetch('/speak', {
       method: 'POST', signal,
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text, voice: googleVoice }),
+      body: JSON.stringify({ text: paddedText, voice: googleVoice }),
     });
     const data = await resp.json();
     if (data.fallback || !data.audio) return { fallback: true, reason: data.reason };
