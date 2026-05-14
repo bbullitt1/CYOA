@@ -3327,7 +3327,7 @@ function resumeStory(story) {
   function doNext() {
     if (idx >= segments.length) {
       showInteraction();
-      if (choices.length >= 2) speakText('Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+      if (choices.length >= 2) speakText(buildChoiceRead());
       return;
     }
     const seg = segments[idx++];
@@ -3370,7 +3370,7 @@ function startOverStory(story) {
   // Narrate the opening scene, then show the original first choices
   speakText(firstSeg.narration || '', () => {
     showInteraction();
-    if (choices.length >= 2) speakText('Your choices: One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+    if (choices.length >= 2) speakText(buildChoiceRead());
   });
 }
 
@@ -3703,6 +3703,13 @@ function stopScrubber() {
   if (dot)  dot.style.left   = '0%';
 }
 
+function buildChoiceRead() {
+  const br = '<break time="500ms"/>';
+  let s = '<speak>Your choices.' + br + 'One: ' + choices[0] + '.' + br + 'Two: ' + choices[1] + '.';
+  if (choices.length >= 3) s += br + 'Three: ' + choices[2] + '.';
+  return s + '</speak>';
+}
+
 function seekToPercent(pct) {
   const el = audioEl;
   pct = Math.max(0, Math.min(100, pct));
@@ -3750,11 +3757,8 @@ function seekToPercent(pct) {
   _scrubSeekToMs = (pct / 100) * _scrubEstMs;
 
   speakText(seekText, () => {
-    const choiceRead = choices.length === 3
-      ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
-      : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
     _readingChoices = true;
-    speakText(choiceRead, () => { _readingChoices = false; showRestartBtn(); });
+    speakText(buildChoiceRead(), () => { _readingChoices = false; showRestartBtn(); });
   });
 }
 
@@ -3859,11 +3863,8 @@ function restartNarration() {
   _scrubPausedAt = 0;
   stopScrubber();
   speakText(stripSSML(_currentNarration || ''), () => {
-    const choiceRead = choices.length === 3
-      ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
-      : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
     _readingChoices = true;
-    speakText(choiceRead, () => {
+    speakText(buildChoiceRead(), () => {
       _readingChoices = false;
       showRestartBtn();
     });
@@ -4001,8 +4002,9 @@ function restartSameGenre() {
   setChapter(initialStoryState.chapter || '');
   clearError();
   showInteraction();
-  speakText('Let\'s try again from the beginning! ' + stripSSML(initialStoryState.narration) +
-    ' Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+  speakText('Let\'s try again from the beginning! ' + stripSSML(initialStoryState.narration), () => {
+    speakText(buildChoiceRead());
+  });
 }
 
 // ── STORY FLOW ──
@@ -4074,10 +4076,6 @@ async function fetchNode(onError) {
     const _safety = setTimeout(() => { if (!_shown) { _shown = true; showInteraction(); } }, _safetyMs);
     speakText(stripSSML(narration), () => {
       clearTimeout(_safety);
-      // Read choices aloud after narration; block scrubber reset during this
-      const choiceRead = choices.length === 3
-        ? 'Here are your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '. Three: ' + choices[2] + '.'
-        : 'Your choices. One: ' + choices[0] + '. Two: ' + choices[1] + '.';
       _readingChoices = true;
       // Show interaction the moment choices audio actually starts playing, not before
       const el = getAudioEl();
@@ -4088,7 +4086,7 @@ async function fetchNode(onError) {
         }
       };
       el.addEventListener('play', onChoicesPlay);
-      speakText(choiceRead, () => {
+      speakText(buildChoiceRead(), () => {
         el.removeEventListener('play', onChoicesPlay);
         if (!_shown) { _shown = true; showInteraction(); }
         _readingChoices = false;
@@ -4147,7 +4145,7 @@ function rewindTo(logIdx) {
   updateProgress();
   setNarration(entry.narration); setChapter(entry.chapter || '');
   showInteraction();
-  speakText('Your choices again. One: ' + choices[0] + '. Two: ' + choices[1] + '.');
+  speakText(buildChoiceRead());
 }
 
 // ── UI HELPERS ──
