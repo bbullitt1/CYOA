@@ -3584,19 +3584,16 @@ async function fetchTTSChunk(text, signal) {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
   }
-  // Strip quote chars that TTS would read aloud as “quote”
-  const sanitized = text.replace(/[“””''”]/g, '');
-
   // On the first chunk of each speakText call, prepend 150ms of SSML silence
   // so iOS's MP3 decoder-init dropout (which eats ~100ms on each src switch
   // from the SILENT_MP3 keepalive) falls in silence rather than clipping
   // the first word. Mid-narration chunks skip this — their decoder is warm.
-  let paddedText = sanitized;
+  let paddedText = text;
   if (_ttsFirstChunk) {
     _ttsFirstChunk = false;
-    paddedText = sanitized.startsWith('<speak>')
-      ? sanitized.replace('<speak>', '<speak><break time=”150ms”/>')
-      : '<speak><break time=”150ms”/>' + sanitized + '</speak>';
+    paddedText = paddedText.startsWith('<speak>')
+      ? paddedText.replace('<speak>', '<speak><break time=”150ms”/>')
+      : '<speak><break time=”150ms”/>' + paddedText + '</speak>';
   }
   try {
     const resp = await fetch('/speak', {
