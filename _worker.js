@@ -6,8 +6,6 @@ export default {
     const url = new URL(request.url);
     const path = url.pathname;
 
-    console.log('WORKER RECEIVED:', request.method, path);
-
     if (request.method === 'OPTIONS') return new Response('', { status: 200, headers: cors() });
 
     if (request.method === 'POST') {
@@ -48,10 +46,8 @@ async function handleNarrate(request, env) {
 
   const apiKey = env.ANTHROPIC_API_KEY || body.apiKey;
   if (!apiKey) {
-    console.error('NO API KEY - env.ANTHROPIC_API_KEY:', env.ANTHROPIC_API_KEY ? 'SET' : 'MISSING', 'body.apiKey:', body.apiKey ? 'SET' : 'MISSING');
     return json({ error: { message: 'No API key. Set ANTHROPIC_API_KEY in Cloudflare → Workers & Pages → Settings → Variables.' } }, 400);
   }
-  console.log('API Key source:', env.ANTHROPIC_API_KEY ? 'env.ANTHROPIC_API_KEY' : 'body.apiKey');
 
   try {
     const resp = await fetch('https://api.anthropic.com/v1/messages', {

@@ -2281,11 +2281,6 @@
 
 </div><!-- #app -->
 
-<!-- DEBUG PANEL -->
-<div id="debug-panel" style="position: fixed; bottom: 0; left: 0; right: 0; background: rgba(0,0,0,0.9); color: #0f0; font-family: monospace; font-size: 10px; max-height: 100px; overflow-y: auto; padding: 4px; z-index: 9999; display: none;">
-  <div id="debug-logs"></div>
-</div>
-
 <script>
 // 100+ story types — 6 are picked per session via shuffled cycling
 const STORY_TYPES = [
@@ -2747,21 +2742,6 @@ let _ssAnalyserReady = false;
 let _ssOrbParticles = [];
 let _ssAudioScale = 1.0;
 let _ssTargetScale = 1.0;
-
-// Debug logging
-function debugLog(msg) {
-  console.log(msg);
-  const panel = document.getElementById('debug-panel');
-  const logs = document.getElementById('debug-logs');
-  if (panel && logs) {
-    panel.style.display = 'block';
-    const line = document.createElement('div');
-    line.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
-    logs.appendChild(line);
-    if (logs.children.length > 20) logs.removeChild(logs.firstChild);
-    logs.scrollTop = logs.scrollHeight;
-  }
-}
 
 function setStoryWorld(type) {
   // World-specific CSS variables
@@ -3665,7 +3645,6 @@ async function speakText(text, onDone) {
 
   if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
   if (!text || !text.trim()) { onDone && onDone(); return; }
-  debugLog('SPEAK: ' + text.substring(0, 30).replace(/\n/g, ' ') + '...');
   setAudioBars(true);
   setOrbSpeaking(true);
 
@@ -3679,14 +3658,11 @@ async function speakText(text, onDone) {
     if (result.aborted) return;
 
     if (result.fallback) {
-      debugLog('TTS FALLBACK: ' + result.reason);
-      console.warn('TTS fallback:', result.reason);
       const el = getAudioEl(); el.pause(); el.loop = false;
       setAudioBars(false);
       speakFallback(chunks.slice(i).join(' '), onDone);
       return;
     }
-    debugLog('CHUNK ' + (i+1) + ' PLAYING');
 
     if (i + 1 < chunks.length) nextFetch = fetchTTSChunk(chunks[i + 1], signal);
     await playChunk(result.blobUrl, myToken);
@@ -4152,13 +4128,8 @@ async function fetchNode(onError) {
   if (pb) { pb.classList.remove('is-restart'); pb.classList.remove('is-paused'); }
   setLoading(true); setNarration(''); setChapter(''); hideInteraction(); clearError();
   let result, raw;
-  try {
-    debugLog('FETCHING NODE...');
-    ({ parsed: result, raw } = await callClaude(storyHistory));
-    debugLog('NODE FETCHED: ' + (result ? 'OK' : 'NO RESULT'));
-  }
+  try { ({ parsed: result, raw } = await callClaude(storyHistory)); }
   catch(err) {
-    debugLog('FETCH ERROR: ' + err.message);
     setLoading(false);
     if (onError) { onError(); }
     else { showError('Oops! ' + err.message); }
@@ -4649,7 +4620,6 @@ function parseStoryResponse(raw) {
   const hasChoices    = !!(choiceA && choiceB);
   // LOOP endings keep choices; other endings are terminal
   const isLoop        = endingType === 'LOOP';
-  debugLog('PARSE: ' + (hasChoices ? 'CHOICES' : 'ENDING:' + endingType));
   const isEnding      = (!hasChoices && !isLoop) || (!!endingType && !isLoop);
   const isFailure     = endingType === 'BAD' || endingType === 'FAILURE';
   const isMoralLesson = endingType === 'LESSON';
