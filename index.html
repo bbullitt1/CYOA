@@ -4833,7 +4833,7 @@ ${ssmlGuide}`;
 async function callClaude(messages) {
   const resp = await fetch('/narrate', {
     method: 'POST', headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ apiKey, payload: { model: 'claude-opus-4-8', max_tokens: 1024, system: buildSystemPrompt(), messages } })
+    body: JSON.stringify({ apiKey, payload: { model: 'claude-3-5-sonnet-20241022', max_tokens: 1024, system: buildSystemPrompt(), messages } })
   });
   if (!resp.ok) { const err = await resp.json().catch(() => ({})); throw new Error(err?.error?.message || 'HTTP ' + resp.status); }
   const data = await resp.json();
