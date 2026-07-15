@@ -4129,8 +4129,13 @@ async function fetchNode(onError) {
   if (pb) { pb.classList.remove('is-restart'); pb.classList.remove('is-paused'); }
   setLoading(true); setNarration(''); setChapter(''); hideInteraction(); clearError();
   let result, raw;
-  try { ({ parsed: result, raw } = await callClaude(storyHistory)); }
+  try {
+    console.log('FETCHING NODE...');
+    ({ parsed: result, raw } = await callClaude(storyHistory));
+    console.log('NODE FETCHED:', result ? 'OK' : 'NO RESULT');
+  }
   catch(err) {
+    console.error('FETCH ERROR:', err.message);
     setLoading(false);
     if (onError) { onError(); }
     else { showError('Oops! ' + err.message); }
@@ -4621,6 +4626,7 @@ function parseStoryResponse(raw) {
   const hasChoices    = !!(choiceA && choiceB);
   // LOOP endings keep choices; other endings are terminal
   const isLoop        = endingType === 'LOOP';
+  console.log('PARSE RESULT:', { narration: narration?.substring(0, 50), hasChoices, endingType });
   const isEnding      = (!hasChoices && !isLoop) || (!!endingType && !isLoop);
   const isFailure     = endingType === 'BAD' || endingType === 'FAILURE';
   const isMoralLesson = endingType === 'LESSON';
