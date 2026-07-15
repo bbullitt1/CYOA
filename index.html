@@ -3665,6 +3665,7 @@ async function speakText(text, onDone) {
 
   if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
   if (!text || !text.trim()) { onDone && onDone(); return; }
+  debugLog('SPEAK: ' + text.substring(0, 30).replace(/\n/g, ' ') + '...');
   setAudioBars(true);
   setOrbSpeaking(true);
 
@@ -3678,12 +3679,14 @@ async function speakText(text, onDone) {
     if (result.aborted) return;
 
     if (result.fallback) {
+      debugLog('TTS FALLBACK: ' + result.reason);
       console.warn('TTS fallback:', result.reason);
       const el = getAudioEl(); el.pause(); el.loop = false;
       setAudioBars(false);
       speakFallback(chunks.slice(i).join(' '), onDone);
       return;
     }
+    debugLog('CHUNK ' + (i+1) + ' PLAYING');
 
     if (i + 1 < chunks.length) nextFetch = fetchTTSChunk(chunks[i + 1], signal);
     await playChunk(result.blobUrl, myToken);
