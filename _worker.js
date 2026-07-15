@@ -76,7 +76,7 @@ async function handleSpeak(request, env) {
   const apiKey = env.GOOGLE_TTS_API_KEY;
   if (!apiKey) return json({ fallback: true, reason: 'no_key: GOOGLE_TTS_API_KEY env var not set' }, 200);
 
-  const { text, voice = 'en-US-Neural2-C' } = body;
+  const { text, voice = 'en-US-Standard-A' } = body;
   if (!text || !text.trim()) return json({ error: 'No text' }, 400);
 
   const languageCode = voice.slice(0, 5);
