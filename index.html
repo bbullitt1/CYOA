@@ -3584,11 +3584,8 @@ async function fetchTTSChunk(text, signal) {
     for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
     return { blobUrl: URL.createObjectURL(new Blob([bytes], { type: 'audio/mpeg' })) };
   }
-  // Strip " chars that TTS reads aloud as "quote" — only in text nodes, not tag attributes
-  const _isSSML = text.trimStart().startsWith('<speak>');
-  const sanitized = _isSSML
-    ? text.replace(/>([^<]*)</g, (_, t) => '>' + t.replace(/["“”]/g, '') + '<')
-    : text.replace(/["“”]/g, '');
+  // Strip quote chars that TTS would read aloud as “quote”
+  const sanitized = text.replace(/[“””''”]/g, '');
 
   // On the first chunk of each speakText call, prepend 150ms of SSML silence
   // so iOS's MP3 decoder-init dropout (which eats ~100ms on each src switch
@@ -3598,8 +3595,8 @@ async function fetchTTSChunk(text, signal) {
   if (_ttsFirstChunk) {
     _ttsFirstChunk = false;
     paddedText = sanitized.startsWith('<speak>')
-      ? sanitized.replace('<speak>', '<speak><break time="150ms"/>')
-      : '<speak><break time="150ms"/>' + sanitized + '</speak>';
+      ? sanitized.replace('<speak>', '<speak><break time=”150ms”/>')
+      : '<speak><break time=”150ms”/>' + sanitized + '</speak>';
   }
   try {
     const resp = await fetch('/speak', {
